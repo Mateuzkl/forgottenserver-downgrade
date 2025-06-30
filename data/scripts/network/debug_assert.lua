@@ -1,7 +1,7 @@
 local debugAssert = PacketHandler(0xE8)
 
 function debugAssert.onReceive(player, msg)
-	if player:hasDebugAssert() then return end
+	if player:hasDebugAssertSent() then return end
 
 	local assertLine = msg:getString()
 	local date = msg:getString()
