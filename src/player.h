@@ -314,7 +314,7 @@ public:
 		return std::max<int32_t>(0, capacity - inventoryWeight);
 	}
 
-	int32_t getMaxHealth() const override { return std::max<int32_t>(1, healthMax + varStats[STAT_MAXHITPOINTS]); }
+	int64_t getMaxHealth() const override { return std::max<int64_t>(1, healthMax + varStats[STAT_MAXHITPOINTS]); }
 	uint32_t getMana() const { return mana; }
 	uint32_t getMaxMana() const { return std::max<int32_t>(0, manaMax + varStats[STAT_MAXMANAPOINTS]); }
 
@@ -428,14 +428,14 @@ public:
 	bool isAttackable() const override;
 	static bool lastHitIsPlayer(Creature* lastHitCreature);
 
-	void changeHealth(int32_t healthChange, bool sendHealthChange = true) override;
-	void changeMana(int32_t manaChange);
+	void changeHealth(int64_t healthChange, bool sendHealthChange = true) override;
+	void changeMana(int64_t manaChange);
 	void changeSoul(int32_t soulChange);
 
 	bool isPzLocked() const { return pzLocked; }
-	BlockType_t blockHit(Creature* attacker, CombatType_t combatType, int32_t& damage, bool checkDefense = false,
+	BlockType_t blockHit(Creature* attacker, CombatType_t combatType, int64_t& damage, bool checkDefense = false,
 	                     bool checkArmor = false, bool field = false, bool ignoreResistances = false) override;
-	void doAttacking(uint32_t interval) override;
+	void doAttacking(uint64_t interval) override;
 	bool hasExtraSwing() override { return lastAttack > 0 && ((OTSYS_TIME() - lastAttack) >= getAttackSpeed()); }
 
 	uint16_t getSpecialSkill(uint8_t skill) const
@@ -463,7 +463,7 @@ public:
 	int32_t getWeaponSkill(const Item* item) const;
 	void getShieldAndWeapon(const Item*& shield, const Item*& weapon) const;
 
-	void drainHealth(Creature* attacker, int32_t damage) override;
+	void drainHealth(Creature* attacker, int64_t damage) override;
 	void drainMana(Creature* attacker, int32_t manaLoss);
 	void addManaSpent(uint64_t amount, bool artificial = false);
 	void removeManaSpent(uint64_t amount, bool notify = false);
@@ -488,8 +488,8 @@ public:
 	void onCombatRemoveCondition(Condition* condition) override;
 	void onAttackedCreature(Creature* target, bool addFightTicks = true) override;
 	void onAttacked() override;
-	void onAttackedCreatureDrainHealth(Creature* target, int32_t points) override;
-	void onTargetCreatureGainHealth(Creature* target, int32_t points) override;
+	void onAttackedCreatureDrainHealth(Creature* target, int64_t points) override;
+	void onTargetCreatureGainHealth(Creature* target, int64_t points) override;
 	bool onKilledCreature(Creature* target, bool lastHit = true) override;
 	void onGainExperience(uint64_t gainExp, Creature* target) override;
 	void onGainSharedExperience(uint64_t gainExp, Creature* source);

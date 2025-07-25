@@ -2467,10 +2467,8 @@ void ProtocolGame::AddPlayerStats(NetworkMessage& msg)
 {
 	msg.addByte(0xA0);
 
-	msg.add<uint16_t>(
-	    static_cast<uint16_t>(std::min<uint32_t>(player->getHealth(), std::numeric_limits<uint16_t>::max())));
-	msg.add<uint16_t>(
-	    static_cast<uint16_t>(std::min<uint32_t>(player->getMaxHealth(), std::numeric_limits<uint16_t>::max())));
+	msg.add<uint32_t>(player->getHealth());
+	msg.add<uint32_t>(player->getMaxHealth());
 
 	msg.add<uint32_t>(player->hasFlag(PlayerFlag_HasInfiniteCapacity) ? 1000000 : player->getFreeCapacity());
 
@@ -2479,10 +2477,8 @@ void ProtocolGame::AddPlayerStats(NetworkMessage& msg)
 	msg.add<uint16_t>(static_cast<uint16_t>(player->getLevel()));
 	msg.addByte(player->getLevelPercent());
 
-	msg.add<uint16_t>(
-	    static_cast<uint16_t>(std::min<uint32_t>(player->getMana(), std::numeric_limits<uint16_t>::max())));
-	msg.add<uint16_t>(
-	    static_cast<uint16_t>(std::min<uint32_t>(player->getMaxMana(), std::numeric_limits<uint16_t>::max())));
+	msg.add<uint32_t>(player->getMana());
+	msg.add<uint32_t>(player->getMaxMana());
 
 	msg.addByte(static_cast<uint8_t>(std::min<uint32_t>(player->getMagicLevel(), std::numeric_limits<uint8_t>::max())));
 	if (isOTCv8) {

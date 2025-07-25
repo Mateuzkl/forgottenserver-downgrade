@@ -152,8 +152,8 @@ public:
 	void setBaseSpeed(uint32_t newBaseSpeed) { baseSpeed = newBaseSpeed; }
 	uint32_t getBaseSpeed() const { return baseSpeed; }
 
-	int32_t getHealth() const { return health; }
-	virtual int32_t getMaxHealth() const { return healthMax; }
+	int64_t getHealth() const { return health; }
+	virtual int64_t getMaxHealth() const { return healthMax; }
 	bool isDead() const { return health <= 0; }
 
 	void setDrunkenness(uint8_t newDrunkenness) { drunkenness = newDrunkenness; }
@@ -189,7 +189,7 @@ public:
 	// combat functions
 	Creature* getAttackedCreature() const { return attackedCreature; }
 	virtual bool setAttackedCreature(Creature* creature);
-	virtual BlockType_t blockHit(Creature* attacker, CombatType_t combatType, int32_t& damage,
+	virtual BlockType_t blockHit(Creature* attacker, CombatType_t combatType, int64_t& damage,
 	                             bool checkDefense = false, bool checkArmor = false, bool field = false,
 	                             bool ignoreResistances = false);
 
@@ -231,17 +231,17 @@ public:
 	virtual uint32_t getConditionSuppressions() const { return 0; }
 	virtual bool isAttackable() const { return true; }
 
-	virtual void changeHealth(int32_t healthChange, bool sendHealthChange = true);
+	virtual void changeHealth(int64_t healthChange, bool sendHealthChange = true);
 
-	void gainHealth(Creature* healer, int32_t healthGain);
-	virtual void drainHealth(Creature* attacker, int32_t damage);
+	void gainHealth(Creature* healer, int64_t healthGain);
+	virtual void drainHealth(Creature* attacker, int64_t damage);
 
 	virtual bool challengeCreature(Creature*, bool) { return false; }
 
 	CreatureVector getKillers();
 	void onDeath();
 	virtual uint64_t getGainedExperience(Creature* attacker) const;
-	void addDamagePoints(Creature* attacker, int32_t damagePoints);
+	void addDamagePoints(Creature* attacker, int64_t damagePoints);
 	bool hasBeenAttacked(uint32_t attackerId);
 
 	// combat event functions
@@ -252,8 +252,8 @@ public:
 	virtual void onCombatRemoveCondition(Condition* condition);
 	virtual void onAttackedCreature(Creature*, bool = true) {}
 	virtual void onAttacked();
-	virtual void onAttackedCreatureDrainHealth(Creature* target, int32_t points);
-	virtual void onTargetCreatureGainHealth(Creature*, int32_t) {}
+	virtual void onAttackedCreatureDrainHealth(Creature* target, int64_t points);
+	virtual void onTargetCreatureGainHealth(Creature*, int64_t) {}
 	virtual bool onKilledCreature(Creature* target, bool lastHit = true);
 	virtual void onGainExperience(uint64_t gainExp, Creature* target);
 	virtual void onAttackedCreatureBlockHit(BlockType_t) {}
@@ -288,7 +288,7 @@ public:
 
 	virtual void onPlacedCreature() {}
 
-	virtual bool getCombatValues(int32_t&, int32_t&) { return false; }
+	virtual bool getCombatValues(int64_t&, int64_t&) { return false; }
 
 	size_t getSummonCount() const { return summons.size(); }
 	void setDropLoot(bool lootDrop) { this->lootDrop = lootDrop; }
@@ -358,7 +358,7 @@ protected:
 
 	struct CountBlock_t
 	{
-		int32_t total;
+		int64_t total;
 		int64_t ticks;
 	};
 
@@ -369,7 +369,7 @@ protected:
 
 	Position position;
 
-	using CountMap = std::map<uint32_t, CountBlock_t>;
+	using CountMap = std::map<uint64_t, CountBlock_t>;
 	CountMap damageMap;
 
 	std::list<Creature*> summons;
@@ -395,8 +395,8 @@ protected:
 	uint32_t lastStepCost = 1;
 	uint32_t baseSpeed = 220;
 	int32_t varSpeed = 0;
-	int32_t health = 1000;
-	int32_t healthMax = 1000;
+	int64_t health = 1000;
+	int64_t healthMax = 1000;
 	uint8_t drunkenness = 0;
 
 	Outfit_t currentOutfit;
@@ -434,7 +434,7 @@ protected:
 	void updateTileCache(const Tile* tile, int32_t dx, int32_t dy);
 	void updateTileCache(const Tile* tile, const Position& pos);
 	void onCreatureDisappear(const Creature* creature, bool isLogout);
-	virtual void doAttacking(uint32_t) {}
+	virtual void doAttacking(uint64_t) {}
 	virtual bool hasExtraSwing() { return false; }
 
 	virtual uint64_t getLostExperience() const { return 0; }

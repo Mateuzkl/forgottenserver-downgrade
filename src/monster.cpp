@@ -593,7 +593,7 @@ void Monster::onFollowCreatureComplete(const Creature* creature)
 	}
 }
 
-BlockType_t Monster::blockHit(Creature* attacker, CombatType_t combatType, int32_t& damage,
+BlockType_t Monster::blockHit(Creature* attacker, CombatType_t combatType, int64_t& damage,
                               bool checkDefense /* = false*/, bool checkArmor /* = false*/, bool /* field = false */,
                               bool /* ignoreResistances = false */)
 {
@@ -774,7 +774,7 @@ void Monster::onThink(uint32_t interval)
 	}
 }
 
-void Monster::doAttacking(uint32_t interval)
+void Monster::doAttacking(uint64_t interval)
 {
 	if (!attackedCreature || (isSummon() && attackedCreature == this)) {
 		return;
@@ -1877,7 +1877,7 @@ bool Monster::isInSpawnRange(const Position& pos) const
 	return true;
 }
 
-bool Monster::getCombatValues(int32_t& min, int32_t& max)
+bool Monster::getCombatValues(int64_t& min, int64_t& max)
 {
 	if (minCombatValue == 0 && maxCombatValue == 0) {
 		return false;
@@ -1905,7 +1905,7 @@ void Monster::dropLoot(Container* corpse, Creature*)
 
 void Monster::setNormalCreatureLight() { internalLight = mType->info.light; }
 
-void Monster::drainHealth(Creature* attacker, int32_t damage)
+void Monster::drainHealth(Creature* attacker, int64_t damage)
 {
 	Creature::drainHealth(attacker, damage);
 
@@ -1919,7 +1919,7 @@ void Monster::drainHealth(Creature* attacker, int32_t damage)
 	}
 }
 
-void Monster::changeHealth(int32_t healthChange, bool sendHealthChange /* = true*/)
+void Monster::changeHealth(int64_t healthChange, bool sendHealthChange /* = true*/)
 {
 	// In case a player with ignore flag set attacks the monster
 	setIdle(false);

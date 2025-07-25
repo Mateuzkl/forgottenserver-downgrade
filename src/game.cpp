@@ -4463,7 +4463,8 @@ bool Game::combatChangeMana(Creature* attacker, Creature* target, CombatDamage& 
 		}
 
 		int32_t manaLoss = std::min<int32_t>(targetPlayer->getMana(), -manaChange);
-		BlockType_t blockType = target->blockHit(attacker, COMBAT_MANADRAIN, manaLoss);
+		int64_t manaLoss64 = static_cast<int64_t>(manaLoss);
+		BlockType_t blockType = target->blockHit(attacker, COMBAT_MANADRAIN, manaLoss64);
 		if (blockType != BLOCK_NONE) {
 			addMagicEffect(targetPos, CONST_ME_POFF);
 			return false;

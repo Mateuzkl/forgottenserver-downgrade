@@ -87,8 +87,8 @@ public:
 	                    const Position& oldPos, bool teleport) override;
 	void onCreatureSay(Creature* creature, SpeakClasses type, std::string_view text) override;
 
-	void drainHealth(Creature* attacker, int32_t damage) override;
-	void changeHealth(int32_t healthChange, bool sendHealthChange = true) override;
+	void drainHealth(Creature* attacker, int64_t damage) override;
+	void changeHealth(int64_t healthChange, bool sendHealthChange = true) override;
 
 	bool isWalkingToSpawn() const { return walkingToSpawn; }
 	bool walkToSpawn();
@@ -102,9 +102,9 @@ public:
 	bool challengeCreature(Creature* creature, bool force = false) override;
 
 	void setNormalCreatureLight() override;
-	bool getCombatValues(int32_t& min, int32_t& max) override;
+	bool getCombatValues(int64_t& min, int64_t& max) override;
 
-	void doAttacking(uint32_t interval) override;
+	void doAttacking(uint64_t interval) override;
 	bool hasExtraSwing() override { return lastMeleeAttack == 0; }
 
 	bool searchTarget(TargetSearchType_t searchType = TARGETSEARCH_DEFAULT);
@@ -123,7 +123,7 @@ public:
 	bool isTargetNearby() const { return stepDuration >= 1; }
 	bool isIgnoringFieldDamage() const { return ignoreFieldDamage; }
 
-	BlockType_t blockHit(Creature* attacker, CombatType_t combatType, int32_t& damage, bool checkDefense = false,
+	BlockType_t blockHit(Creature* attacker, CombatType_t combatType, int64_t& damage, bool checkDefense = false,
 	                     bool checkArmor = false, bool field = false, bool ignoreResistances = false) override;
 
 	static uint32_t monsterAutoID;
@@ -160,8 +160,8 @@ private:
 	uint32_t targetChangeTicks = 0;
 	uint32_t defenseTicks = 0;
 	uint32_t yellTicks = 0;
-	int32_t minCombatValue = 0;
-	int32_t maxCombatValue = 0;
+	int64_t minCombatValue = 0;
+	int64_t maxCombatValue = 0;
 	int32_t targetChangeCooldown = 0;
 	int32_t challengeFocusDuration = 0;
 	int32_t stepDuration = 0;

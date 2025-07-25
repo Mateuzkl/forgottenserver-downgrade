@@ -1421,7 +1421,7 @@ void Player::removeMessageBuffer()
 	}
 }
 
-void Player::drainHealth(Creature* attacker, int32_t damage)
+void Player::drainHealth(Creature* attacker, int64_t damage)
 {
 	Creature::drainHealth(attacker, damage);
 	sendStats();
@@ -1486,6 +1486,7 @@ void Player::addManaSpent(uint64_t amount, bool artificial /*= false*/)
 	}
 
 	if (oldPercent != magLevelPercent) {
+		skills[SKILL_MAGLEVEL].percent = static_cast<uint8_t>(magLevelPercent);
 		sendUpdateStats = true;
 	}
 
@@ -1770,7 +1771,7 @@ bool Player::hasShield() const
 	return false;
 }
 
-BlockType_t Player::blockHit(Creature* attacker, CombatType_t combatType, int32_t& damage,
+BlockType_t Player::blockHit(Creature* attacker, CombatType_t combatType, int64_t& damage,
                              bool checkDefense /* = false*/, bool checkArmor /* = false*/, bool field /* = false*/,
                              bool ignoreResistances /* = false*/)
 {
@@ -3107,8 +3108,9 @@ void Player::getPathSearchParams(const Creature* creature, FindPathParams& fpp) 
 	fpp.fullPathSearch = true;
 }
 
-void Player::doAttacking(uint32_t)
+void Player::doAttacking(uint64_t interval)
 {
+	(void)interval; // Suppress unused parameter warning
 	if (lastAttack == 0) {
 		lastAttack = OTSYS_TIME() - getAttackSpeed() - 1;
 	}
@@ -3412,7 +3414,7 @@ void Player::onPlacedCreature()
 	}
 }
 
-void Player::onAttackedCreatureDrainHealth(Creature* target, int32_t points)
+void Player::onAttackedCreatureDrainHealth(Creature* target, int64_t points)
 {
 	Creature::onAttackedCreatureDrainHealth(target, points);
 
@@ -3427,7 +3429,7 @@ void Player::onAttackedCreatureDrainHealth(Creature* target, int32_t points)
 	}
 }
 
-void Player::onTargetCreatureGainHealth(Creature* target, int32_t points)
+void Player::onTargetCreatureGainHealth(Creature* target, int64_t points)
 {
 	if (target && party) {
 		Player* tmpPlayer = nullptr;
@@ -3544,19 +3546,19 @@ bool Player::lastHitIsPlayer(Creature* lastHitCreature)
 	return lastHitMaster && lastHitMaster->getPlayer();
 }
 
-void Player::changeHealth(int32_t healthChange, bool sendHealthChange /* = true*/)
+void Player::changeHealth(int64_t healthChange, bool sendHealthChange /* = true*/)
 {
 	Creature::changeHealth(healthChange, sendHealthChange);
 	sendStats();
 }
 
-void Player::changeMana(int32_t manaChange)
+void Player::changeMana(int64_t manaChange)
 {
 	if (!hasFlag(PlayerFlag_HasInfiniteMana)) {
 		if (manaChange > 0) {
-			mana += std::min<int32_t>(manaChange, getMaxMana() - mana);
+			mana += std::min<int64_t>(manaChange, getMaxMana() - mana);
 		} else {
-			mana = std::max<int32_t>(0, mana + manaChange);
+			mana = std::max<int64_t>(0, mana + manaChange);
 		}
 	}
 

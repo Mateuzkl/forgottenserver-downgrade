@@ -175,18 +175,18 @@ std::mt19937& getRandomGenerator()
 	return generator;
 }
 
-int32_t uniform_random(int32_t minNumber, int32_t maxNumber)
+int64_t uniform_random(int64_t minNumber, int64_t maxNumber)
 {
-	static std::uniform_int_distribution<int32_t> uniformRand;
+	static std::uniform_int_distribution<int64_t> uniformRand;
 	if (minNumber == maxNumber) {
 		return minNumber;
 	} else if (minNumber > maxNumber) {
 		std::swap(minNumber, maxNumber);
 	}
-	return uniformRand(getRandomGenerator(), std::uniform_int_distribution<int32_t>::param_type(minNumber, maxNumber));
+	return uniformRand(getRandomGenerator(), std::uniform_int_distribution<int64_t>::param_type(minNumber, maxNumber));
 }
 
-int32_t normal_random(int32_t minNumber, int32_t maxNumber)
+int64_t normal_random(int64_t minNumber, int64_t maxNumber)
 {
 	static std::normal_distribution<float> normalRand(0.5f, 0.25f);
 

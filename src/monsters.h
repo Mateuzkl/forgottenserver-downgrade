@@ -80,8 +80,8 @@ struct spellBlock_t
 	uint32_t chance = 100;
 	uint32_t speed = 2000;
 	uint32_t range = 0;
-	int32_t minCombatValue = 0;
-	int32_t maxCombatValue = 0;
+	int64_t minCombatValue = 0;
+	int64_t maxCombatValue = 0;
 	bool combatSpell = false;
 	bool isMelee = false;
 };
@@ -98,7 +98,9 @@ class MonsterType
 	{
 		LuaScriptInterface* scriptInterface;
 
-		std::map<CombatType_t, int32_t> elementMap;
+		std::map<CombatType_t, int64_t> elementMap;
+		std::map<CombatType_t, int64_t> reflectMap;
+		std::map<CombatType_t, int64_t> healingMap;
 
 		std::vector<voiceBlock_t> voiceVector;
 
@@ -194,8 +196,8 @@ public:
 
 	uint16_t interval = 2000;
 
-	int32_t minCombatValue = 0;
-	int32_t maxCombatValue = 0;
+	int64_t minCombatValue = 0;
+	int64_t maxCombatValue = 0;
 	int32_t attack = 0;
 	int32_t skill = 0;
 	int32_t length = 0;
