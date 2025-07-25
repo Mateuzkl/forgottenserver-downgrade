@@ -1548,7 +1548,7 @@ void ProtocolGame::sendChannelMessage(std::string_view author, std::string_view 
 	msg.addByte(0xAA);
 	msg.add<uint32_t>(0x00);
 	msg.addString(author);
-	msg.add<uint16_t>(0x00);
+	msg.add<uint32_t>(0x00);
 	msg.addByte(type);
 	msg.add<uint16_t>(channel);
 	msg.addString(text);
@@ -1779,12 +1779,12 @@ void ProtocolGame::sendCreatureSay(const Creature* creature, SpeakClasses type, 
 	// Add level only for players
 	if (const Player* speaker = creature->getPlayer()) {
 		if (!speaker->isAccessPlayer() && !speaker->isAccountManager()) {
-			msg.add<uint16_t>(static_cast<uint16_t>(speaker->getLevel()));
+			msg.add<uint32_t>(static_cast<uint32_t>(speaker->getLevel()));
 		} else {
-			msg.add<uint16_t>(0x00);
+			msg.add<uint32_t>(0x00);
 		}
 	} else {
-		msg.add<uint16_t>(0x00);
+		msg.add<uint32_t>(0x00);
 	}
 
 	msg.addByte(type);
@@ -1816,12 +1816,12 @@ void ProtocolGame::sendToChannel(const Creature* creature, SpeakClasses type, st
 		// Add level only for players
 		if (const Player* speaker = creature->getPlayer()) {
 			if (!speaker->isAccessPlayer() && !speaker->isAccountManager()) {
-				msg.add<uint16_t>(static_cast<uint16_t>(speaker->getLevel()));
+				msg.add<uint32_t>(static_cast<uint32_t>(speaker->getLevel()));
 			} else {
-				msg.add<uint16_t>(0x00);
+				msg.add<uint32_t>(0x00);
 			}
 		} else {
-			msg.add<uint16_t>(0x00);
+			msg.add<uint32_t>(0x00);
 		}
 	}
 
@@ -1840,7 +1840,7 @@ void ProtocolGame::sendPrivateMessage(const Player* speaker, SpeakClasses type, 
 	if (speaker) {
 		msg.addString(speaker->getName());
 		if (!speaker->isAccessPlayer() && !speaker->isAccountManager()) {
-			msg.add<uint16_t>(static_cast<uint16_t>(speaker->getLevel()));
+			msg.add<uint32_t>(static_cast<uint32_t>(speaker->getLevel()));
 		} else {
 			msg.add<uint32_t>(0x00);
 		}
@@ -2474,7 +2474,7 @@ void ProtocolGame::AddPlayerStats(NetworkMessage& msg)
 
 	msg.add<uint32_t>(std::min<uint32_t>(player->getExperience(), std::numeric_limits<int32_t>::max()));
 
-	msg.add<uint16_t>(static_cast<uint16_t>(player->getLevel()));
+	msg.add<uint32_t>(static_cast<uint32_t>(player->getLevel()));
 	msg.addByte(player->getLevelPercent());
 
 	msg.add<uint32_t>(player->getMana());

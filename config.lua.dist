@@ -6,8 +6,9 @@ OTCFeatures = {
 	12, -- GamePlayerMounts
 	29, -- GameDoubleSkills
 	53, -- GameBaseSkillU16
-	76 -- GameAdditionalSkills
-	28 -- GameDoubleHealth
+	76, -- GameAdditionalSkills
+	28, -- GameDoubleHealth
+    83  -- GameDoubleLevel
 }
 
 -- Protocol things
