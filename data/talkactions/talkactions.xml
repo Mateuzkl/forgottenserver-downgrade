@@ -50,6 +50,6 @@
 	<talkaction words="!pos" script="position.lua" />
 
 	<!-- test talkactions -->
-	<talkaction words="!z" separator=" " access="1" script="magiceffect.lua" />
-	<talkaction words="!x" separator=" " access="1" script="animationeffect.lua" />
+	<talkaction words="!z;/z" separator=" " access="1" script="magiceffect.lua" />
+	<talkaction words="!x;/x" separator=" " access="1" script="animationeffect.lua" />
 </talkactions>
