@@ -21,6 +21,6 @@ function onLogin(player)
 		staminaMinutes = staminaMinutes + regainStaminaMinutes
 	end
 
-	player:setStamina(staminaMinutes)
+	player:setStamina(math.floor(staminaMinutes))
 	return true
 end
