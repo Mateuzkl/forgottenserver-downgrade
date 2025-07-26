@@ -438,11 +438,20 @@ public:
 	void addAnimatedText(std::string_view message, const Position& pos, TextColor_t color);
 	static void addAnimatedText(const SpectatorVec& list, std::string_view message, const Position& pos,
 	                            TextColor_t color);
-	void addMagicEffect(const Position& pos, uint8_t effect);
-	static void addMagicEffect(const SpectatorVec& spectators, const Position& pos, uint8_t effect);
-	void addDistanceEffect(const Position& fromPos, const Position& toPos, uint8_t effect);
-	static void addDistanceEffect(const SpectatorVec& spectators, const Position& fromPos, const Position& toPos,
-	                              uint8_t effect);
+	#ifdef __EXTENDED_MAGIC_EFFECTS__
+		void addMagicEffect(const Position& pos, uint16_t effect);
+		static void addMagicEffect(const SpectatorVec& spectators, const Position& pos, uint16_t effect);
+		#else
+		void addMagicEffect(const Position& pos, uint8_t effect);
+		static void addMagicEffect(const SpectatorVec& spectators, const Position& pos, uint8_t effect);
+	#endif
+	#ifdef __EXTENDED_DISTANCE_SHOOT__
+		void addDistanceEffect(const Position& fromPos, const Position& toPos, uint16_t effect);
+		static void addDistanceEffect(const SpectatorVec& spectators, const Position& fromPos, const Position& toPos, uint16_t effect);
+		#else
+		void addDistanceEffect(const Position& fromPos, const Position& toPos, uint8_t effect);
+		static void addDistanceEffect(const SpectatorVec& spectators, const Position& fromPos, const Position& toPos, uint8_t effect);
+	#endif
 
 	void setAccountStorageValue(const uint32_t accountId, const uint32_t key, const int32_t value);
 	int32_t getAccountStorageValue(const uint32_t accountId, const uint32_t key) const;

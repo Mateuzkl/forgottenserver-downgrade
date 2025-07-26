@@ -776,12 +776,19 @@ public:
 			client->sendIcons(getClientIcons());
 		}
 	}
-	void sendMagicEffect(const Position& pos, uint8_t type) const
-	{
-		if (client) {
-			client->sendMagicEffect(pos, type);
+	#ifdef __EXTENDED_MAGIC_EFFECTS__
+		void sendMagicEffect(const Position& pos, uint16_t type) const {
+			if (client) {
+				client->sendMagicEffect(pos, type);
+			}
 		}
-	}
+		#else
+	void sendMagicEffect(const Position& pos, uint8_t type) const {
+			if (client) {
+				client->sendMagicEffect(pos, type);
+			}
+		}
+	#endif
 	void sendPing();
 	void sendStats();
 	void sendSkills() const

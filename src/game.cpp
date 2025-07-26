@@ -4572,6 +4572,23 @@ void Game::addAnimatedText(const SpectatorVec& spectators, std::string_view mess
 	}
 }
 
+#ifdef __EXTENDED_MAGIC_EFFECTS__
+void Game::addMagicEffect(const Position& pos, uint16_t effect)
+{
+	SpectatorVec spectators;
+	map.getSpectators(spectators, pos, true, true);
+	addMagicEffect(spectators, pos, effect);
+}
+
+void Game::addMagicEffect(const SpectatorVec& spectators, const Position& pos, uint16_t effect)
+{
+	for (Creature* spectator : spectators) {
+		if (Player* tmpPlayer = spectator->getPlayer()) {
+			tmpPlayer->sendMagicEffect(pos, effect);
+		}
+	}
+}
+#else
 void Game::addMagicEffect(const Position& pos, uint8_t effect)
 {
 	SpectatorVec spectators;
@@ -4582,11 +4599,33 @@ void Game::addMagicEffect(const Position& pos, uint8_t effect)
 void Game::addMagicEffect(const SpectatorVec& spectators, const Position& pos, uint8_t effect)
 {
 	for (Creature* spectator : spectators) {
-		assert(dynamic_cast<Player*>(spectator) != nullptr);
-		static_cast<Player*>(spectator)->sendMagicEffect(pos, effect);
+		if (Player* tmpPlayer = spectator->getPlayer()) {
+			tmpPlayer->sendMagicEffect(pos, effect);
+		}
 	}
 }
+#endif
 
+#ifdef __EXTENDED_DISTANCE_SHOOT__
+void Game::addDistanceEffect(const Position& fromPos, const Position& toPos, uint16_t effect)
+{
+	SpectatorVec spectators, toPosSpectators;
+	map.getSpectators(spectators, fromPos, true, true);
+	map.getSpectators(toPosSpectators, toPos, true, true);
+	spectators.addSpectators(toPosSpectators);
+
+	addDistanceEffect(spectators, fromPos, toPos, effect);
+}
+
+void Game::addDistanceEffect(const SpectatorVec& spectators, const Position& fromPos, const Position& toPos, uint16_t effect)
+{
+	for (Creature* spectator : spectators) {
+		if (Player* tmpPlayer = spectator->getPlayer()) {
+			tmpPlayer->sendDistanceShoot(fromPos, toPos, effect);
+		}
+	}
+}
+#else
 void Game::addDistanceEffect(const Position& fromPos, const Position& toPos, uint8_t effect)
 {
 	SpectatorVec spectators, toPosSpectators;
@@ -4597,14 +4636,15 @@ void Game::addDistanceEffect(const Position& fromPos, const Position& toPos, uin
 	addDistanceEffect(spectators, fromPos, toPos, effect);
 }
 
-void Game::addDistanceEffect(const SpectatorVec& spectators, const Position& fromPos, const Position& toPos,
-                             uint8_t effect)
+void Game::addDistanceEffect(const SpectatorVec& spectators, const Position& fromPos, const Position& toPos, uint8_t effect)
 {
 	for (Creature* spectator : spectators) {
-		assert(dynamic_cast<Player*>(spectator) != nullptr);
-		static_cast<Player*>(spectator)->sendDistanceShoot(fromPos, toPos, effect);
+		if (Player* tmpPlayer = spectator->getPlayer()) {
+			tmpPlayer->sendDistanceShoot(fromPos, toPos, effect);
+		}
 	}
 }
+#endif
 
 void Game::setAccountStorageValue(const uint32_t accountId, const uint32_t key, const int32_t value)
 {

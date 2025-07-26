@@ -141,4 +141,31 @@ if(NOT SKIP_GIT)
 endif()
 ### END  Git Version ###
 
+option(EXTENDED_FEATURES_ALL "Enable all extended features" OFF)
+
+if (EXTENDED_FEATURES_ALL)
+    set(EXTENDED_MAGIC_EFFECTS ON)
+    set(EXTENDED_DISTANCE_SHOOT ON)
+endif ()
+
+# Agora os blocos continuam funcionando normalmente
+set(EXTENDED_FEATURES "")
+if (NOT DEFINED EXTENDED_MAGIC_EFFECTS OR EXTENDED_MAGIC_EFFECTS)
+    list(APPEND EXTENDED_FEATURES __EXTENDED_MAGIC_EFFECTS__)
+    message(STATUS "Extended magic effects enabled.")
+else ()
+    message(STATUS "Extended magic effects disabled.")
+endif ()
+
+if (NOT DEFINED EXTENDED_DISTANCE_SHOOT OR EXTENDED_DISTANCE_SHOOT)
+    list(APPEND EXTENDED_FEATURES __EXTENDED_DISTANCE_SHOOT__)
+    message(STATUS "Extended distance shoot enabled.")
+else ()
+    message(STATUS "Extended distance shoot disabled.")
+endif ()
+
+if (EXTENDED_FEATURES)
+    add_compile_definitions(${EXTENDED_FEATURES})
+endif ()
+
 target_precompile_headers(tfs PUBLIC src/otpch.h)

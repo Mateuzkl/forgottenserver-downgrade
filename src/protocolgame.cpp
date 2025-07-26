@@ -1891,6 +1891,17 @@ void ProtocolGame::sendPing()
 	writeToOutputBuffer(msg);
 }
 
+#ifdef __EXTENDED_DISTANCE_SHOOT__
+void ProtocolGame::sendDistanceShoot(const Position& from, const Position& to, uint16_t type)
+{
+	NetworkMessage msg;
+	msg.addByte(0x85);
+	msg.addPosition(from);
+	msg.addPosition(to);
+	msg.add<uint16_t>(type);
+	writeToOutputBuffer(msg);
+}
+#else
 void ProtocolGame::sendDistanceShoot(const Position& from, const Position& to, uint8_t type)
 {
 	NetworkMessage msg;
@@ -1900,7 +1911,22 @@ void ProtocolGame::sendDistanceShoot(const Position& from, const Position& to, u
 	msg.addByte(type);
 	writeToOutputBuffer(msg);
 }
+#endif
 
+#ifdef __EXTENDED_MAGIC_EFFECTS__
+void ProtocolGame::sendMagicEffect(const Position& pos, uint16_t type)
+{
+	if (!canSee(pos)) {
+		return;
+	}
+
+	NetworkMessage msg;
+	msg.addByte(0x83);
+	msg.addPosition(pos);
+	msg.add<uint16_t>(type);
+	writeToOutputBuffer(msg);
+}
+#else
 void ProtocolGame::sendMagicEffect(const Position& pos, uint8_t type)
 {
 	if (!canSee(pos)) {
@@ -1913,6 +1939,7 @@ void ProtocolGame::sendMagicEffect(const Position& pos, uint8_t type)
 	msg.addByte(type);
 	writeToOutputBuffer(msg);
 }
+#endif
 
 void ProtocolGame::sendCreatureHealth(const Creature* creature)
 {
