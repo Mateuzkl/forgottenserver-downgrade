@@ -208,13 +208,19 @@ int luaCombatSetCallback(lua_State* L)
 	}
 
 	auto key = getInteger<CallBackParam>(L, 2);
-	if (!combat->loadCallBack(key, LuaScriptInterface::getScriptEnv()->getScriptInterface())) {
-		reportErrorFunc(L, LuaScriptInterface::getErrorDesc(LuaErrorCode::CALLBACK_NOT_FOUND));
-		pushBoolean(L, false);
+	if (!combat->setCallback(key)) {
+		lua_pushnil(L);
 		return 1;
 	}
 
-	pushBoolean(L, true);
+	CallBack* callback = combat->getCallback(key);
+	if (!callback) {
+		lua_pushnil(L);
+		return 1;
+	}
+
+	const std::string& function = getString(L, 3);
+	pushBoolean(L, callback->loadCallBack(LuaScriptInterface::getScriptEnv()->getScriptInterface(), function));
 	return 1;
 }
 

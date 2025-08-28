@@ -782,6 +782,10 @@ void Game::playerMoveCreature(Player* player, Creature* movingCreature, const Po
 
 ReturnValue Game::internalMoveCreature(Creature* creature, Direction direction, uint32_t flags /*= 0*/)
 {
+	if (creature->hasCondition(CONDITION_ROOTED)) {
+		return RETURNVALUE_NOTPOSSIBLE;
+	}
+
 	creature->setLastPosition(creature->getPosition());
 	const Position& currentPos = creature->getPosition();
 	Position destPos = getNextPosition(direction, currentPos);
@@ -1883,6 +1887,10 @@ void Game::playerMove(uint32_t playerId, Direction direction)
 		return;
 	}
 
+	if (player->hasCondition(CONDITION_ROOTED)) {
+		return;
+	}
+
 	player->resetIdleTime();
 	player->setNextWalkActionTask(nullptr);
 
@@ -2063,6 +2071,11 @@ void Game::playerAutoWalk(uint32_t playerId, const std::vector<Direction>& listD
 {
 	Player* player = getPlayerByID(playerId);
 	if (!player) {
+		return;
+	}
+
+	if (player->hasCondition(CONDITION_ROOTED)) {
+		player->sendCancelWalk();
 		return;
 	}
 

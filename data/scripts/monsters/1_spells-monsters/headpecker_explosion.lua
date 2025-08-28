@@ -1,0 +1,28 @@
+local combat = Combat()
+combat:setParameter(COMBAT_PARAM_TYPE, COMBAT_PHYSICALDAMAGE)
+combat:setParameter(COMBAT_PARAM_EFFECT, CONST_ME_EXPLOSIONAREA)
+
+arr = {
+	{0, 1, 1, 1, 0},
+	{1, 1, 1, 1, 1},
+	{1, 1, 3, 1, 1},
+	{1, 1, 1, 1, 1},
+	{0, 1, 1, 1, 0}
+}
+
+local area = createCombatArea(arr)
+combat:setArea(area)
+
+local spell = Spell("instant")
+
+function spell.onCastSpell(creature, var)
+	return combat:execute(creature, var)
+end
+
+spell:name("headpecker explosion")
+spell:words("###1119")
+spell:isAggressive(true)
+spell:blockWalls(true)
+spell:needLearn(true)
+spell:needDirection(false)
+spell:register()

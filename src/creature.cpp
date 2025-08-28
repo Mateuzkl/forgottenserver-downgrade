@@ -246,12 +246,26 @@ void Creature::startAutoWalk()
 		return;
 	}
 
+	if (hasCondition(CONDITION_ROOTED)) {
+		if (auto player = getPlayer()) {
+			player->sendCancelWalk();
+		}
+		return;
+	}
+
 	addEventWalk(listWalkDir.size() == 1);
 }
 
 void Creature::startAutoWalk(Direction direction)
 {
 	if (isMovementBlocked()) {
+		if (auto player = getPlayer()) {
+			player->sendCancelWalk();
+		}
+		return;
+	}
+
+	if (hasCondition(CONDITION_ROOTED)) {
 		if (auto player = getPlayer()) {
 			player->sendCancelWalk();
 		}
@@ -266,6 +280,13 @@ void Creature::startAutoWalk(Direction direction)
 void Creature::startAutoWalk(const std::vector<Direction>& listDir)
 {
 	if (isMovementBlocked()) {
+		if (auto player = getPlayer()) {
+			player->sendCancelWalk();
+		}
+		return;
+	}
+
+	if (hasCondition(CONDITION_ROOTED)) {
 		if (auto player = getPlayer()) {
 			player->sendCancelWalk();
 		}

@@ -139,7 +139,7 @@ int luaConditionSetParameter(lua_State* L)
 	if (isBoolean(L, 3)) {
 		value = getBoolean(L, 3) ? 1 : 0;
 	} else {
-		value = getInteger<int32_t>(L, 3);
+		value = static_cast<int32_t>(getNumber<double>(L, 3));
 	}
 	condition->setParam(key, value);
 	pushBoolean(L, true);
@@ -212,7 +212,7 @@ int luaConditionSetOutfit(lua_State* L)
 int luaConditionAddDamage(lua_State* L)
 {
 	// condition:addDamage(rounds, time, value)
-	int32_t value = getInteger<int32_t>(L, 4);
+	int32_t value = static_cast<int32_t>(getNumber<double>(L, 4));
 	int32_t time = getInteger<int32_t>(L, 3);
 	int32_t rounds = getInteger<int32_t>(L, 2);
 	ConditionDamage* condition = dynamic_cast<ConditionDamage*>(getUserdata<Condition>(L, 1));

@@ -1,0 +1,20 @@
+local combat = Combat()
+combat:setParameter(COMBAT_PARAM_DISTANCEEFFECT, CONST_ANI_ENERGY)
+combat:setParameter(COMBAT_PARAM_CREATEITEM, ITEM_MAGICWALL)
+
+local rune = Spell("rune")
+function rune.onCastSpell(creature, variant, isHotkey)
+	return combat:execute(creature, variant)
+end
+
+rune:name("Magic Wall Rune")
+rune:group("attack")
+rune:cooldown(2 * 1000)
+rune:groupCooldown(2 * 1000)
+rune:level(32)
+rune:magicLevel(9)
+rune:runeId(3180)
+rune:charges(3)
+rune:isBlocking(true, true)
+rune:allowFarUse(true)
+rune:register()

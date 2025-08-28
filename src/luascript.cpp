@@ -1231,6 +1231,10 @@ void LuaScriptInterface::registerFunctions()
 	// CallBackParam
 	registerTable("CallBackParam");
 
+	registerEnum(CALLBACK_PARAM_LEVELMAGICVALUE);
+	registerEnum(CALLBACK_PARAM_SKILLVALUE);
+	registerEnum(CALLBACK_PARAM_TARGETTILE);
+	registerEnum(CALLBACK_PARAM_TARGETCREATURE);
 	registerEnumClass(CallBackParam::LEVELMAGICVALUE);
 	registerEnumClass(CallBackParam::SKILLVALUE);
 	registerEnumClass(CallBackParam::TARGETTILE);
@@ -1309,6 +1313,7 @@ void LuaScriptInterface::registerFunctions()
 	registerEnum(CONDITION_FREEZING);
 	registerEnum(CONDITION_DAZZLED);
 	registerEnum(CONDITION_CURSED);
+	registerEnum(CONDITION_ROOTED);
 	registerEnum(CONDITION_EXHAUST_COMBAT);
 	registerEnum(CONDITION_EXHAUST_HEAL);
 	registerEnum(CONDITION_PACIFIED);
@@ -2029,6 +2034,10 @@ void LuaScriptInterface::registerFunctions()
 	registerEnum(SPELLGROUP_HEALING);
 	registerEnum(SPELLGROUP_SUPPORT);
 	registerEnum(SPELLGROUP_SPECIAL);
+	registerEnum(SPELLGROUP_CONJURE);
+	registerEnum(SPELLGROUP_CRIPPLING);
+	registerEnum(SPELLGROUP_FOCUS);
+	registerEnum(SPELLGROUP_ULTIMATESTRIKES);
 
 	// _G
 	registerGlobalVariable("INDEX_WHEREEVER", INDEX_WHEREEVER);

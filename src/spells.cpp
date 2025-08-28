@@ -12,6 +12,7 @@
 #include "luavariant.h"
 #include "monster.h"
 #include "pugicast.h"
+#include "tools.h"
 
 extern Game g_game;
 extern Spells* g_spells;
@@ -451,6 +452,30 @@ bool Spell::configureSpell(const pugi::xml_node& node)
 
 	if ((attr = node.attribute("aggressive"))) {
 		aggressive = booleanString(attr.as_string());
+	}
+
+	if ((attr = node.attribute("group"))) {
+		std::string tmpStrValue = attr.as_string();
+		group = stringToSpellGroup(tmpStrValue);
+		if (group == SPELLGROUP_NONE) {
+			std::cout << "[Warning - Spell::configureSpell] Unknown group: " << tmpStrValue << std::endl;
+		}
+	}
+
+	if ((attr = node.attribute("secondarygroup"))) {
+		std::string tmpStrValue = attr.as_string();
+		secondaryGroup = stringToSpellGroup(tmpStrValue);
+		if (secondaryGroup == SPELLGROUP_NONE) {
+			std::cout << "[Warning - Spell::configureSpell] Unknown secondaryGroup: " << tmpStrValue << std::endl;
+		}
+	}
+
+	if ((attr = node.attribute("groupcooldown"))) {
+		groupCooldown = pugi::cast<uint32_t>(attr.value());
+	}
+
+	if ((attr = node.attribute("secondarygroupcooldown"))) {
+		secondaryGroupCooldown = pugi::cast<uint32_t>(attr.value());
 	}
 
 	for (auto& vocationNode : node.children()) {
