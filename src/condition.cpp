@@ -229,6 +229,7 @@ Condition* Condition::createCondition(ConditionId_t id, ConditionType_t type, in
 		case CONDITION_DRUNK:
 			return new ConditionDrunk(id, type, ticks, buff, subId, static_cast<uint8_t>(param), aggressive);
 
+		case CONDITION_ROOTED:
 		case CONDITION_INFIGHT:
 		case CONDITION_EXHAUST_WEAPON:
 		case CONDITION_EXHAUST_COMBAT:

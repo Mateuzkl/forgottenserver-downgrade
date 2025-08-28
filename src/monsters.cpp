@@ -757,6 +757,23 @@ bool Monsters::deserializeSpell(MonsterSpell* spell, spellBlock_t& sb, const std
 			if (spell->conditionType == CONDITION_NONE) {
 				std::cout << "[Error - Monsters::deserializeSpell] - " << description
 				          << " - Condition is not set for: " << spell->name << std::endl;
+			} else {
+				int32_t duration = 10000;
+				if (spell->duration != 0) {
+					duration = spell->duration;
+				}
+
+				if (spell->conditionType == CONDITION_DRUNK) {
+					uint8_t drunkenness = 25;
+					if (spell->drunkenness != 0) {
+						drunkenness = spell->drunkenness;
+					}
+					Condition* condition = Condition::createCondition(CONDITIONID_COMBAT, CONDITION_DRUNK, duration, drunkenness);
+					combat->addCondition(condition);
+				} else {
+					Condition* condition = Condition::createCondition(CONDITIONID_COMBAT, spell->conditionType, duration, 0);
+					combat->addCondition(condition);
+				}
 			}
 		} else if (tmpName == "strength") {
 			//
