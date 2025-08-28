@@ -79,7 +79,6 @@ struct Skill
 
 using MuteCountMap = std::map<uint32_t, uint32_t>;
 
-inline constexpr int32_t PLAYER_MAX_SPEED = 1500;
 inline constexpr int32_t PLAYER_MIN_SPEED = 10;
 inline constexpr int32_t PLAYER_MAX_BLESSINGS = 5;
 
@@ -1178,16 +1177,25 @@ private:
 	bool inventoryAbilities[CONST_SLOT_LAST + 1] = {};
 
 	void updateItemsLight(bool internal = false);
+
+	int32_t getMaxSpeed() const
+	{
+		if (group && group->access) {
+			return 5000; // GOD Speed
+		}
+		return 900; // Player Speed
+	}
+
 	int32_t getStepSpeed() const override
 	{
-		return std::max<int32_t>(PLAYER_MIN_SPEED, std::min<int32_t>(PLAYER_MAX_SPEED, getSpeed()));
+		return std::max<int32_t>(PLAYER_MIN_SPEED, std::min<int32_t>(getMaxSpeed(), getSpeed()));
 	}
 	void updateBaseSpeed()
 	{
 		if (!hasFlag(PlayerFlag_SetMaxSpeed)) {
 			baseSpeed = vocation->getBaseSpeed() + (2 * (level - 1));
 		} else {
-			baseSpeed = PLAYER_MAX_SPEED;
+			baseSpeed = getMaxSpeed();
 		}
 	}
 
