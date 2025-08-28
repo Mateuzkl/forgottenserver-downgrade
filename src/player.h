@@ -4,6 +4,7 @@
 #ifndef FS_PLAYER_H
 #define FS_PLAYER_H
 
+#include "configmanager.h"
 #include "container.h"
 #include "creature.h"
 #include "cylinder.h"
@@ -1181,9 +1182,9 @@ private:
 	int32_t getMaxSpeed() const
 	{
 		if (group && group->access) {
-			return 5000; // GOD Speed
+			return ConfigManager::getInteger(ConfigManager::MAX_GOD_SPEED);
 		}
-		return 900; // Player Speed
+		return ConfigManager::getInteger(ConfigManager::MAX_PLAYER_SPEED);
 	}
 
 	int32_t getStepSpeed() const override

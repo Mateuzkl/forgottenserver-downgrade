@@ -183,6 +183,12 @@ experienceStages = {
 	{ minlevel = 101, multiplier = 3 }
 }
 
+-- Speed
+-- NOTE: maxPlayerSpeed is the absolute fastest a player can travel, it is not recommended to change this.
+-- 5000 for GODs, 900 for players.
+maxPlayerSpeed = 900
+maxGodSpeed = 5000
+
 -- Rates
 -- NOTE: rateExp is not used if you have enabled stages above
 rateExp = 5
