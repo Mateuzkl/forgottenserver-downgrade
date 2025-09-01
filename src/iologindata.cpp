@@ -534,43 +534,6 @@ bool IOLoginData::loadPlayer(Player* player, DBResult_ptr result)
 		}
 	}
 
-	// Load reward items
-	itemMap.clear();
-	if ((result = db.storeQuery(fmt::format("SELECT `sid`, `pid`, `itemtype`, `count`, `attributes` FROM `player_rewarditems` WHERE `player_id` = {:d} ORDER BY `sid` DESC", player->getGUID())))) {
-		loadItems(itemMap, result);
-		// Map to store containers (bags) for each unique DATE attribute
-		std::unordered_map<int64_t, Container*> dateContainers;
-		// Get the current time and calculate the time 7 days ago
-		time_t now = std::time(nullptr);
-		time_t seven_days_ago = now - (7 * 24 * 60 * 60); // 7 days in seconds
-
-		for (ItemMap::const_reverse_iterator it = itemMap.rbegin(), end = itemMap.rend(); it != end; ++it) {
-			const std::pair<Item*, uint32_t>& pair = it->second;
-			Item* item = pair.first;
-			int64_t rewardDate = item->getIntAttr(ITEM_ATTRIBUTE_DATE);
-			// Skip items older than 7 days
-			if (rewardDate < static_cast<int64_t>(seven_days_ago)) {
-				continue;
-			}
-			// Create or get existing container for the given DATE attribute
-			Container* container = nullptr;
-			auto containerIt = dateContainers.find(rewardDate);
-			if (containerIt != dateContainers.end()) {
-				container = containerIt->second;
-			}
-			else {
-				                                		container = new Container(ITEM_REWARD_CONTAINER);
-				container->setIntAttr(ITEM_ATTRIBUTE_DATE, rewardDate); // Set the DATE attribute on the container
-				container->setIntAttr(ITEM_ATTRIBUTE_REWARDID, item->getIntAttr(ITEM_ATTRIBUTE_REWARDID));
-				dateContainers[rewardDate] = container;
-			}
-			container->internalAddThing(item);
-		}
-		for (auto& pair : dateContainers) {
-			player->getRewardChest().internalAddThing(pair.second);
-		}
-	}
-
 	// load depot items
 	itemMap.clear();
 
@@ -600,6 +563,52 @@ bool IOLoginData::loadPlayer(Player* player, DBResult_ptr result)
 					container->internalAddThing(item);
 				}
 			}
+		}
+	}
+
+	// Load reward items
+	itemMap.clear();
+
+	if ((result = db.storeQuery(fmt::format("SELECT `sid`, `pid`, `itemtype`, `count`, `attributes` FROM `player_rewarditems` WHERE `player_id` = {:d} ORDER BY `sid` DESC", player->getGUID())))) {
+		loadItems(itemMap, result);
+
+		// Map to store containers (bags) for each unique DATE attribute
+		std::unordered_map<int64_t, Container*> dateContainers;
+
+		// Get the current time and calculate the time 7 days ago
+		time_t now = std::time(nullptr);
+		time_t seven_days_ago = now - (7 * 24 * 60 * 60); // 7 days in seconds
+		
+
+		for (ItemMap::const_reverse_iterator it = itemMap.rbegin(), end = itemMap.rend(); it != end; ++it) {
+			const std::pair<Item*, uint32_t>& pair = it->second;
+			Item* item = pair.first;
+
+			int64_t rewardDate = item->getIntAttr(ITEM_ATTRIBUTE_DATE);
+
+			// Skip items older than 7 days
+			if (rewardDate < static_cast<int64_t>(seven_days_ago)) {
+				continue;
+			}
+
+			// Create or get existing container for the given DATE attribute
+			Container* container = nullptr;
+			auto containerIt = dateContainers.find(rewardDate);
+			if (containerIt != dateContainers.end()) {
+				container = containerIt->second;
+			}
+			else {
+				container = new Container(ITEM_REWARD_CONTAINER);
+				container->setIntAttr(ITEM_ATTRIBUTE_DATE, rewardDate); // Set the DATE attribute on the container
+				container->setIntAttr(ITEM_ATTRIBUTE_REWARDID, item->getIntAttr(ITEM_ATTRIBUTE_REWARDID));
+				dateContainers[rewardDate] = container;
+			}
+
+			container->internalAddThing(item);
+		}
+
+		for (auto& pair : dateContainers) {
+			player->getRewardChest().internalAddThing(pair.second);
 		}
 	}
 
@@ -911,13 +920,71 @@ bool IOLoginData::savePlayer(Player* player)
 		return false;
 	}
 
+	// save depot locker items
+	bool needsSave = false;
+
+	for (const auto& it : player->depotLockerMap) {
+		if (it.second->needsSave()) {
+			needsSave = true;
+			break;
+		}
+	}
+
+	if (needsSave) {
+		if (!db.executeQuery(
+		        fmt::format("DELETE FROM `player_depotlockeritems` WHERE `player_id` = {:d}", player->getGUID()))) {
+			return false;
+		}
+
+		DBInsert lockerQuery(
+		    "INSERT INTO `player_depotlockeritems` (`player_id`, `pid`, `sid`, `itemtype`, `count`, `attributes`) VALUES ");
+		itemList.clear();
+
+		for (const auto& it : player->depotLockerMap) {
+			for (Item* item : it.second->getItemList()) {
+				if (item->getID() != ITEM_DEPOT) {
+					itemList.emplace_back(it.first, item);
+				}
+			}
+		}
+
+		if (!saveItems(player, itemList, lockerQuery, propWriteStream)) {
+			return false;
+		}
+
+		// save depot items
+		if (needsSave) {
+			if (!db.executeQuery(
+			        fmt::format("DELETE FROM `player_depotitems` WHERE `player_id` = {:d}", player->getGUID()))) {
+				return false;
+			}
+
+			DBInsert depotQuery(
+			    "INSERT INTO `player_depotitems` (`player_id`, `pid`, `sid`, `itemtype`, `count`, `attributes`) VALUES ");
+			itemList.clear();
+
+			for (const auto& it : player->depotChests) {
+				for (Item* item : it.second->getItemList()) {
+					itemList.emplace_back(it.first, item);
+				}
+			}
+
+			if (!saveItems(player, itemList, depotQuery, propWriteStream)) {
+				return false;
+			}
+		}
+	}
+
 	// save reward items
 	if (!db.executeQuery(fmt::format("DELETE FROM `player_rewarditems` WHERE `player_id` = {:d}", player->getGUID()))) {
 		return false;
 	}
+
 	DBInsert rewardQuery("INSERT INTO `player_rewarditems` (`player_id`, `pid`, `sid`, `itemtype`, `count`, `attributes`) VALUES ");
 	itemList.clear();
+
 	int32_t pidCounter = 1;
+
 	for (Item* item : player->getRewardChest().getItemList()) {
 		if (Container* container = item->getContainer()) {
 			int32_t currentPid = pidCounter++;
@@ -929,26 +996,8 @@ bool IOLoginData::savePlayer(Player* player)
 			itemList.emplace_back(0, item);
 		}
 	}
+
 	if (!saveItems(player, itemList, rewardQuery, propWriteStream)) {
-		return false;
-	}
-
-	// save depot items
-	if (!db.executeQuery(fmt::format("DELETE FROM `player_depotitems` WHERE `player_id` = {:d}", player->getGUID()))) {
-		return false;
-	}
-
-	DBInsert depotQuery(
-	    "INSERT INTO `player_depotitems` (`player_id`, `pid`, `sid`, `itemtype`, `count`, `attributes`) VALUES ");
-	itemList.clear();
-
-	for (const auto& it : player->depotChests) {
-		for (Item* item : it.second->getItemList()) {
-			itemList.emplace_back(it.first, item);
-		}
-	}
-
-	if (!saveItems(player, itemList, depotQuery, propWriteStream)) {
 		return false;
 	}
 
