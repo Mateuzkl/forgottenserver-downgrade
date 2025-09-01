@@ -109,6 +109,8 @@ public:
 		}
 	}
 
+	virtual void setLossSkill(bool _skillLoss);
+
 	static MuteCountMap muteCountMap;
 
 	const std::string& getName() const override { return name; }

@@ -222,6 +222,7 @@ enum ItemParseAttributes_t
 	ITEM_PARSE_EXPERIENCERATE_LOW_LEVEL,
 	ITEM_PARSE_EXPERIENCERATE_BONUS,
 	ITEM_PARSE_EXPERIENCERATE_STAMINA,
+	ITEM_PARSE_REDUCESKILLLOSS,
 };
 
 struct Abilities
@@ -347,6 +348,7 @@ public:
 	int32_t defense = 0;
 	int32_t extraDefense = 0;
 	int32_t armor = 0;
+	int32_t reduceSkillLoss = 0;
 	uint16_t rotateTo = 0;
 	int32_t runeMagLevel = 0;
 	int32_t runeLevel = 0;

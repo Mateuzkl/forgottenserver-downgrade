@@ -51,6 +51,9 @@ public:
 		return magicShield;
 	}
 
+	bool getLossSkill() const { return skillLoss; }
+	void setLossSkill(bool v) { skillLoss = v; }
+
 	float meleeDamageMultiplier = 1.0f;
 	float distDamageMultiplier = 1.0f;
 	float defenseMultiplier = 1.0f;
@@ -87,6 +90,7 @@ private:
 	bool allowPvp = true;
 
 	bool magicShield = false;
+	bool skillLoss = true;
 };
 
 using VocationMap = std::map<uint16_t, Vocation>;

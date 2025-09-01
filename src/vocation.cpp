@@ -68,6 +68,8 @@ bool Vocations::loadFromXml()
 				voc.fromVocation = pugi::cast<uint32_t>(attrNode.value());
 			} else if (caseInsensitiveEqual(attrName, "nopongkicktime")) {
 				voc.noPongKickTime = pugi::cast<uint32_t>(attrNode.value()) * 1000;
+			} else if (caseInsensitiveEqual(attrName, "skillloss") || caseInsensitiveEqual(attrName, "lossskill")) {
+				voc.setLossSkill(attrNode.as_bool());
 			} else {
 				std::cout << "[Notice - Vocations::loadFromXml] Unknown attribute: \"" << attrName
 				          << "\" for vocation: " << voc.id << std::endl;

@@ -209,6 +209,7 @@ const std::unordered_map<std::string, ItemParseAttributes_t> ItemParseAttributes
     {"experienceratelowlevel", ITEM_PARSE_EXPERIENCERATE_LOW_LEVEL},
     {"experienceratebonus", ITEM_PARSE_EXPERIENCERATE_BONUS},
     {"experienceratestamina", ITEM_PARSE_EXPERIENCERATE_STAMINA},
+    {"reduceskillloss", ITEM_PARSE_REDUCESKILLLOSS},
 };
 
 const std::unordered_map<std::string, ItemTypes_t> ItemTypesMap = {{"key", ITEM_TYPE_KEY},
@@ -1906,6 +1907,11 @@ void Items::parseItemNode(const pugi::xml_node& itemNode, uint16_t id)
 				case ITEM_PARSE_EXPERIENCERATE_STAMINA: {
 					int32_t rate = pugi::cast<int32_t>(valueAttribute.value());
 					abilities.experienceRate[static_cast<size_t>(ExperienceRateType::STAMINA)] = rate;
+					break;
+				}
+
+				case ITEM_PARSE_REDUCESKILLLOSS: {
+					it.reduceSkillLoss = pugi::cast<int32_t>(valueAttribute.value());
 					break;
 				}
 

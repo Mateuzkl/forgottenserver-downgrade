@@ -117,6 +117,9 @@ public:
 	Direction getDirection() const { return direction; }
 	void setDirection(Direction dir) { direction = dir; }
 
+	bool getLossSkill() const { return skillLoss; }
+	virtual void setSkillLoss(bool _skillLoss);
+
 	bool isHealthHidden() const { return hiddenHealth; }
 	void setHiddenHealth(bool b) { hiddenHealth = b; }
 
@@ -292,7 +295,6 @@ public:
 
 	size_t getSummonCount() const { return summons.size(); }
 	void setDropLoot(bool lootDrop) { this->lootDrop = lootDrop; }
-	void setSkillLoss(bool skillLoss) { this->skillLoss = skillLoss; }
 	void setUseDefense(bool useDefense) { canUseDefense = useDefense; }
 	void setMovementBlocked(bool state)
 	{

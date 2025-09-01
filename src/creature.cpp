@@ -79,6 +79,11 @@ void Creature::setSkull(Skulls_t newSkull)
 	g_game.updateCreatureSkull(this);
 }
 
+void Creature::setSkillLoss(bool _skillLoss)
+{
+	skillLoss = _skillLoss;
+}
+
 int64_t Creature::getTimeSinceLastMove() const
 {
 	if (lastStep) {

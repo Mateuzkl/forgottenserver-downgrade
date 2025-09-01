@@ -50,6 +50,11 @@ function Item:getArmor()
 	return self:getType():getArmor()
 end
 
+function Item:getReduceSkillLoss()
+	if self:hasAttribute(ITEM_ATTRIBUTE_REDUCESKILLLOSS) then return self:getAttribute(ITEM_ATTRIBUTE_REDUCESKILLLOSS) --[[@as integer]] end
+	return self:getType():getReduceSkillLoss()
+end
+
 function Item:getAttackSpeed()
 	if self:hasAttribute(ITEM_ATTRIBUTE_ATTACK_SPEED) then
 		return self:getAttribute(ITEM_ATTRIBUTE_ATTACK_SPEED) --[[@as integer]]
@@ -347,6 +352,12 @@ do
 		do
 			local arm = item:getArmor()
 			if arm > 0 then descriptions[#descriptions + 1] = fmt("Arm:%d", arm) end
+		end
+
+		-- skill loss reduction
+		do
+			local reduceSkillLoss = item:getReduceSkillLoss()
+			if reduceSkillLoss > 0 then descriptions[#descriptions + 1] = fmt("reduces skill loss by %d%%", reduceSkillLoss) end
 		end
 
 		-- classification and tier

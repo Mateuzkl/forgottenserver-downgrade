@@ -2450,6 +2450,7 @@
 		<attribute key="showduration" value="1" />
 		<attribute key="manashield" value="1" />
 		<attribute key="showattributes" value="1" />
+		<attribute key="reduceskillloss" value="10" />
 	</item>
 	<item id="2205" article="a" name="life ring (faster regeneration)">
 		<attribute key="weight" value="80" />

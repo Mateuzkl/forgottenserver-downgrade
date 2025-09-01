@@ -527,6 +527,11 @@ void Player::setVarStats(stats_t stat, int32_t modifier)
 	}
 }
 
+void Player::setLossSkill(bool _skillLoss)
+{
+	skillLoss = _skillLoss;
+}
+
 int32_t Player::getDefaultStats(stats_t stat) const
 {
 	switch (stat) {
