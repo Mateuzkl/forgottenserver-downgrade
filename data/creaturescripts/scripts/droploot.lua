@@ -40,10 +40,6 @@ function onDeath(player, corpse, killer, mostDamageKiller, lastHitUnjustified,
 				local randomValue = math.random(item:isContainer() and 100 or 1000)
 				local willLose = isRedOrBlack or randomValue <= finalLossPercent
 				
-				-- Debug: Mostrar detalhes do item
-				print(string.format("[DEBUG ITEM] Slot: %d | Item: %s | Random: %d | Loss%%: %.2f | Vai perder: %s", 
-					i, item:getName(), randomValue, finalLossPercent, willLose and "SIM" or "NAO"))
-				
 				if willLose then
 					if (isRedOrBlack or finalLossPercent ~= 0) and not item:moveTo(corpse) then
 						item:remove()
