@@ -1901,6 +1901,8 @@ void Player::death(Creature* lastHitCreature)
 {
 	loginPosition = town->getTemplePosition();
 
+	int32_t storedTotalReduceSkillLoss = totalReduceSkillLoss;
+
 	if (skillLoss) {
 		bool lastHitPlayer = Player::lastHitIsPlayer(lastHitCreature);
 
@@ -1910,7 +1912,8 @@ void Player::death(Creature* lastHitCreature)
 			sumMana += vocation->getReqMana(i);
 		}
 
-		// double deathLossPercent = getLostPercent() * (unfairFightReduction / 100.);
+		totalReduceSkillLoss = storedTotalReduceSkillLoss;
+		
 		double deathLossPercent = getLostPercent();
 		removeManaSpent(static_cast<uint64_t>((sumMana + manaSpent) * deathLossPercent), false);
 
@@ -3835,6 +3838,8 @@ double Player::getLostPercent() const
 		}
 
 		deathLosePercent -= blessings.count();
+		deathLosePercent -= totalReduceSkillLoss;
+
 		return std::max<int32_t>(0, deathLosePercent) / 100.;
 	}
 
@@ -3852,6 +3857,8 @@ double Player::getLostPercent() const
 		percentReduction += 30;
 	}
 	percentReduction += blessings.count() * 8;
+	percentReduction += totalReduceSkillLoss;
+
 	return lossPercent * (1 - (percentReduction / 100.)) / 100.;
 }
 

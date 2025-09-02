@@ -35,6 +35,7 @@
 	<talkaction words="/reload" separator=" " accountType="6" access="1" script="reload.lua" />
 	<talkaction words="/raid" separator=" " accountType="4" access="1" script="force_raid.lua" />
 	<talkaction words="/cliport" separator=" " accountType="6" access="1" script="cliport.lua" />
+	<talkaction words="/bless" separator=" " access="1" script="bless.lua" />
 
 	<!-- player talkactions -->
 	<talkaction words="!buypremium" script="buyprem.lua" />

@@ -32,10 +32,25 @@ function Player.hasFlag(self, flag) return self:getGroup():hasFlag(flag) end
 
 function Player.getLossPercent(self)
 	local blessings = 0
-	local lossPercent = {[0] = 100, [1] = 70, [2] = 45, [3] = 25, [4] = 10, [5] = 0}
-
-	for i = 1, 5 do if self:hasBlessing(i) then blessings = blessings + 1 end end
-	return lossPercent[blessings]
+	local blessingNames = {"First", "Second", "Third", "Fourth", "Fifth"}
+	local hasBlessings = {}
+	
+	for i = 1, 5 do
+		if self:hasBlessing(i) then
+			blessings = blessings + 1
+			hasBlessings[i] = true
+		else
+			hasBlessings[i] = false
+		end
+	end
+	
+	local blessingReduction = blessings * 8
+	
+	local basePenalty = self:getDeathPenalty()
+	
+	local finalPenalty = math.max(0, basePenalty - blessingReduction)
+	
+	return finalPenalty
 end
 
 function Player.getPremiumTime(self) return math.max(0, self:getPremiumEndsAt() - os.time()) end

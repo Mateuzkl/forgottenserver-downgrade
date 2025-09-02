@@ -265,6 +265,9 @@ struct Abilities
 	uint16_t elementDamage = 0;
 	CombatType_t elementType = COMBAT_NONE;
 
+	// skill loss reduction
+	int32_t reduceSkillLoss = 0;
+
 	bool manaShield = false;
 	bool invisible = false;
 	bool regeneration = false;

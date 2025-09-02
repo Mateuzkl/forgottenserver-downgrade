@@ -1014,6 +1014,8 @@ public:
 
 	static uint32_t playerAutoID;
 
+	uint32_t totalReduceSkillLoss = 0;
+
 private:
 	std::forward_list<Condition*> getMuteConditions() const;
 

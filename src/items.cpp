@@ -1912,6 +1912,7 @@ void Items::parseItemNode(const pugi::xml_node& itemNode, uint16_t id)
 
 				case ITEM_PARSE_REDUCESKILLLOSS: {
 					it.reduceSkillLoss = pugi::cast<int32_t>(valueAttribute.value());
+					abilities.reduceSkillLoss = pugi::cast<int32_t>(valueAttribute.value());
 					break;
 				}
 

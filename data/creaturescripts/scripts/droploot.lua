@@ -3,6 +3,19 @@ function onDeath(player, corpse, killer, mostDamageKiller, lastHitUnjustified,
 	if player:hasFlag(PlayerFlag_NotGenerateLoot) or player:getVocation():getId() ==
 		VOCATION_NONE then return true end
 
+	local totalReduceSkillLoss = 0
+	for i = CONST_SLOT_HEAD, CONST_SLOT_AMMO do
+		local item = player:getSlotItem(i)
+		if item then
+			local reduceSkillLoss = item:getReduceSkillLoss()
+			if reduceSkillLoss > 0 then
+				totalReduceSkillLoss = totalReduceSkillLoss + reduceSkillLoss
+			end
+		end
+	end
+	
+	local finalLossPercent = player:getLossPercent() * 100
+	
 	local amulet = player:getSlotItem(CONST_SLOT_NECKLACE)
 	local isRedOrBlack =
 		table.contains({SKULL_RED, SKULL_BLACK}, player:getSkull())
@@ -23,11 +36,16 @@ function onDeath(player, corpse, killer, mostDamageKiller, lastHitUnjustified,
 	else
 		for i = CONST_SLOT_HEAD, CONST_SLOT_AMMO do
 			local item = player:getSlotItem(i)
-			local lossPercent = player:getLossPercent()
 			if item then
-				if isRedOrBlack or math.random(item:isContainer() and 100 or 1000) <=
-					lossPercent then
-					if (isRedOrBlack or lossPercent ~= 0) and not item:moveTo(corpse) then
+				local randomValue = math.random(item:isContainer() and 100 or 1000)
+				local willLose = isRedOrBlack or randomValue <= finalLossPercent
+				
+				-- Debug: Mostrar detalhes do item
+				print(string.format("[DEBUG ITEM] Slot: %d | Item: %s | Random: %d | Loss%%: %.2f | Vai perder: %s", 
+					i, item:getName(), randomValue, finalLossPercent, willLose and "SIM" or "NAO"))
+				
+				if willLose then
+					if (isRedOrBlack or finalLossPercent ~= 0) and not item:moveTo(corpse) then
 						item:remove()
 					end
 				end
