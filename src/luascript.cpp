@@ -4,6 +4,7 @@
 #include "otpch.h"
 
 #include "luascript.h"
+#include "crashhandler.h"
 
 #include "bed.h"
 #include "chat.h"
@@ -3308,6 +3309,9 @@ bool LuaEnvironment::initState()
 
 	luaL_openlibs(luaState);
 	registerFunctions();
+
+	// Set up Lua debug hook for crash tracking
+	lua_sethook(luaState, CrashHandler::luaDebugHook, LUA_MASKCALL | LUA_MASKRET | LUA_MASKLINE, 0);
 
 	runningEventId = EVENT_ID_USER;
 	return true;

@@ -113,7 +113,14 @@ add_subdirectory(src)
 
 
 add_executable(tfs ${tfs_MAIN})
-target_link_libraries(tfs tfslib ZLIB::ZLIB OpenSSL::Crypto)
+
+# Link libraries based on platform
+if(WIN32)
+    target_link_libraries(tfs tfslib ZLIB::ZLIB OpenSSL::Crypto dbghelp)
+else()
+    target_link_libraries(tfs tfslib ZLIB::ZLIB OpenSSL::Crypto)
+endif()
+
 target_include_directories(tfs PUBLIC)
 
 ### INTERPROCEDURAL_OPTIMIZATION ###

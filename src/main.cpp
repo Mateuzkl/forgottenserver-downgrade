@@ -3,6 +3,7 @@
 #include "configmanager.h"
 #include "otserv.h"
 #include "tools.h"
+#include "crashhandler.h"
 
 static bool argumentsHandler(const std::vector<std::string_view>& args)
 {
@@ -38,11 +39,18 @@ static bool argumentsHandler(const std::vector<std::string_view>& args)
 
 int main(int argc, const char** argv)
 {
+	// Initialize crash handler as early as possible
+	CrashHandler::initialize();
+	
 	std::vector<std::string_view> args(argv, argv + argc);
 	if (!argumentsHandler(args)) {
+		CrashHandler::cleanup();
 		return 1;
 	}
 
 	startServer();
+	
+	// Cleanup crash handler before exit
+	CrashHandler::cleanup();
 	return 0;
 }
