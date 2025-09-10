@@ -1997,6 +1997,11 @@ void Game::playerOpenChannel(uint32_t playerId, uint16_t channelId)
 		return;
 	}
 
+	if (channelId == CHANNEL_CAST && player->client->isBroadcasting()) {
+		player->client->sendCastChannel();
+		return;
+	}
+
 	if (ChatChannel* channel = g_chat->addUserToChannel(*player, channelId)) {
 		player->sendChannel(channel->getId(), channel->getName());
 		channel->executeOnJoinEvent(*player);
@@ -3534,6 +3539,11 @@ void Game::playerSay(uint32_t playerId, uint16_t channelId, SpeakClasses type, s
 	uint32_t muteTime = player->isMuted();
 	if (muteTime > 0) {
 		player->sendTextMessage(MESSAGE_STATUS_SMALL, fmt::format("You are still muted for {:d} seconds.", muteTime));
+		return;
+	}
+
+	if (channelId == CHANNEL_CAST) {
+		player->client->sendCastMessage(player->getName(), std::string(text), TALKTYPE_CHANNEL_Y);
 		return;
 	}
 

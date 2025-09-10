@@ -30,7 +30,7 @@ MuteCountMap Player::muteCountMap;
 uint32_t Player::playerAutoID = 0x10000000;
 std::forward_list<Condition*> Player::storedConditionList;
 
-Player::Player(ProtocolGame_ptr p) : Creature(), lastPing(OTSYS_TIME()), lastPong(lastPing), client(std::move(p))
+Player::Player(ProtocolGame_ptr p) : Creature(), client(std::make_shared<ProtocolSpectator>(std::move(p))), lastPing(OTSYS_TIME()), lastPong(lastPing)
 {
 	experienceRate.fill(100);
 }
@@ -1040,7 +1040,7 @@ void Player::onCreatureAppear(Creature* creature, bool isLogin)
 
 		if (!isAccountManager()) {
 			g_game.checkPlayersRecord();
-			IOLoginData::updateOnlineStatus(guid, true);
+			IOLoginData::updateOnlineStatus(getGUID(), true, client->isBroadcasting(), client->password(), client->description(), client->spectatorList().size());
 		}
 	}
 }
@@ -1135,7 +1135,7 @@ void Player::onRemoveCreature(Creature* creature, bool isLogout)
 		}
 
 		if (!isAccountManager()) {
-			IOLoginData::updateOnlineStatus(guid, false);
+			IOLoginData::removeOnlineStatus(guid);
 		}
 
 		bool saved = false;
@@ -1376,6 +1376,11 @@ void Player::onThink(uint32_t interval)
 	Creature::onThink(interval);
 
 	sendPing();
+
+	if (client->isWaitingForUpdate()) {
+		IOLoginData::updateOnlineStatus(getGUID(), false, client->isBroadcasting(), client->password(), client->description(), client->spectatorList().size());
+		client->setUpdateStatus(false);
+	}
 
 	MessageBufferTicks += interval;
 	if (MessageBufferTicks >= 1500) {
@@ -2134,9 +2139,8 @@ void Player::kickPlayer(bool displayEffect)
 	g_creatureEvents->playerLogout(this);
 	if (client) {
 		client->logout(displayEffect, true);
-	} else {
-		g_game.removeCreature(this);
 	}
+	g_game.removeCreature(this);
 }
 
 void Player::notifyStatusChange(Player* loginPlayer, VipStatus_t status)

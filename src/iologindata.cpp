@@ -10,6 +10,19 @@
 
 extern Game g_game;
 
+StringVector IOLoginData::getCastList(const std::string& password)
+{
+	Database& db = Database::getInstance();
+	StringVector vec;
+	DBResult_ptr result = db.storeQuery(fmt::format("SELECT `name`, `level`, `spectators` FROM `players` LEFT JOIN `players_online` ON `players`.`id` = `players_online`.`player_id` WHERE `broadcasting` = 1 AND `password` = {:s}", db.escapeString(password)));
+	if (result) {
+		do {
+			vec.push_back(std::string(result->getString("name")));
+		} while (result->next());
+	}
+	return vec;
+}
+
 Account IOLoginData::loadAccount(uint32_t accno)
 {
 	Account account;
@@ -95,8 +108,14 @@ bool IOLoginData::loginserverAuthentication(std::string_view name, std::string_v
 
 std::pair<uint32_t, uint32_t> IOLoginData::gameworldAuthentication(std::string_view accountName,
                                                                    std::string_view password,
-                                                                   std::string_view characterName)
+                                                                   std::string_view characterName,
+                                                                   bool& cast)
 {
+	if (accountName.empty()) {
+		cast = true;
+		return {0, 0};
+	}
+
 	Database& db = Database::getInstance();
 	DBResult_ptr result = db.storeQuery(fmt::format(
 	    "SELECT `a`.`id` AS `account_id`, UNHEX(`a`.`password`) AS `password`, `a`.`secret`, `p`.`id` AS `character_id` FROM `accounts` `a` JOIN `players` `p` ON `a`.`id` = `p`.`account_id` WHERE (`a`.`name` = {:s} OR `a`.`email` = {:s}) AND `p`.`name` = {:s} AND `p`.`deletion` = 0",
@@ -183,18 +202,35 @@ void IOLoginData::setAccountType(uint32_t accountId, AccountType_t accountType)
 	                                                 static_cast<uint16_t>(accountType), accountId));
 }
 
-void IOLoginData::updateOnlineStatus(uint32_t guid, bool login)
+void IOLoginData::updateOnlineStatus(uint32_t guid, bool login, bool broadcasting, const std::string& cast_password, const std::string& cast_description, uint32_t spectators)
 {
 	if (getBoolean(ConfigManager::ALLOW_CLONES)) {
 		return;
 	}
 
+	Database& db = Database::getInstance();
+	std::ostringstream query;
+
 	if (login) {
-		Database::getInstance().executeQuery(fmt::format("INSERT INTO `players_online` VALUES ({:d})", guid));
+		query << "INSERT INTO `players_online` (`player_id`, `broadcasting`, `password`, `description`, `spectators`) VALUES "
+			"(" << guid << ", " << broadcasting << ", " << db.escapeString(cast_password) << ", " << db.escapeString(cast_description) << ", " << spectators << ")";
 	} else {
-		Database::getInstance().executeQuery(
-		    fmt::format("DELETE FROM `players_online` WHERE `player_id` = {:d}", guid));
+		query << "UPDATE `players_online` SET "
+			"`broadcasting` = " << broadcasting << ", "
+			"`password` = " << db.escapeString(cast_password) << ", "
+			"`description` = " << db.escapeString(cast_description) << ", "
+			"`spectators` = " << spectators << " "
+			" WHERE `player_id` = " << guid;
 	}
+	db.executeQuery(query.str());
+}
+
+void IOLoginData::removeOnlineStatus(uint32_t guid)
+{
+	if (ConfigManager::getBoolean(ConfigManager::ALLOW_CLONES)) {
+		return;
+	}
+	Database::getInstance().executeQuery(fmt::format("DELETE FROM `players_online` WHERE `player_id` = {:d}", guid));
 }
 
 bool IOLoginData::preloadPlayer(Player* player)

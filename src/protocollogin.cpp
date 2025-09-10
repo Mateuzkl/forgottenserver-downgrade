@@ -15,6 +15,12 @@
 
 #include <iomanip>
 
+#ifdef _WIN32
+#include <winsock2.h>
+#else
+#include <arpa/inet.h>
+#endif
+
 extern Game g_game;
 
 void ProtocolLogin::disconnectClient(std::string_view message)
@@ -69,6 +75,36 @@ void ProtocolLogin::getCharacterList(std::string_view accountName, std::string_v
 			output->add<uint16_t>(0);
 		}
 	}
+
+	send(output);
+
+	disconnect();
+}
+
+void ProtocolLogin::getCastList(const std::string& password)
+{
+	StringVector casts = IOLoginData::getCastList(password);
+	if (casts.empty()) {
+		disconnectClient("No public casts available.");
+		return;
+	}
+
+	auto output = OutputMessagePool::getOutputMessage();
+
+	//Add char list
+	output->addByte(0x64);
+
+	uint8_t size = std::min<size_t>(std::numeric_limits<uint8_t>::max(), casts.size());
+	output->addByte(size);
+	for (uint8_t i = 0; i < size; i++) {
+		output->addString(casts[i]);
+		output->addString(ConfigManager::getString(ConfigManager::SERVER_NAME));
+		output->add<uint32_t>(inet_addr(ConfigManager::getString(ConfigManager::IP).data()));
+		output->add<uint16_t>(ConfigManager::getInteger(ConfigManager::GAME_PORT));
+	}
+
+	//Add premium days
+	output->add<uint16_t>(0xFFFF);
 
 	send(output);
 
@@ -156,16 +192,11 @@ void ProtocolLogin::onRecvFirstMessage(NetworkMessage& msg)
 	}
 
 	if (accountNameEmpty) {
-		disconnectClient("Invalid account name.");
-		return;
+		g_dispatcher.addTask([=, thisPtr = std::static_pointer_cast<ProtocolLogin>(shared_from_this()),
+		                      password = std::string{password}]() { thisPtr->getCastList(password); });
+	} else {
+		g_dispatcher.addTask([=, thisPtr = std::static_pointer_cast<ProtocolLogin>(shared_from_this()),
+		                      accountName = std::string{accountName},
+		                      password = std::string{password}]() { thisPtr->getCharacterList(accountName, password); });
 	}
-
-	if (passwordEmpty) {
-		disconnectClient("Invalid password.");
-		return;
-	}
-
-	g_dispatcher.addTask([=, thisPtr = std::static_pointer_cast<ProtocolLogin>(shared_from_this()),
-	                      accountName = std::string{accountName},
-	                      password = std::string{password}]() { thisPtr->getCharacterList(accountName, password); });
 }

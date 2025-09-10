@@ -493,5 +493,6 @@ enum ReloadTypes_t : uint8_t
 inline constexpr int32_t CHANNEL_GUILD = 0x00;
 inline constexpr int32_t CHANNEL_PARTY = 0x01;
 inline constexpr int32_t CHANNEL_PRIVATE = 0xFFFF;
+inline constexpr int32_t CHANNEL_CAST = 0xFF;
 
 #endif

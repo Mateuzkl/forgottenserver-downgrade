@@ -60,6 +60,10 @@ std::string ucfirst(std::string str);
 std::string ucwords(std::string str);
 bool booleanString(std::string_view str);
 
+std::string asLowerCaseString(const std::string& str);
+void toLowerCaseString(std::string& str);
+void trimString(std::string& str);
+
 std::string getWeaponName(WeaponType_t weaponType);
 
 size_t combatTypeToIndex(CombatType_t combatType);

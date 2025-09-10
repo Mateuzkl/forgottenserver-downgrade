@@ -16,6 +16,7 @@
 #include "outfit.h"
 #include "party.h"
 #include "protocolgame.h"
+#include "protocolspectator.h"
 #include "town.h"
 #include "vocation.h"
 #include "rewardchest.h"
@@ -26,6 +27,7 @@ class House;
 class NetworkMessage;
 class Weapon;
 class ProtocolGame;
+class ProtocolSpectator;
 class Npc;
 class Party;
 class SchedulerTask;
@@ -131,7 +133,7 @@ public:
 	bool hasMounts() const;
 	void dismount();
 
-	void sendFYIBox(std::string_view message)
+	void sendFYIBox(const std::string& message)
 	{
 		if (client) {
 			client->sendFYIBox(message);
@@ -972,7 +974,13 @@ public:
 
 	void updateRegeneration();
 
-	const auto& getOpenContainers() const { return openContainers; }
+	const std::map<uint8_t, OpenContainer>& getOpenContainers() const {
+			return openContainers;
+		}
+
+		ProtocolSpectator_ptr client;
+
+
 
 	// for lua module
 	void setAccountType(AccountType_t newType) { accountType = newType; }
@@ -1116,7 +1124,6 @@ private:
 	Npc* shopOwner = nullptr;
 	Party* party = nullptr;
 	Player* tradePartner = nullptr;
-	ProtocolGame_ptr client;
 	SchedulerTask* walkTask = nullptr;
 	Town* town = nullptr;
 	Vocation* vocation = nullptr;
@@ -1224,6 +1231,7 @@ private:
 	friend class Actions;
 	friend class IOLoginData;
 	friend class ProtocolGame;
+	friend class ProtocolSpectator;
 };
 
 #endif

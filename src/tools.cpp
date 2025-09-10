@@ -658,6 +658,31 @@ bool booleanString(std::string_view str)
 	return ch != 'f' && ch != 'n' && ch != '0';
 }
 
+std::string asLowerCaseString(const std::string& str)
+{
+	std::string result = str;
+	std::transform(result.begin(), result.end(), result.begin(), ::tolower);
+	return result;
+}
+
+void toLowerCaseString(std::string& str)
+{
+	std::transform(str.begin(), str.end(), str.begin(), ::tolower);
+}
+
+void trimString(std::string& str)
+{
+	// Remove leading whitespace
+	str.erase(str.begin(), std::find_if(str.begin(), str.end(), [](unsigned char ch) {
+		return !std::isspace(ch);
+	}));
+	
+	// Remove trailing whitespace
+	str.erase(std::find_if(str.rbegin(), str.rend(), [](unsigned char ch) {
+		return !std::isspace(ch);
+	}).base(), str.end());
+}
+
 std::string getWeaponName(WeaponType_t weaponType)
 {
 	switch (weaponType) {

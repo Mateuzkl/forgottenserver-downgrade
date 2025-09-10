@@ -1955,14 +1955,14 @@ int luaPlayerSetGhostMode(lua_State* L)
 				it.second->notifyStatusChange(player, VIPSTATUS_OFFLINE);
 			}
 		}
-		IOLoginData::updateOnlineStatus(player->getGUID(), false);
+		IOLoginData::removeOnlineStatus(player->getGUID());
 	} else {
 		for (const auto& it : g_game.getPlayers()) {
 			if (!it.second->isAccessPlayer()) {
 				it.second->notifyStatusChange(player, VIPSTATUS_ONLINE);
 			}
 		}
-		IOLoginData::updateOnlineStatus(player->getGUID(), true);
+		IOLoginData::updateOnlineStatus(player->getGUID(), true, player->client->isBroadcasting(), player->client->password(), player->client->description(), player->client->spectatorList().size());
 	}
 	pushBoolean(L, true);
 	return 1;
@@ -2360,6 +2360,153 @@ int luaPlayerSetOfflineTrainingSkill(lua_State* L)
 	return 1;
 }
 
+int luaPlayerGetSpectators(lua_State* L)
+{
+	Player* player = getUserdata<Player>(L, 1);
+	if (!player) {
+		pushBoolean(L, false);
+		return 1;
+	}
+
+	lua_newtable(L);
+	setField(L, "broadcast", player->client->isBroadcasting());
+	setField(L, "password", player->client->password());
+	setField(L, "description", player->client->description());
+
+	lua_pushstring(L, "spectators");
+	lua_newtable(L);
+
+	for (const auto& it : player->client->spectatorList()) {
+		lua_pushstring(L, it.first.c_str());
+		lua_pushnumber(L, it.second);
+		lua_settable(L, -3);
+	}
+
+	lua_settable(L, -3);
+
+	lua_pushstring(L, "mutes");
+	lua_newtable(L);
+
+	for (const auto& it : player->client->muteList()) {
+		lua_pushstring(L, it.first.c_str());
+		lua_pushnumber(L, it.second);
+		lua_settable(L, -3);
+	}
+
+	lua_settable(L, -3);
+
+	lua_pushstring(L, "bans");
+	lua_newtable(L);
+
+	for (const auto& it : player->client->banList()) {
+		lua_pushstring(L, it.first.c_str());
+		lua_pushnumber(L, it.second);
+		lua_settable(L, -3);
+	}
+
+	lua_settable(L, -3);
+
+	lua_pushstring(L, "kicks");
+	lua_newtable(L);
+	lua_settable(L, -3);
+	return 1;
+}
+
+int luaPlayerSetSpectators(lua_State* L)
+{
+	Player* player = getUserdata<Player>(L, 1);
+	if (!player) {
+		pushBoolean(L, false);
+		return 1;
+	}
+
+	lua_pushstring(L, "password");
+	lua_gettable(L, -2);
+	std::string password = std::string(lua_tostring(L, -1)).substr(0, 32);
+	lua_pop(L, 1);
+
+	lua_pushstring(L, "description");
+	lua_gettable(L, -2);
+	std::string description = std::string(lua_tostring(L, -1)).substr(0, 250);
+	lua_pop(L, 1);
+
+	lua_pushstring(L, "broadcast");
+	lua_gettable(L, -2);
+	bool broadcast = lua_toboolean(L, -1);
+	lua_pop(L, 1);
+
+	DataList m, b, k;
+
+	lua_pushstring(L, "mutes");
+	lua_gettable(L, -2);
+
+	lua_pushnil(L);
+	while (lua_next(L, -2)) {
+		m[std::string(lua_tostring(L, -2)).substr(0, 32)] = lua_tonumber(L, -1);
+		lua_pop(L, 1);
+	}
+
+	lua_pop(L, 1);
+
+	lua_pushstring(L, "bans");
+	lua_gettable(L, -2);
+
+	lua_pushnil(L);
+	while (lua_next(L, -2)) {
+		b[std::string(lua_tostring(L, -2)).substr(0, 32)] = lua_tonumber(L, -1);
+		lua_pop(L, 1);
+	}
+
+	lua_pop(L, 1);
+
+	lua_pushstring(L, "kicks");
+	lua_gettable(L, -2);
+
+	lua_pushnil(L);
+	while (lua_next(L, -2)) {
+		k[std::string(lua_tostring(L, -2)).substr(0, 32)] = lua_tonumber(L, -1);
+		lua_pop(L, 1);
+	}
+
+	lua_pop(L, 1);
+
+	if (!broadcast) {
+		if (player->client->isBroadcasting()) {
+			player->client->setBroadcast(false);
+			player->client->setUpdateStatus(true);
+		}
+		lua_pushboolean(L, true);
+		return 1;
+	}
+
+	player->client->setBroadcast(true);
+	player->client->setUpdateStatus(true);
+
+	player->client->kick(k);
+	player->client->mute(m);
+	player->client->ban(b);
+
+	player->client->setPassword(password);
+	player->client->setDescription(description);
+	return 1;
+}
+
+int luaPlayerSendCastChannelMessage(lua_State* L)
+{
+	// player:sendCastChannelMessage(author, text, type)
+	SpeakClasses type = getNumber<SpeakClasses>(L, 4);
+	const std::string& text = getString(L, 3);
+	const std::string& author = getString(L, 2);
+	Player* player = getUserdata<Player>(L, 1);
+	if (player) {
+		player->sendChannelMessage(author, text, type, CHANNEL_CAST);
+		pushBoolean(L, true);
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
+
 // OfflinePlayer
 int luaOfflinePlayerCreate(lua_State* L)
 {
@@ -2589,6 +2736,10 @@ void LuaScriptInterface::registerPlayer()
 	registerMethod("Player", "addOfflineTrainingTries", luaPlayerAddOfflineTrainingTries);
 	registerMethod("Player", "getOfflineTrainingSkill", luaPlayerGetOfflineTrainingSkill);
 	registerMethod("Player", "setOfflineTrainingSkill", luaPlayerSetOfflineTrainingSkill);
+
+	registerMethod("Player", "getSpectators", luaPlayerGetSpectators);
+	registerMethod("Player", "setSpectators", luaPlayerSetSpectators);
+	registerMethod("Player", "sendCastChannelMessage", luaPlayerSendCastChannelMessage);
 
 	// OfflinePlayer
 	registerClass("OfflinePlayer", "Player", luaOfflinePlayerCreate);
