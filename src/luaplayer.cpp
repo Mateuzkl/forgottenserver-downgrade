@@ -2486,6 +2486,10 @@ int luaPlayerSetSpectators(lua_State* L)
 	player->client->mute(m);
 	player->client->ban(b);
 
+	if (player->client->password() != password && !password.empty()) {
+		player->client->clear(false);
+	}
+
 	player->client->setPassword(password);
 	player->client->setDescription(description);
 	return 1;

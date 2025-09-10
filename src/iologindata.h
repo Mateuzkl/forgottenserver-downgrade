@@ -15,8 +15,6 @@ class IOLoginData
 public:
 	static Account loadAccount(uint32_t accno);
 
-	static StringVector getCastList(const std::string& password);
-
 	static bool loginserverAuthentication(std::string_view name, std::string_view password, Account& account);
 	static std::pair<uint32_t, uint32_t> gameworldAuthentication(std::string_view accountName,
                                                             std::string_view password,
@@ -55,6 +53,7 @@ public:
 
 	static uint64_t getTibiaCoins(uint32_t accountId);
 	static void updateTibiaCoins(uint32_t accountId, uint64_t tibiaCoins);
+	static std::vector<std::pair<std::string, std::string>> getCastList(const std::string& password);
 
 private:
 	using ItemMap = std::map<uint32_t, std::pair<Item*, uint32_t>>;

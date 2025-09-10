@@ -278,6 +278,7 @@ private:
 		void sendCastChannel();
 		void syncOpenContainers();
 
+		int64_t lastSpectatorTurn = 0;
 		bool isSpectator = false;
 		std::string spectator_name = "";
 

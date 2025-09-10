@@ -24,6 +24,7 @@ void ProtocolSpectator::addSpectator(ProtocolGame_ptr spectator)
 {
     spectators.insert(spectator);
     setUpdateStatus(true); // update spectators count
+     sendCastMessage("", spectator->getSpectatorName() + " has joined to your cast.", TALKTYPE_CHANNEL_O, spectator);
 }
 
 void ProtocolSpectator::removeSpectator(ProtocolGame_ptr spectator)

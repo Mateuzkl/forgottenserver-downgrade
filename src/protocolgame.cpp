@@ -2819,6 +2819,12 @@ void ProtocolGame::sendOTCv8Features()
 
 void ProtocolGame::spectatorTurn(uint8_t direction)
 {
+
+	if (lastSpectatorTurn + 1000 > OTSYS_TIME()) {
+		return;
+	}
+	lastSpectatorTurn = OTSYS_TIME();
+	
 	std::vector<std::string> candidates;
 	candidates.reserve(32);
 

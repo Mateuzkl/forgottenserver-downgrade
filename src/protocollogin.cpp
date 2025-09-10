@@ -46,7 +46,7 @@ void ProtocolLogin::getCharacterList(std::string_view accountName, std::string_v
 	if (!motd.empty()) {
 		// Add MOTD
 		output->addByte(0x14);
-		output->addString(fmt::format("{:d}\n{:s}", g_game.getMotdNum(), motd));
+		output->addString(fmt::format("{:d}\n{:s}", normal_random(1, 255), "                    !-Welcome to Cast System-!\n\nIt will show all active casts even with password.\n\nTo enter a cast with password you just have to\nput the password in the empty space.\n\nRemember that when you open cast without\npassword you will get 10% of Exp.\n\nAlso remember that to open cast, just say !cast on."));
 	}
 
 	// Add char list
@@ -83,9 +83,9 @@ void ProtocolLogin::getCharacterList(std::string_view accountName, std::string_v
 
 void ProtocolLogin::getCastList(const std::string& password)
 {
-	StringVector casts = IOLoginData::getCastList(password);
+	const auto& casts = IOLoginData::getCastList(password);
 	if (casts.empty()) {
-		disconnectClient("No public casts available.");
+		disconnectClient("There are no casts available at this time.");
 		return;
 	}
 
@@ -94,13 +94,19 @@ void ProtocolLogin::getCastList(const std::string& password)
 	//Add char list
 	output->addByte(0x64);
 
-	uint8_t size = std::min<size_t>(std::numeric_limits<uint8_t>::max(), casts.size());
-	output->addByte(size);
-	for (uint8_t i = 0; i < size; i++) {
-		output->addString(casts[i]);
-		output->addString(ConfigManager::getString(ConfigManager::SERVER_NAME));
+	uint8_t limit = std::numeric_limits<uint8_t>::max();
+	output->addByte(std::min<uint8_t>(limit, casts.size()));
+
+	for (const auto& it : casts) {
+		if (limit == 0) {
+			break;
+		}
+
+		output->addString(it.first);
+		output->addString(it.second);
 		output->add<uint32_t>(inet_addr(ConfigManager::getString(ConfigManager::IP).data()));
 		output->add<uint16_t>(ConfigManager::getInteger(ConfigManager::GAME_PORT));
+		limit--;
 	}
 
 	//Add premium days
