@@ -2396,6 +2396,79 @@ int luaOfflinePlayerRemove(lua_State* L)
 	}
 	return 0;
 }
+
+// AwareRange Functions
+int luaPlayerGetAwareRangeWidth(lua_State* L)
+{
+	// player:getAwareRangeWidth()
+	Player* player = getUserdata<Player>(L, 1);
+	if (player && player->client) {
+		ProtocolGame* protocol = static_cast<ProtocolGame*>(player->client);
+		lua_pushinteger(L, protocol->awareRange.width);
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
+
+int luaPlayerGetAwareRangeHeight(lua_State* L)
+{
+	// player:getAwareRangeHeight()
+	Player* player = getUserdata<Player>(L, 1);
+	if (player && player->client) {
+		ProtocolGame* protocol = static_cast<ProtocolGame*>(player->client);
+		lua_pushinteger(L, protocol->awareRange.height);
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
+
+int luaPlayerSetAwareRangeWidth(lua_State* L)
+{
+	// player:setAwareRangeWidth(width)
+	Player* player = getUserdata<Player>(L, 1);
+	if (player && player->client) {
+		int width = getInteger<int>(L, 2);
+		ProtocolGame* protocol = static_cast<ProtocolGame*>(player->client);
+		protocol->awareRange.setWidth(width);
+		pushBoolean(L, true);
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
+
+int luaPlayerSetAwareRangeHeight(lua_State* L)
+{
+	// player:setAwareRangeHeight(height)
+	Player* player = getUserdata<Player>(L, 1);
+	if (player && player->client) {
+		int height = getInteger<int>(L, 2);
+		ProtocolGame* protocol = static_cast<ProtocolGame*>(player->client);
+		protocol->awareRange.setHeight(height);
+		pushBoolean(L, true);
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
+
+int luaPlayerSetAwareRangeSize(lua_State* L)
+{
+	// player:setAwareRangeSize(width, height)
+	Player* player = getUserdata<Player>(L, 1);
+	if (player && player->client) {
+		int width = getInteger<int>(L, 2);
+		int height = getInteger<int>(L, 3);
+		ProtocolGame* protocol = static_cast<ProtocolGame*>(player->client);
+		protocol->awareRange.setSize(width, height);
+		pushBoolean(L, true);
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
 } // namespace
 
 void LuaScriptInterface::registerPlayer()
@@ -2589,6 +2662,13 @@ void LuaScriptInterface::registerPlayer()
 	registerMethod("Player", "addOfflineTrainingTries", luaPlayerAddOfflineTrainingTries);
 	registerMethod("Player", "getOfflineTrainingSkill", luaPlayerGetOfflineTrainingSkill);
 	registerMethod("Player", "setOfflineTrainingSkill", luaPlayerSetOfflineTrainingSkill);
+
+	// AwareRange Functions
+	registerMethod("Player", "getAwareRangeWidth", luaPlayerGetAwareRangeWidth);
+	registerMethod("Player", "getAwareRangeHeight", luaPlayerGetAwareRangeHeight);
+	registerMethod("Player", "setAwareRangeWidth", luaPlayerSetAwareRangeWidth);
+	registerMethod("Player", "setAwareRangeHeight", luaPlayerSetAwareRangeHeight);
+	registerMethod("Player", "setAwareRangeSize", luaPlayerSetAwareRangeSize);
 
 	// OfflinePlayer
 	registerClass("OfflinePlayer", "Player", luaOfflinePlayerCreate);

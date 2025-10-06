@@ -8,6 +8,7 @@
 #include "creature.h"
 #include "protocol.h"
 #include "tasks.h"
+#include <algorithm>
 
 class NetworkMessage;
 class Player;
@@ -284,6 +285,17 @@ private:
 		int bottom() const { return 1 + height / 2; }
 		int horizontal() const { return width + 1; }
 		int vertical() const { return height + 1; }
+		
+		void setWidth(int newWidth) { 
+			width = std::max(10, std::min(30, newWidth)); 
+		}
+		void setHeight(int newHeight) { 
+			height = std::max(10, std::min(30, newHeight)); 
+		}
+		void setSize(int newWidth, int newHeight) {
+			setWidth(newWidth);
+			setHeight(newHeight);
+		}
 	} awareRange;
 	bool debugAssertSent = false;
 	bool acceptPackets = false;
