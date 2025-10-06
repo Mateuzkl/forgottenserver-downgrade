@@ -275,8 +275,8 @@ private:
 
 	bool isOTCv8 = false;
 	struct AwareRange {
-		int width = 17;
-		int height = 13;
+		int width = 20;
+		int height = 20;
 
 		int left() const { return width / 2; }
 		int right() const { return 1 + width / 2; }
