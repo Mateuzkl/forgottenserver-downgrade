@@ -123,7 +123,7 @@ function onUseRope(player, item, fromPosition, target, toPosition, isHotkey)
 
 	local ground = tile:getGround()
 
-	if ground and table.contains(ropeSpots, ground:getId()) then
+	if ground and table.contains(ropeSpots, ground:getId()) or tile:getItemById(14435) then
 		tile = Tile(toPosition:moveUpstairs())
 		if not tile then return false end
 
@@ -144,7 +144,7 @@ function onUseRope(player, item, fromPosition, target, toPosition, isHotkey)
 		local thing = tile:getTopVisibleThing()
 		if not thing then return true end
 
-		if thing:isPlayer() then
+		if thing:isCreature() and (thing:isPlayer() or thing:isMonster()) then
 			if Tile(toPosition:moveUpstairs()):queryAdd(thing) ~= RETURNVALUE_NOERROR then
 				return false
 			end
