@@ -245,6 +245,13 @@ public:
 	uint32_t getIP() const;
 	uint32_t getLastIP() const { return lastIP; }
 
+	// Aware range methods
+	int getAwareRangeWidth() const;
+	int getAwareRangeHeight() const;
+	void setAwareRangeWidth(int width);
+	void setAwareRangeHeight(int height);
+	void setAwareRangeSize(int width, int height);
+
 	void addContainer(uint8_t cid, Container* container);
 	void closeContainer(uint8_t cid);
 	void setContainerIndex(uint8_t cid, uint16_t index);

@@ -1892,6 +1892,43 @@ uint32_t Player::getIP() const
 	return 0;
 }
 
+int Player::getAwareRangeWidth() const
+{
+	if (client) {
+		return client->awareRange.width;
+	}
+	return 0;
+}
+
+int Player::getAwareRangeHeight() const
+{
+	if (client) {
+		return client->awareRange.height;
+	}
+	return 0;
+}
+
+void Player::setAwareRangeWidth(int width)
+{
+	if (client) {
+		client->awareRange.setWidth(width);
+	}
+}
+
+void Player::setAwareRangeHeight(int height)
+{
+	if (client) {
+		client->awareRange.setHeight(height);
+	}
+}
+
+void Player::setAwareRangeSize(int width, int height)
+{
+	if (client) {
+		client->awareRange.setSize(width, height);
+	}
+}
+
 void Player::death(Creature* lastHitCreature)
 {
 	loginPosition = town->getTemplePosition();

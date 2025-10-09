@@ -2402,9 +2402,8 @@ int luaPlayerGetAwareRangeWidth(lua_State* L)
 {
 	// player:getAwareRangeWidth()
 	Player* player = getUserdata<Player>(L, 1);
-	if (player && player->client) {
-		ProtocolGame* protocol = static_cast<ProtocolGame*>(player->client);
-		lua_pushinteger(L, protocol->awareRange.width);
+	if (player) {
+		lua_pushinteger(L, player->getAwareRangeWidth());
 	} else {
 		lua_pushnil(L);
 	}
@@ -2415,9 +2414,8 @@ int luaPlayerGetAwareRangeHeight(lua_State* L)
 {
 	// player:getAwareRangeHeight()
 	Player* player = getUserdata<Player>(L, 1);
-	if (player && player->client) {
-		ProtocolGame* protocol = static_cast<ProtocolGame*>(player->client);
-		lua_pushinteger(L, protocol->awareRange.height);
+	if (player) {
+		lua_pushinteger(L, player->getAwareRangeHeight());
 	} else {
 		lua_pushnil(L);
 	}
@@ -2428,10 +2426,9 @@ int luaPlayerSetAwareRangeWidth(lua_State* L)
 {
 	// player:setAwareRangeWidth(width)
 	Player* player = getUserdata<Player>(L, 1);
-	if (player && player->client) {
+	if (player) {
 		int width = getInteger<int>(L, 2);
-		ProtocolGame* protocol = static_cast<ProtocolGame*>(player->client);
-		protocol->awareRange.setWidth(width);
+		player->setAwareRangeWidth(width);
 		pushBoolean(L, true);
 	} else {
 		lua_pushnil(L);
@@ -2443,10 +2440,9 @@ int luaPlayerSetAwareRangeHeight(lua_State* L)
 {
 	// player:setAwareRangeHeight(height)
 	Player* player = getUserdata<Player>(L, 1);
-	if (player && player->client) {
+	if (player) {
 		int height = getInteger<int>(L, 2);
-		ProtocolGame* protocol = static_cast<ProtocolGame*>(player->client);
-		protocol->awareRange.setHeight(height);
+		player->setAwareRangeHeight(height);
 		pushBoolean(L, true);
 	} else {
 		lua_pushnil(L);
@@ -2458,11 +2454,10 @@ int luaPlayerSetAwareRangeSize(lua_State* L)
 {
 	// player:setAwareRangeSize(width, height)
 	Player* player = getUserdata<Player>(L, 1);
-	if (player && player->client) {
+	if (player) {
 		int width = getInteger<int>(L, 2);
 		int height = getInteger<int>(L, 3);
-		ProtocolGame* protocol = static_cast<ProtocolGame*>(player->client);
-		protocol->awareRange.setSize(width, height);
+		player->setAwareRangeSize(width, height);
 		pushBoolean(L, true);
 	} else {
 		lua_pushnil(L);
