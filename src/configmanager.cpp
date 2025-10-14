@@ -316,6 +316,8 @@ bool ConfigManager::load()
 	booleans[Boolean::ACCOUNT_MANAGER] = getGlobalBoolean(L, "accountManager", true);
 	booleans[Boolean::MANASHIELD_BREAKABLE] = getGlobalBoolean(L, "useBreakableManaShield", false);
 	booleans[Boolean::BED_OFFLINE_TRAINING] = getGlobalBoolean(L, "bedOfflineTraining", true);
+	booleans[Boolean::ALLOW_AUTO_ATTACK_WITHOUT_EXHAUSTION] = getGlobalBoolean(L, "allowAutoAttackWithoutExhaustion", true);
+	booleans[Boolean::ALLOW_CASTING_WHILE_WALKING] = getGlobalBoolean(L, "allowCastingWhileWalking", true);
 
 	strings[String::DEFAULT_PRIORITY] = getGlobalString(L, "defaultPriority", "high");
 	strings[String::SERVER_NAME] = getGlobalString(L, "serverName", "");

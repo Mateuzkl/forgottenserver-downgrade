@@ -507,8 +507,11 @@ bool Spell::playerSpellCheck(Player* player) const
 	if (!player->hasFlag(PlayerFlag_HasNoExhaustion)) {
 		bool exhaust = false;
 		if (aggressive) {
-			if (player->hasCondition(CONDITION_EXHAUST_COMBAT)) {
-				exhaust = true;
+			// Check if auto attack without exhaustion is enabled
+			if (!getBoolean(ConfigManager::ALLOW_AUTO_ATTACK_WITHOUT_EXHAUSTION)) {
+				if (player->hasCondition(CONDITION_EXHAUST_COMBAT)) {
+					exhaust = true;
+				}
 			}
 		} else {
 			if (player->hasCondition(CONDITION_EXHAUST_HEAL)) {
