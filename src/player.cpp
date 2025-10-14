@@ -3190,6 +3190,24 @@ void Player::doAttacking(uint32_t)
 	}
 }
 
+void Player::maintainAttackFlow()
+{
+	if (attackedCreature && !hasCondition(CONDITION_PACIFIED)) {
+		if (!canDoAction()) {
+			return;
+		}
+		
+		if ((OTSYS_TIME() - lastAttack) >= getAttackSpeed()) {
+			lastAttack = OTSYS_TIME() - getAttackSpeed() + 100;
+			
+			SchedulerTask* task = createSchedulerTask(100, [id = getID()]() { 
+				g_game.checkCreatureAttack(id); 
+			});
+			setNextActionTask(task, false);
+		}
+	}
+}
+
 uint64_t Player::getGainedExperience(Creature* attacker) const
 {
 	if (getBoolean(ConfigManager::EXPERIENCE_FROM_PLAYERS)) {

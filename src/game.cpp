@@ -2153,6 +2153,7 @@ void Game::playerUseItemEx(uint32_t playerId, const Position& fromPos, uint8_t f
 		player->setNextActionTask(nullptr);
 
 		g_actions->useItemEx(player, fromPos, toPos, toStackPos, item, isHotkey);
+		player->maintainAttackFlow();
 		return;
 	}
 
@@ -2219,6 +2220,7 @@ void Game::playerUseItemEx(uint32_t playerId, const Position& fromPos, uint8_t f
 	player->setNextActionTask(nullptr);
 
 	g_actions->useItemEx(player, fromPos, toPos, toStackPos, item, isHotkey);
+	player->maintainAttackFlow();
 }
 
 void Game::playerUseItem(uint32_t playerId, const Position& pos, uint8_t stackPos, uint8_t index, uint16_t spriteId)
@@ -2250,6 +2252,7 @@ void Game::playerUseItem(uint32_t playerId, const Position& pos, uint8_t stackPo
 		player->setNextActionTask(nullptr);
 
 		g_actions->useItem(player, pos, index, item, isHotkey);
+		player->maintainAttackFlow();
 		return;
 	}
 
@@ -2288,6 +2291,7 @@ void Game::playerUseItem(uint32_t playerId, const Position& pos, uint8_t stackPo
 	player->setNextActionTask(nullptr);
 
 	g_actions->useItem(player, pos, index, item, isHotkey);
+	player->maintainAttackFlow();
 }
 
 void Game::playerUseWithCreature(uint32_t playerId, const Position& fromPos, uint8_t fromStackPos, uint32_t creatureId,
@@ -2317,6 +2321,7 @@ void Game::playerUseWithCreature(uint32_t playerId, const Position& fromPos, uin
 			g_actions->useItemEx(player, fromPos, creature->getPosition(),
 			                     static_cast<uint8_t>(creature->getParent()->getThingIndex(creature)), item, isHotkey,
 			                     creature);
+			player->maintainAttackFlow();
 		} else {
 			player->sendCancelMessage(RETURNVALUE_NOTPOSSIBLE);
 		}

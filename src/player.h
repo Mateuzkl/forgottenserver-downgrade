@@ -461,6 +461,7 @@ public:
 	                     bool checkArmor = false, bool field = false, bool ignoreResistances = false) override;
 	void doAttacking(uint32_t interval) override;
 	bool hasExtraSwing() override { return lastAttack > 0 && ((OTSYS_TIME() - lastAttack) >= getAttackSpeed()); }
+	void maintainAttackFlow();
 
 	uint16_t getSpecialSkill(uint8_t skill) const
 	{
