@@ -3,13 +3,16 @@
 
 #include "otpch.h"
 
+#include "bed.h"
 #include "chat.h"
 #include "game.h"
 #include "iologindata.h"
 #include "luascript.h"
+#include "map.h"
 #include "mounts.h"
 #include "player.h"
 #include "spells.h"
+#include "tile.h"
 #include "vocation.h"
 
 extern Chat* g_chat;
@@ -2360,6 +2363,85 @@ int luaPlayerSetOfflineTrainingSkill(lua_State* L)
 	return 1;
 }
 
+int luaPlayerIsNearBed(lua_State* L)
+{
+	// player:isNearBed()
+	Player* player = getUserdata<Player>(L, 1);
+	if (player) {
+		const Position& playerPos = player->getPosition();
+		Position lookPosition = playerPos;
+		
+		Direction direction = player->getDirection();
+		if (direction == DIRECTION_NORTH) {
+			lookPosition.y = lookPosition.y - 1;
+		} else if (direction == DIRECTION_SOUTH) {
+			lookPosition.y = lookPosition.y + 1;
+		} else if (direction == DIRECTION_EAST) {
+			lookPosition.x = lookPosition.x + 1;
+		} else if (direction == DIRECTION_WEST) {
+			lookPosition.x = lookPosition.x - 1;
+		}
+		
+		Tile* tile = g_game.map.getTile(lookPosition);
+		if (tile && tile->getBedItem()) {
+			pushBoolean(L, true);
+		} else {
+			pushBoolean(L, false);
+		}
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
+
+int luaPlayerStartOfflineTraining(lua_State* L)
+{
+	// player:startOfflineTraining()
+	Player* player = getUserdata<Player>(L, 1);
+	if (player) {
+		const Position& playerPos = player->getPosition();
+		Position lookPosition = playerPos;
+		
+		Direction direction = player->getDirection();
+		if (direction == DIRECTION_NORTH) {
+			lookPosition.y = lookPosition.y - 1;
+		} else if (direction == DIRECTION_SOUTH) {
+			lookPosition.y = lookPosition.y + 1;
+		} else if (direction == DIRECTION_EAST) {
+			lookPosition.x = lookPosition.x + 1;
+		} else if (direction == DIRECTION_WEST) {
+			lookPosition.x = lookPosition.x - 1;
+		}
+		
+		Tile* tile = g_game.map.getTile(lookPosition);
+		BedItem* bed = nullptr;
+		if (tile) {
+			bed = tile->getBedItem();
+		}
+		
+		if (bed) {
+			if (!player->isPremium()) {
+				pushBoolean(L, false);
+				return 1;
+			}
+			
+			if (bed->trySleep(player)) {
+				player->setBedItem(bed);
+				BedItem* bedItem = player->getBedItem();
+				if (bedItem) {
+					bedItem->sleep(player);
+					pushBoolean(L, true);
+					return 1;
+				}
+			}
+		}
+		pushBoolean(L, false);
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
+
 // OfflinePlayer
 int luaOfflinePlayerCreate(lua_State* L)
 {
@@ -2589,6 +2671,8 @@ void LuaScriptInterface::registerPlayer()
 	registerMethod("Player", "addOfflineTrainingTries", luaPlayerAddOfflineTrainingTries);
 	registerMethod("Player", "getOfflineTrainingSkill", luaPlayerGetOfflineTrainingSkill);
 	registerMethod("Player", "setOfflineTrainingSkill", luaPlayerSetOfflineTrainingSkill);
+	registerMethod("Player", "isNearBed", luaPlayerIsNearBed);
+	registerMethod("Player", "startOfflineTraining", luaPlayerStartOfflineTraining);
 
 	// OfflinePlayer
 	registerClass("OfflinePlayer", "Player", luaOfflinePlayerCreate);
