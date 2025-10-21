@@ -59,7 +59,7 @@ monster.light = {
 }
 
 monster.loot = {
-	{name = "gold coin", chance = 93750, maxCount = 100},
+	{id = "gold coin", chance = 93750, maxCount = 100},
 }
 
 monster.attacks = {

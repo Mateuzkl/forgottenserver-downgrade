@@ -23,6 +23,7 @@ function onLogin(player)
 
 	staminaMinutes = math.max(0, math.min(2520, staminaMinutes))
 	
+	staminaMinutes = math.floor(math.max(0, math.min(65535, staminaMinutes)))
 	player:setStamina(staminaMinutes)
 	return true
 end

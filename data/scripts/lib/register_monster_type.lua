@@ -149,7 +149,11 @@ registerMonsterType.loot = function(mtype, mask)
 		local lootError = false
 		for _, loot in pairs(mask.loot) do
 			local parent <close> = Loot()
-			if not parent:setId(loot.id) then lootError = true end
+			if not loot.id or loot.id == "" then
+				lootError = true
+			elseif not parent:setId(loot.id) then 
+				lootError = true 
+			end
 			if loot.chance then parent:setChance(loot.chance) end
 			if loot.maxCount then parent:setMaxCount(loot.maxCount) end
 			if loot.aid or loot.actionId then
@@ -164,7 +168,11 @@ registerMonsterType.loot = function(mtype, mask)
 			if loot.child then
 				for _, children in pairs(loot.child) do
 					local child <close> = Loot()
-					if not child:setId(children.id) then lootError = true end
+					if not children.id or children.id == "" then
+						lootError = true
+					elseif not child:setId(children.id) then 
+						lootError = true 
+					end
 					if children.chance then child:setChance(children.chance) end
 					if children.maxCount then child:setMaxCount(children.maxCount) end
 					if children.aid or children.actionId then
