@@ -12,6 +12,7 @@ PlayerStorageKeys = {
 	delayWallMirror = 30021,
 	madSheepSummon = 30023,
 	crateUsable = 30024,
+	houseProtectionBase = 40000,
 	achievementsBase = 300000,
 	achievementsCounter = 20000
 }
