@@ -15,6 +15,7 @@ function onSay(player, words, param)
 	end
 
 	house:setOwnerGuid(0)
+	player:setStorageValue(PlayerStorageKeys.houseProtectionBase + house:getId(), -1) -- Reset protect_house storage
 	player:sendTextMessage(MESSAGE_INFO_DESCR,
 	                       "You have successfully left your house.")
 	position:sendMagicEffect(CONST_ME_POFF)
