@@ -218,8 +218,10 @@ CREATE TABLE IF NOT EXISTS `guildwar_kills` (
 CREATE TABLE IF NOT EXISTS `houses` (
   `id` int NOT NULL AUTO_INCREMENT,
   `owner` int NOT NULL,
+  `type` varchar(32) NOT NULL DEFAULT 'House',
   `paid` int unsigned NOT NULL DEFAULT '0',
   `warnings` int NOT NULL DEFAULT '0',
+  `is_protected` tinyint NOT NULL DEFAULT '0',
   `name` varchar(255) NOT NULL,
   `rent` int NOT NULL DEFAULT '0',
   `town_id` int NOT NULL DEFAULT '0',
@@ -239,6 +241,14 @@ CREATE TABLE IF NOT EXISTS `house_lists` (
   `listid` int NOT NULL,
   `list` text NOT NULL,
   FOREIGN KEY (`house_id`) REFERENCES `houses` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARACTER SET=utf8;
+
+CREATE TABLE IF NOT EXISTS `house_guests` (
+  `house_id` int NOT NULL,
+  `player_id` int NOT NULL,
+  PRIMARY KEY (`house_id`, `player_id`),
+  FOREIGN KEY (`house_id`) REFERENCES `houses` (`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`player_id`) REFERENCES `players` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARACTER SET=utf8;
 
 CREATE TABLE IF NOT EXISTS `market_history` (
