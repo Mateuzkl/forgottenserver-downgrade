@@ -13,8 +13,14 @@
 Guild* IOGuild::loadGuild(uint32_t guildId)
 {
 	Database& db = Database::getInstance();
-	if (DBResult_ptr result = db.storeQuery(fmt::format("SELECT `name` FROM `guilds` WHERE `id` = {:d}", guildId))) {
+	if (DBResult_ptr result = db.storeQuery(fmt::format(
+	        "SELECT `g`.`name`, `g`.`balance`, `g`.`ownerid`, IFNULL(`h`.`id`, 0) AS `house_id` FROM `guilds` AS `g` LEFT JOIN `houses` AS `h` ON `h`.`type` = 'Guildhall' AND `h`.`owner` = {:d} WHERE `g`.`id` = {:d}",
+	        guildId, guildId))) {
 		Guild* guild = new Guild(guildId, result->getString("name"));
+
+		guild->setBankBalance(result->getNumber<uint64_t>("balance"));
+		guild->setOwnerGUID(result->getNumber<uint32_t>("ownerid"));
+		guild->setHouseId(result->getNumber<uint32_t>("house_id"));
 
 		if ((result = db.storeQuery(
 		         fmt::format("SELECT `id`, `name`, `level` FROM `guild_ranks` WHERE `guild_id` = {:d}", guildId)))) {

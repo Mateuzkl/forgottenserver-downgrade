@@ -4062,22 +4062,22 @@ void Player::clearPartyInvitations()
 
 GuildEmblems_t Player::getGuildEmblem(const Player* player) const
 {
-	if (!player) {
-		return GUILDEMBLEM_NONE;
-	}
+    if (!player) {
+        return GUILDEMBLEM_NONE;
+    }
 
-	const Guild* playerGuild = player->getGuild();
-	if (!playerGuild || player->getGuildWarVector().empty()) {
-		return GUILDEMBLEM_NONE;
-	}
+    const Guild* playerGuild = player->getGuild();
+    if (!playerGuild) {
+        return GUILDEMBLEM_NONE;
+    }
 
-	if (guild == playerGuild) {
-		return GUILDEMBLEM_ALLY;
-	} else if (isInWar(player)) {
-		return GUILDEMBLEM_ENEMY;
-	}
+    if (guild == playerGuild) {
+        return GUILDEMBLEM_ALLY;
+    } else if (isInWar(player)) {
+        return GUILDEMBLEM_ENEMY;
+    }
 
-	return GUILDEMBLEM_NEUTRAL;
+    return GUILDEMBLEM_NEUTRAL;
 }
 
 uint16_t Player::getRandomMount() const

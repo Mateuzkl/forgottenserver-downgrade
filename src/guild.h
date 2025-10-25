@@ -31,6 +31,15 @@ public:
 	uint32_t getMemberCount() const { return memberCount; }
 	void setMemberCount(uint32_t count) { memberCount = count; }
 
+	uint64_t getBankBalance() const { return bankBalance; }
+	void setBankBalance(uint64_t balance);
+
+	uint32_t getHouseId() const { return houseId; }
+	void setHouseId(uint32_t id) { houseId = id; }
+
+	uint32_t getOwnerGUID() const { return ownerGUID; }
+	void setOwnerGUID(uint32_t guid) { ownerGUID = guid; }
+
 	const std::vector<GuildRank_ptr>& getRanks() const { return ranks; }
 	GuildRank_ptr getRankById(uint32_t rankId) const;
 	GuildRank_ptr getRankByName(std::string_view name) const;
@@ -47,6 +56,9 @@ private:
 	std::string motd;
 	uint32_t id;
 	uint32_t memberCount = 0;
+	uint64_t bankBalance = 0;
+	uint32_t ownerGUID = 0;
+	uint32_t houseId = 0;
 };
 
 using GuildWarVector = std::vector<uint32_t>;

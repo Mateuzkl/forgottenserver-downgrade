@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<npc name="Guild Banker" script="guildbank.lua" walkinterval="2000" floorchange="0">
+	<health now="100" max="100" />
+	<look type="146" head="38" body="94" legs="52" feet="76" addons="0" />
+	<parameters>
+		<parameter key="message_greet" value="Greetings, |PLAYERNAME|. I manage guild bank transfers and receipts." />
+		<parameter key="message_farewell" value="Farewell. Keep your guild's funds safe." />
+		<parameter key="message_decline" value="Transaction declined. Come back when you are ready." />
+	</parameters>
+</npc>

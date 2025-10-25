@@ -340,4 +340,75 @@ do
 		end
 		return true
 	end
+
+	-- Guild Balance Functions
+	function Player.depositGuildMoney(self, amount)
+		local guild = self:getGuild()
+		if not guild then
+			return false, "You are not in a guild."
+		end
+
+		if not self:removeMoney(amount) then
+			return false, "You don't have enough money."
+		end
+
+		guild:setBankBalance(guild:getBankBalance() + amount)
+		return true, "Successfully deposited " .. amount .. " gold to guild bank."
+	end
+
+	function Player.withdrawGuildMoney(self, amount)
+		local guild = self:getGuild()
+		if not guild then
+			return false, "You are not in a guild."
+		end
+
+		-- Check if player has permission (Leader or Vice-Leader)
+		if self:getGuid() ~= guild:getOwnerGUID() and self:getGuildLevel() ~= 2 then
+			return false, "Only guild leaders and vice-leaders can withdraw money."
+		end
+
+		if amount > guild:getBankBalance() then
+			return false, "Guild doesn't have enough money."
+		end
+
+		if not self:addMoney(amount) then
+			return false, "You can't carry that much money."
+		end
+
+		guild:setBankBalance(guild:getBankBalance() - amount)
+		return true, "Successfully withdrew " .. amount .. " gold from guild bank."
+	end
+
+	function Player.transferGuildMoneyToPlayer(self, targetPlayer, amount)
+		local guild = self:getGuild()
+		if not guild then
+			return false, "You are not in a guild."
+		end
+
+		-- Check if player has permission (Leader or Vice-Leader)
+		if self:getGuid() ~= guild:getOwnerGUID() and self:getGuildLevel() ~= 2 then
+			return false, "Only guild leaders and vice-leaders can transfer money."
+		end
+
+		if amount > guild:getBankBalance() then
+			return false, "Guild doesn't have enough money."
+		end
+
+		local target = Player(targetPlayer)
+		if not target then
+			return false, "Target player not found."
+		end
+
+		guild:setBankBalance(guild:getBankBalance() - amount)
+		target:setBankBalance(target:getBankBalance() + amount)
+		return true, "Successfully transferred " .. amount .. " gold to " .. target:getName() .. "."
+	end
+
+	function Player.getGuildBalance(self)
+		local guild = self:getGuild()
+		if not guild then
+			return 0
+		end
+		return guild:getBankBalance()
+	end
 end

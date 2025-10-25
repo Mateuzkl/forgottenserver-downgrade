@@ -154,6 +154,7 @@ CREATE TABLE IF NOT EXISTS `guilds` (
   `ownerid` int NOT NULL,
   `creationdata` int NOT NULL,
   `motd` varchar(255) NOT NULL DEFAULT '',
+  `balance` bigint(20) UNSIGNED NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   UNIQUE KEY (`name`),
   UNIQUE KEY (`ownerid`),
@@ -426,4 +427,19 @@ CREATE TRIGGER `oncreate_guilds` AFTER INSERT ON `guilds`
     INSERT INTO `guild_ranks` (`name`, `level`, `guild_id`) VALUES ('a Member', 1, NEW.`id`);
 END
 //
+
+CREATE TABLE IF NOT EXISTS `guild_transactions` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `guild_id` int(11) NOT NULL,
+  `guild_associated` int(11) DEFAULT NULL,
+  `player_associated` int(11) DEFAULT NULL,
+  `type` ENUM('DEPOSIT', 'WITHDRAW') NOT NULL,
+  `category` ENUM ('OTHER', 'RENT', 'MATERIAL', 'SERVICES', 'REVENUE', 'CONTRIBUTION') NOT NULL DEFAULT 'OTHER',
+  `balance` bigint(20) UNSIGNED NOT NULL DEFAULT '0',
+  `time` bigint(20) NOT NULL,
+  PRIMARY KEY (`id`),
+  FOREIGN KEY (`guild_id`) REFERENCES `guilds`(`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`guild_associated`) REFERENCES `guilds`(`id`) ON DELETE SET NULL,
+  FOREIGN KEY (`player_associated`) REFERENCES `players`(`id`) ON DELETE SET NULL
+) ENGINE=InnoDB;
 DELIMITER ;

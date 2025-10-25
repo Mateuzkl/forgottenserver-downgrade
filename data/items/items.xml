@@ -2134,6 +2134,7 @@
 	</item>
 	<item id="2148" article="a" name="gold coin">
 		<attribute key="weight" value="10" />
+		<attribute key="worth" value="1" />
 	</item>
 	<item id="2149" article="a" name="small emerald">
 		<attribute key="weight" value="10" />
@@ -2147,6 +2148,7 @@
 	</item>
 	<item id="2152" article="a" name="platinum coin">
 		<attribute key="weight" value="10" />
+		<attribute key="worth" value="100" />
 	</item>
 	<item id="2153" article="a" name="violet gem">
 		<attribute key="weight" value="30" />
@@ -2171,6 +2173,7 @@
 	</item>
 	<item id="2160" article="a" name="crystal coin">
 		<attribute key="weight" value="10" />
+		<attribute key="worth" value="10000" />
 	</item>
 	<item id="2161" article="a" name="strange talisman">
 		<attribute key="weight" value="290" />
@@ -35033,7 +35036,9 @@
 		<attribute key="corpseType" value="venom" />
 	</item>
 	<item id="24282" name="remains of a tentacle" editorsuffix=" (Immobile)"/>
-	<item fromid="24283" toid="24300" article="a" name="hoard of cursed gold" />
+	<item fromid="24283" toid="24300" article="a" name="hoard of cursed gold">
+		<attribute key="readable" value="1" />
+	</item>
 	<item id="24301" article="a" name="receipt" editorsuffix=" (Succes)">
 		<attribute key="weight" value="25" />
 		<attribute key="description" value="This receipt serves as a reference to a successful guild bank transfer." />
@@ -35041,6 +35046,7 @@
 	<item id="24302" article="a" name="receipt" editorsuffix=" (Fail)">
 		<attribute key="weight" value="25" />
 		<attribute key="description" value="This receipt serves as a reference to a unsuccessful guild bank transfer." />
+		<attribute key="readable" value="1" />
 	</item>
 	<item id="24303" name="black crystal shards">
 		<attribute key="description" value="The remains of the evil crystal glitter balefully." />
@@ -70183,15 +70189,11 @@
 	<item fromid="55237" toid="55238" article="a" name="Merudri grave">
 		<attribute key="description" value="An ancient grave of the Merudri." />
 	</item>
-	<item id="55239" article="a" name="comfy cushion">
-		<attribute key="description" value="A comfy cushion rested tidily on a small carpet." />
-	</item>
-	<item id="55240" name="Merudri writing easel.">
-		<attribute key="description" value="A writing easel displaying records of various Merudri lore." />
-	</item>
+
+
 	<item id="55306" article="a" name="ornate candle" />
 	<item id="55307" name="triangle candleholder" />
-	<item id="55308" name="paper light" />
+
 	<item id="55308" article="a" name="paper light"/>
 	<item id="55309" article="a" name="paper light" />
 	<item fromid="55310" toid="55311" article="an" name="alcove light"/>

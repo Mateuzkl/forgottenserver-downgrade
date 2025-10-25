@@ -157,6 +157,56 @@ int luaGuildSetMotd(lua_State* L)
 	}
 	return 1;
 }
+
+int luaGuildGetBankBalance(lua_State* L)
+{
+	// guild:getBankBalance()
+	const Guild* guild = getUserdata<const Guild>(L, 1);
+	if (guild) {
+		lua_pushinteger(L, guild->getBankBalance());
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
+
+int luaGuildSetBankBalance(lua_State* L)
+{
+	// guild:setBankBalance(balance)
+	Guild* guild = getUserdata<Guild>(L, 1);
+	if (guild) {
+		uint64_t balance = getInteger<uint64_t>(L, 2);
+		guild->setBankBalance(balance);
+		pushBoolean(L, true);
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
+
+int luaGuildGetOwnerGUID(lua_State* L)
+{
+	// guild:getOwnerGUID()
+	const Guild* guild = getUserdata<const Guild>(L, 1);
+	if (guild) {
+		lua_pushinteger(L, guild->getOwnerGUID());
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
+
+int luaGuildGetHouseId(lua_State* L)
+{
+	// guild:getHouseId()
+	const Guild* guild = getUserdata<const Guild>(L, 1);
+	if (guild) {
+		lua_pushinteger(L, guild->getHouseId());
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
 } // namespace
 
 void LuaScriptInterface::registerGuild()
@@ -175,4 +225,9 @@ void LuaScriptInterface::registerGuild()
 
 	registerMethod("Guild", "getMotd", luaGuildGetMotd);
 	registerMethod("Guild", "setMotd", luaGuildSetMotd);
+
+	registerMethod("Guild", "getBankBalance", luaGuildGetBankBalance);
+	registerMethod("Guild", "setBankBalance", luaGuildSetBankBalance);
+	registerMethod("Guild", "getOwnerGUID", luaGuildGetOwnerGUID);
+	registerMethod("Guild", "getHouseId", luaGuildGetHouseId);
 }

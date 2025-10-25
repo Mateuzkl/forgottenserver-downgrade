@@ -7,6 +7,7 @@
 
 #include "bed.h"
 #include "game.h"
+#include "tools.h"
 
 extern Game g_game;
 
@@ -253,20 +254,30 @@ bool IOMapSerialize::loadHouseInfo()
 {
 	Database& db = Database::getInstance();
 
-		DBResult_ptr result = db.storeQuery("SELECT `id`, `owner`, `paid`, `warnings`, `is_protected` FROM `houses`");
+		DBResult_ptr result = db.storeQuery("SELECT `id`, CAST(`type` as UNSIGNED) AS `type`, `owner`, `paid`, `warnings`, `is_protected` FROM `houses`");
 	if (!result) {
 		return false;
 	}
 
 	do {
-		House* house = g_game.map.houses.getHouse(result->getNumber<uint32_t>("id"));
-		if (house) {
-			house->setOwner(result->getNumber<uint32_t>("owner"), false);
-			house->setPaidUntil(result->getNumber<time_t>("paid"));
-			house->setPayRentWarnings(result->getNumber<uint32_t>("warnings"));
-			house->setProtected(result->getNumber<uint8_t>("is_protected") != 0);
-		}
-	} while (result->next());
+			House* house = g_game.map.houses.getHouse(result->getNumber<uint32_t>("id"));
+			if (house) {
+				std::string_view typeStr = result->getString("type");
+				// Default to the map-defined type; only override when DB is explicit
+				uint32_t typeVal = house->getType();
+				if (caseInsensitiveEqual(typeStr, "guildhall") || typeStr == "2") {
+					typeVal = HOUSE_TYPE_GUILDHALL;
+				} else if (caseInsensitiveEqual(typeStr, "house") || caseInsensitiveEqual(typeStr, "normal") || typeStr == "1") {
+					// Do not downgrade a guildhall defined in the map to normal
+					typeVal = (house->getType() == HOUSE_TYPE_GUILDHALL) ? HOUSE_TYPE_GUILDHALL : HOUSE_TYPE_NORMAL;
+				}
+				house->setType(static_cast<HouseType_t>(typeVal));
+				house->setOwner(result->getNumber<uint32_t>("owner"), false);
+				house->setPaidUntil(result->getNumber<time_t>("paid"));
+				house->setPayRentWarnings(result->getNumber<uint32_t>("warnings"));
+				house->setProtected(result->getNumber<uint8_t>("is_protected") != 0);
+			}
+		} while (result->next());
 
 	result = db.storeQuery("SELECT `house_id`, `listid`, `list` FROM `house_lists`");
 	if (result) {
@@ -309,14 +320,14 @@ bool IOMapSerialize::saveHouseInfo()
 		DBResult_ptr result = db.storeQuery(fmt::format("SELECT `id` FROM `houses` WHERE `id` = {:d}", house->getId()));
 		if (result) {
 			db.executeQuery(fmt::format(
-			    "UPDATE `houses` SET `owner` = {:d}, `paid` = {:d}, `warnings` = {:d}, `is_protected` = {:d}, `name` = {:s}, `town_id` = {:d}, `rent` = {:d}, `size` = {:d}, `beds` = {:d} WHERE `id` = {:d}",
-			    house->getOwner(), house->getPaidUntil(), house->getPayRentWarnings(),
+			    "UPDATE `houses` SET `owner` = {:d}, `type` = {:d}, `paid` = {:d}, `warnings` = {:d}, `is_protected` = {:d}, `name` = {:s}, `town_id` = {:d}, `rent` = {:d}, `size` = {:d}, `beds` = {:d} WHERE `id` = {:d}",
+			    house->getOwner(), house->getType(), house->getPaidUntil(), house->getPayRentWarnings(),
 			    (house->getProtected() ? 1 : 0), db.escapeString(house->getName()), house->getTownId(), house->getRent(), house->getTiles().size(),
 			    house->getBedCount(), house->getId()));
 		} else {
 			db.executeQuery(fmt::format(
-			"INSERT INTO `houses` (`id`, `owner`, `paid`, `warnings`, `is_protected`, `name`, `town_id`, `rent`, `size`, `beds`) VALUES ({:d}, {:d}, {:d}, {:d}, {:d}, {:s}, {:d}, {:d}, {:d}, {:d})",
-			house->getId(), house->getOwner(), house->getPaidUntil(), house->getPayRentWarnings(), (house->getProtected() ? 1 : 0),
+			"INSERT INTO `houses` (`id`, `type`, `owner`, `paid`, `warnings`, `is_protected`, `name`, `town_id`, `rent`, `size`, `beds`) VALUES ({:d}, {:d}, {:d}, {:d}, {:d}, {:d}, {:s}, {:d}, {:d}, {:d}, {:d})",
+			house->getId(), house->getType(), house->getOwner(), house->getPaidUntil(), house->getPayRentWarnings(), (house->getProtected() ? 1 : 0),
 			    db.escapeString(house->getName()), house->getTownId(), house->getRent(), house->getTiles().size(),
 			    house->getBedCount()));
 		}

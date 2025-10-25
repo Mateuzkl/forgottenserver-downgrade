@@ -74,7 +74,7 @@
 	<house name="Great Hall 2" houseid="74" entryx="437" entryy="207" entryz="6" rent="0" townid="4" size="24" />
 	<house name="Tarat Road 1" houseid="75" entryx="434" entryy="195" entryz="7" rent="0" townid="4" size="23" />
 	<house name="Temple Terrace 1" houseid="76" entryx="478" entryy="190" entryz="7" rent="0" townid="4" size="33" />
-	<house name="Temple Terrace 2" houseid="77" entryx="482" entryy="183" entryz="7" rent="0" townid="4" size="29" />
+	<house name="Temple Terrace 2" houseid="77" entryx="482" entryy="183" entryz="7" rent="0" guildhall="true" townid="4" size="29" />
 	<house name="Temple Terrace 3" houseid="78" entryx="492" entryy="176" entryz="6" rent="0" townid="4" size="30" />
 	<house name="Tarat Road 2" houseid="79" entryx="440" entryy="193" entryz="7" rent="0" townid="4" size="23" />
 	<house name="Tarat Road 3" houseid="80" entryx="446" entryy="196" entryz="7" rent="0" townid="4" size="31" />

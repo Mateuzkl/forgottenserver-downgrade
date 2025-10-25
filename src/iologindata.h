@@ -40,7 +40,7 @@ public:
 	static std::string_view getNameByGuid(uint32_t guid);
 	static bool formatPlayerName(std::string& name);
 	static void increaseBankBalance(uint32_t guid, uint64_t bankBalance);
-	static bool hasBiddedOnHouse(uint32_t guid);
+	static 	bool hasBiddedOnHouse(uint32_t guid_guild);
 
 	static std::forward_list<VIPEntry> getVIPEntries(uint32_t accountId);
 	static void addVIPEntry(uint32_t accountId, uint32_t guid);

@@ -1162,10 +1162,10 @@ void IOLoginData::increaseBankBalance(uint32_t guid, uint64_t bankBalance)
 	    fmt::format("UPDATE `players` SET `balance` = `balance` + {:d} WHERE `id` = {:d}", bankBalance, guid));
 }
 
-bool IOLoginData::hasBiddedOnHouse(uint32_t guid)
+bool IOLoginData::hasBiddedOnHouse(uint32_t guid_guild)
 {
 	Database& db = Database::getInstance();
-	return db.storeQuery(fmt::format("SELECT `id` FROM `houses` WHERE `highest_bidder` = {:d} LIMIT 1", guid)).get() !=
+	return db.storeQuery(fmt::format("SELECT `id` FROM `houses` WHERE `highest_bidder` = {:d} LIMIT 1", guid_guild)).get() !=
 	       nullptr;
 }
 

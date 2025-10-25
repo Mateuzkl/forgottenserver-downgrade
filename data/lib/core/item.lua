@@ -655,8 +655,14 @@ do
 						isForSale = true
 					end
 
-					response[#response + 1] = fmt(" It belongs to house '%s'. %s owns this house.", houseName,
-					                              houseOwnerName)
+					local houseType = house:getType()
+					if houseType == HOUSE_TYPE_GUILDHALL then
+						response[#response + 1] = fmt(" It belongs to guildhall '%s'. %s owns this guildhall.", houseName,
+														  houseOwnerName)
+					else
+						response[#response + 1] = fmt(" It belongs to house '%s'. %s owns this house.", houseName,
+														  houseOwnerName)
+					end
 					if housePriceVisible and isForSale and pricePerSQM > 0 then
 						response[#response + 1] = fmt(" It costs %d gold coins.", pricePerSQM * house:getTileCount())
 					end

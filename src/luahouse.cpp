@@ -9,6 +9,7 @@
 #include "iologindata.h"
 #include "iomapserialize.h"
 #include "luascript.h"
+#include "database.h"
 
 extern Game g_game;
 
@@ -179,7 +180,11 @@ int luaHouseGetOwnerGuid(lua_State* L)
 	// house:getOwnerGuid()
 	const House* house = getUserdata<const House>(L, 1);
 	if (house) {
-		lua_pushinteger(L, house->getOwner());
+		if (house->getType() == HOUSE_TYPE_NORMAL) {
+			lua_pushinteger(L, house->getOwner());
+		} else {
+			lua_pushnil(L);
+		}
 	} else {
 		lua_pushnil(L);
 	}
@@ -198,14 +203,60 @@ int luaHouseGetOwnerAccountId(lua_State* L)
 	return 1;
 }
 
+int luaHouseGetType(lua_State* L)
+{
+	// house:getType()
+	House* house = getUserdata<House>(L, 1);
+	if (house) {
+		lua_pushinteger(L, house->getType());
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
+
+int luaHouseGetOwnerGuild(lua_State* L)
+{
+	// house:getOwnerGuild()
+	House* house = getUserdata<House>(L, 1);
+	if (house) {
+		if (house->getType() == HOUSE_TYPE_GUILDHALL) {
+			lua_pushinteger(L, house->getOwner());
+		} else {
+			lua_pushnil(L);
+		}
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
+
 int luaHouseSetOwnerGuid(lua_State* L)
 {
 	// house:setOwnerGuid(guid[, updateDatabase = true])
 	House* house = getUserdata<House>(L, 1);
 	if (house) {
-		uint32_t guid = getInteger<uint32_t>(L, 2);
+		uint32_t guid_guild = getInteger<uint32_t>(L, 2);
 		bool updateDatabase = getBoolean(L, 3, true);
-		house->setOwner(guid, updateDatabase);
+
+		if (house->getType() == HOUSE_TYPE_GUILDHALL && guid_guild == 0) {
+			house->setOwner(0, updateDatabase);
+			pushBoolean(L, true);
+			return 1;
+		}
+
+		if (house->getType() == HOUSE_TYPE_GUILDHALL) {
+			Database& db = Database::getInstance();
+			std::ostringstream query;
+			query << "SELECT `guild_id` FROM `guild_membership` WHERE `player_id`=" << guid_guild;
+			if (DBResult_ptr result = db.storeQuery(query.str())) {
+				guid_guild = result->getNumber<uint32_t>("guild_id");
+			} else {
+				pushBoolean(L, false);
+				return 1;
+			}
+		}
+		house->setOwner(guid_guild, updateDatabase);
 		pushBoolean(L, true);
 	} else {
 		lua_pushnil(L);
@@ -230,17 +281,62 @@ int luaHouseStartTrade(lua_State* L)
 		return 1;
 	}
 
-	if (house->getOwner() != player->getGUID()) {
+	if (house->getType() == HOUSE_TYPE_NORMAL) {
+		if (house->getOwner() != player->getGUID()) {
+			lua_pushinteger(L, RETURNVALUE_YOUDONTOWNTHISHOUSE);
+			return 1;
+		}
+
+		if (g_game.map.houses.getHouseByPlayerId(tradePartner->getGUID())) {
+			lua_pushinteger(L, RETURNVALUE_TRADEPLAYERALREADYOWNSAHOUSE);
+			return 1;
+		}
+
+		if (IOLoginData::hasBiddedOnHouse(tradePartner->getGUID())) {
+			lua_pushinteger(L, RETURNVALUE_TRADEPLAYERHIGHESTBIDDER);
+			return 1;
+		}
+
+		Item* transferItem = house->getTransferItem();
+		if (!transferItem) {
+			lua_pushinteger(L, RETURNVALUE_YOUCANNOTTRADETHISHOUSE);
+			return 1;
+		}
+
+		transferItem->getParent()->setParent(player);
+		if (!g_game.internalStartTrade(player, tradePartner, transferItem)) {
+			house->resetTransferItem();
+		}
+
+		lua_pushinteger(L, RETURNVALUE_NOERROR);
+		return 1;
+	}
+
+	// HOUSE_TYPE_GUILDHALL
+	Guild* guild = player->getGuild();
+	if (!guild || house->getOwner() != guild->getId()) {
 		lua_pushinteger(L, RETURNVALUE_YOUDONTOWNTHISHOUSE);
 		return 1;
 	}
 
-	if (g_game.map.houses.getHouseByPlayerId(tradePartner->getGUID())) {
-		lua_pushinteger(L, RETURNVALUE_TRADEPLAYERALREADYOWNSAHOUSE);
+	Guild* tradeGuild = tradePartner->getGuild();
+	if (!tradeGuild) {
+		lua_pushinteger(L, RETURNVALUE_TRADEPLAYERNOTINAGUILD);
 		return 1;
 	}
-
-	if (IOLoginData::hasBiddedOnHouse(tradePartner->getGUID())) {
+	if (tradeGuild->getHouseId() > 0) {
+		lua_pushinteger(L, RETURNVALUE_TRADEGUILDALREADYOWNSAHOUSE);
+		return 1;
+	}
+	if (player->getGUID() != guild->getOwnerGUID()) {
+		lua_pushinteger(L, RETURNVALUE_YOUARENOTGUILDLEADER);
+		return 1;
+	}
+	if (tradePartner->getGUID() != tradeGuild->getOwnerGUID()) {
+		lua_pushinteger(L, RETURNVALUE_TRADEPLAYERNOTGUILDLEADER);
+		return 1;
+	}
+	if (IOLoginData::hasBiddedOnHouse(tradeGuild->getId())) {
 		lua_pushinteger(L, RETURNVALUE_TRADEPLAYERHIGHESTBIDDER);
 		return 1;
 	}
@@ -609,6 +705,8 @@ void LuaScriptInterface::registerHouse()
 	registerMethod("House", "getOwnerGuid", luaHouseGetOwnerGuid);
 	registerMethod("House", "setOwnerGuid", luaHouseSetOwnerGuid);
 	registerMethod("House", "getOwnerAccountId", luaHouseGetOwnerAccountId);
+	registerMethod("House", "getType", luaHouseGetType);
+	registerMethod("House", "getOwnerGuild", luaHouseGetOwnerGuild);
 	registerMethod("House", "startTrade", luaHouseStartTrade);
 
 	registerMethod("House", "getBeds", luaHouseGetBeds);

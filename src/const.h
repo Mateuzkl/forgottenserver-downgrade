@@ -420,6 +420,8 @@ enum item_t : uint16_t
 	ITEM_REWARD_CONTAINER = 21518,
 
 	ITEM_DOCUMENT_RO = 1968, // read-only
+	ITEM_RECEIPT_SUCCESS = 24301,
+	ITEM_RECEIPT_FAIL = 24302,
 };
 
 enum PlayerFlags : uint64_t
@@ -493,5 +495,13 @@ enum ReloadTypes_t : uint8_t
 inline constexpr int32_t CHANNEL_GUILD = 0x00;
 inline constexpr int32_t CHANNEL_PARTY = 0x01;
 inline constexpr int32_t CHANNEL_PRIVATE = 0xFFFF;
+
+// Guild rank level constants
+enum GuildLevel_t : uint8_t
+{
+	GUILDLEVEL_MEMBER = 1,
+	GUILDLEVEL_VICE = 2,
+	GUILDLEVEL_LEADER = 3,
+};
 
 #endif

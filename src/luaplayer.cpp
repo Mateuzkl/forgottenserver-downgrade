@@ -8,6 +8,7 @@
 #include "game.h"
 #include "iologindata.h"
 #include "luascript.h"
+#include "const.h"
 #include "map.h"
 #include "mounts.h"
 #include "player.h"
@@ -863,6 +864,42 @@ int luaPlayerSetGuildLevel(lua_State* L)
 		pushBoolean(L, true);
 	}
 
+	return 1;
+}
+
+int luaPlayerIsGuildLeader(lua_State* L)
+{
+	// player:isGuildLeader()
+	const Player* player = getUserdata<const Player>(L, 1);
+	if (player && player->getGuild()) {
+		pushBoolean(L, player->getGuildRank()->level == GUILDLEVEL_LEADER);
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
+
+int luaPlayerIsGuildVice(lua_State* L)
+{
+	// player:isGuildVice()
+	const Player* player = getUserdata<const Player>(L, 1);
+	if (player && player->getGuild()) {
+		pushBoolean(L, player->getGuildRank()->level == GUILDLEVEL_VICE);
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
+
+int luaPlayerIsGuildMember(lua_State* L)
+{
+	// player:isGuildMember()
+	const Player* player = getUserdata<const Player>(L, 1);
+	if (player && player->getGuild()) {
+		pushBoolean(L, player->getGuildRank()->level == GUILDLEVEL_MEMBER);
+	} else {
+		lua_pushnil(L);
+	}
 	return 1;
 }
 
@@ -2558,7 +2595,9 @@ void LuaScriptInterface::registerPlayer()
 
 	registerMethod("Player", "getGuildLevel", luaPlayerGetGuildLevel);
 	registerMethod("Player", "setGuildLevel", luaPlayerSetGuildLevel);
-
+	registerMethod("Player", "isGuildLeader", luaPlayerIsGuildLeader);
+	registerMethod("Player", "isGuildVice", luaPlayerIsGuildVice);
+	registerMethod("Player", "isGuildMember", luaPlayerIsGuildMember);
 	registerMethod("Player", "getGuildNick", luaPlayerGetGuildNick);
 	registerMethod("Player", "setGuildNick", luaPlayerSetGuildNick);
 

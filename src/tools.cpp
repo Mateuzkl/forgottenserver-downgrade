@@ -1038,6 +1038,18 @@ std::string_view getReturnMessage(ReturnValue value)
 		case RETURNVALUE_YOUCANNOTUSETHISBED:
 			return "This bed can't be used, but Premium Account players can rent houses and sleep in beds there to regain health and mana.";
 
+		case RETURNVALUE_TRADEPLAYERNOTINAGUILD:
+			return "Trade player is not in a guild.";
+
+		case RETURNVALUE_TRADEGUILDALREADYOWNSAHOUSE:
+			return "Trade guild already owns a guildhall.";
+
+		case RETURNVALUE_TRADEPLAYERNOTGUILDLEADER:
+			return "Trade player is not a guild leader.";
+
+		case RETURNVALUE_YOUARENOTGUILDLEADER:
+			return "You are not a guild leader.";
+
 		case RETURNVALUE_CANNOTTHROWONTELEPORT:
 			return "You cannot throw items on teleports!";
 

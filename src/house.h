@@ -84,6 +84,12 @@ enum AccessHouseLevel_t
 	HOUSE_OWNER = 3,
 };
 
+enum HouseType_t
+{
+	HOUSE_TYPE_NORMAL = 1,
+	HOUSE_TYPE_GUILDHALL = 2,
+};
+
 using HouseTileList = std::list<HouseTile*>;
 using HouseBedItemList = std::list<BedItem*>;
 
@@ -127,7 +133,7 @@ public:
 	std::string_view getName() const { return houseName; }
 
 	std::string_view getOwnerName() const { return ownerName; }
-	void setOwner(uint32_t guid, bool updateDatabase = true, Player* player = nullptr);
+	void setOwner(uint32_t guid_guild, bool updateDatabase = true, Player* previousPlayer = nullptr);
 	uint32_t getOwner() const { return owner; }
 	uint32_t getOwnerAccountId() const { return ownerAccountId; }
 
@@ -142,6 +148,8 @@ public:
 
 	void setTownId(uint32_t townId) { this->townId = townId; }
 	uint32_t getTownId() const { return townId; }
+	void setType(HouseType_t t) { type = t; }
+	HouseType_t getType() const { return type; }
 
 	uint32_t getId() const { return id; }
 	const std::unordered_set<uint32_t>& getProtectionGuests() const { return protectionGuests; }
@@ -179,6 +187,7 @@ public:
 	void setProtected(bool protect) { isProtected = protect; }
 
 private:
+	std::tuple<uint32_t, uint32_t, std::string, uint32_t, std::string> initializeOwnerDataFromDatabase(uint32_t guid_guild, HouseType_t type);
 	bool transferToDepot() const;
 	bool transferToDepot(Player* player) const;
 
@@ -212,6 +221,9 @@ private:
 	// Protection state and guest list
 	bool isProtected = false;
 	std::unordered_set<uint32_t> protectionGuests;
+
+	// House type (normal or guildhall)
+	HouseType_t type = HOUSE_TYPE_NORMAL;
 };
 
 using HouseMap = std::map<uint32_t, House*>;
@@ -222,6 +234,7 @@ enum RentPeriod_t
 	RENTPERIOD_WEEKLY,
 	RENTPERIOD_MONTHLY,
 	RENTPERIOD_YEARLY,
+	RENTPERIOD_DEV,
 	RENTPERIOD_NEVER,
 };
 
@@ -266,6 +279,8 @@ public:
 	bool loadHousesXML(const std::string& filename);
 
 	void payHouses(RentPeriod_t rentPeriod) const;
+	time_t increasePaidUntil(RentPeriod_t rentPeriod, time_t paidUntil) const;
+	std::string getRentPeriod(RentPeriod_t rentPeriod) const;
 
 	const HouseMap& getHouses() const { return houseMap; }
 

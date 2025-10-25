@@ -200,7 +200,7 @@ set(tfs_HDR
 
 set(tfs_MAIN ${CMAKE_CURRENT_LIST_DIR}/main.cpp PARENT_SCOPE)
 
-add_library(tfslib ${tfs_SRC})
+add_library(tfslib STATIC ${tfs_SRC})
 include_directories(/usr/include/lua5.4)
 target_link_libraries(tfslib PRIVATE
 	Boost::iostreams

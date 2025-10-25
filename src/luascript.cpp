@@ -1657,6 +1657,11 @@ void LuaScriptInterface::registerFunctions()
 	registerEnum(ITEM_WILDGROWTH_PERSISTENT);
 	registerEnum(ITEM_WILDGROWTH_SAFE);
 	registerEnum(ITEM_REWARD_CONTAINER);
+	registerEnum(ITEM_LETTER);
+	registerEnum(ITEM_LETTER_STAMPED);
+	registerEnum(ITEM_DOCUMENT_RO);
+	registerEnum(ITEM_RECEIPT_SUCCESS);
+	registerEnum(ITEM_RECEIPT_FAIL);
 
 	registerEnum(WIELDINFO_NONE);
 	registerEnum(WIELDINFO_LEVEL);
@@ -1884,6 +1889,15 @@ void LuaScriptInterface::registerFunctions()
 	// Use with house:getAccessList, house:setAccessList
 	registerEnum(GUEST_LIST);
 	registerEnum(SUBOWNER_LIST);
+	// Use with house:getType
+	registerEnum(HOUSE_TYPE_NORMAL);
+	registerEnum(HOUSE_TYPE_GUILDHALL);
+
+	// Use with player:getGuildLevel
+	registerEnum(GUILDLEVEL_MEMBER);
+	registerEnum(GUILDLEVEL_VICE);
+	registerEnum(GUILDLEVEL_LEADER);
+
 
 	// Use with player:addMapMark
 	registerEnum(MAPMARK_TICK);
@@ -1977,6 +1991,10 @@ void LuaScriptInterface::registerFunctions()
 	registerEnum(RETURNVALUE_YOUCANNOTTRADETHISHOUSE);
 	registerEnum(RETURNVALUE_YOUDONTHAVEREQUIREDPROFESSION);
 	registerEnum(RETURNVALUE_YOUCANNOTUSETHISBED);
+	registerEnum(RETURNVALUE_TRADEPLAYERNOTINAGUILD);
+	registerEnum(RETURNVALUE_TRADEGUILDALREADYOWNSAHOUSE);
+	registerEnum(RETURNVALUE_TRADEPLAYERNOTGUILDLEADER);
+	registerEnum(RETURNVALUE_YOUARENOTGUILDLEADER);
 
 	registerEnum(RELOAD_TYPE_ALL);
 	registerEnum(RELOAD_TYPE_ACTIONS);
