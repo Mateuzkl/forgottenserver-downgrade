@@ -478,6 +478,111 @@ int luaHouseSave(lua_State* L)
 	pushBoolean(L, IOMapSerialize::saveHouse(house));
 	return 1;
 }
+
+// House protection system
+int luaHouseGetProtected(lua_State* L)
+{
+	// house:getProtected()
+	House* house = getUserdata<House>(L, 1);
+	if (!house) {
+		lua_pushnil(L);
+		return 1;
+	}
+	pushBoolean(L, house->getProtected());
+	return 1;
+}
+
+int luaHouseSetProtected(lua_State* L)
+{
+	// house:setProtected(protected)
+	House* house = getUserdata<House>(L, 1);
+	if (!house) {
+		lua_pushnil(L);
+		return 1;
+	}
+
+	bool protect = getBoolean(L, 2);
+	house->setProtected(protect);
+	pushBoolean(L, true);
+	return 1;
+}
+
+int luaHouseAddProtectionGuest(lua_State* L)
+{
+	// house:addProtectionGuest(playerId)
+	House* house = getUserdata<House>(L, 1);
+	if (!house) {
+		lua_pushnil(L);
+		return 1;
+	}
+
+	uint32_t playerId = getInteger<uint32_t>(L, 2);
+	pushBoolean(L, house->addProtectionGuest(playerId));
+	return 1;
+}
+
+int luaHouseRemoveProtectionGuest(lua_State* L)
+{
+	// house:removeProtectionGuest(playerId)
+	House* house = getUserdata<House>(L, 1);
+	if (!house) {
+		lua_pushnil(L);
+		return 1;
+	}
+
+	uint32_t playerId = getInteger<uint32_t>(L, 2);
+	pushBoolean(L, house->removeProtectionGuest(playerId));
+	return 1;
+}
+
+int luaHouseIsProtectionGuest(lua_State* L)
+{
+	// house:isProtectionGuest(playerId)
+	House* house = getUserdata<House>(L, 1);
+	if (!house) {
+		lua_pushnil(L);
+		return 1;
+	}
+
+	uint32_t playerId = getInteger<uint32_t>(L, 2);
+	pushBoolean(L, house->isProtectionGuest(playerId));
+	return 1;
+}
+
+int luaHouseGetProtectionGuests(lua_State* L)
+{
+	// house:getProtectionGuests()
+	House* house = getUserdata<House>(L, 1);
+	if (!house) {
+		lua_pushnil(L);
+		return 1;
+	}
+
+	const auto& guests = house->getProtectionGuests();
+	lua_createtable(L, guests.size(), 0);
+
+	int index = 0;
+	for (uint32_t guestId : guests) {
+		lua_pushnumber(L, guestId);
+		lua_rawseti(L, -2, ++index);
+	}
+	return 1;
+}
+
+int luaHouseClearProtectionGuests(lua_State* L)
+{
+	// house:clearProtectionGuests()
+	House* house = getUserdata<House>(L, 1);
+	if (!house) {
+		lua_pushnil(L);
+		return 1;
+	}
+
+	house->clearProtectionGuests();
+	pushBoolean(L, true);
+	return 1;
+}
+
 } // namespace
 
 void LuaScriptInterface::registerHouse()
@@ -524,4 +629,13 @@ void LuaScriptInterface::registerHouse()
 	registerMethod("House", "kickPlayer", luaHouseKickPlayer);
 
 	registerMethod("House", "save", luaHouseSave);
+
+	// House protection system
+	registerMethod("House", "getProtected", luaHouseGetProtected);
+	registerMethod("House", "setProtected", luaHouseSetProtected);
+	registerMethod("House", "addProtectionGuest", luaHouseAddProtectionGuest);
+	registerMethod("House", "removeProtectionGuest", luaHouseRemoveProtectionGuest);
+	registerMethod("House", "isProtectionGuest", luaHouseIsProtectionGuest);
+	registerMethod("House", "getProtectionGuests", luaHouseGetProtectionGuests);
+	registerMethod("House", "clearProtectionGuests", luaHouseClearProtectionGuests);
 }

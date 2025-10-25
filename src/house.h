@@ -144,6 +144,8 @@ public:
 	uint32_t getTownId() const { return townId; }
 
 	uint32_t getId() const { return id; }
+	const std::unordered_set<uint32_t>& getProtectionGuests() const { return protectionGuests; }
+	std::unordered_set<uint32_t>& getProtectionGuests() { return protectionGuests; }
 
 	void addDoor(Door* door);
 	void removeDoor(Door* door);
@@ -165,6 +167,16 @@ public:
 		return static_cast<uint32_t>(
 		    std::ceil(bedsList.size() / 2.)); // each bed takes 2 sqms of space, ceil is just for bad maps
 	}
+
+	// Protection guest management and permission checks
+	bool addProtectionGuest(uint32_t playerId);
+	bool removeProtectionGuest(uint32_t playerId);
+	bool isProtectionGuest(uint32_t playerId) const;
+	void clearProtectionGuests();
+	bool canModifyItems(const Player* player) const;
+
+	bool getProtected() const { return isProtected; }
+	void setProtected(bool protect) { isProtected = protect; }
 
 private:
 	bool transferToDepot() const;
@@ -196,6 +208,10 @@ private:
 	Position posEntry = {};
 
 	bool isLoaded = false;
+
+	// Protection state and guest list
+	bool isProtected = false;
+	std::unordered_set<uint32_t> protectionGuests;
 };
 
 using HouseMap = std::map<uint32_t, House*>;

@@ -1044,6 +1044,9 @@ std::string_view getReturnMessage(ReturnValue value)
 		case RETURNVALUE_REWARDCHESTEMPTY:
 			return "The chest is currently empty. You did not\ntake part in any battles in the last seven\ndays or already claimed your reward.";
 
+		case RETURNVALUE_CANNOTMOVEITEMISPROTECTED:
+			return "You cannot move this item. Only the house owner or authorized guests can move items in this protected house.";
+
 		default: // RETURNVALUE_NOTPOSSIBLE, etc
 			return "Sorry, not possible.";
 	}

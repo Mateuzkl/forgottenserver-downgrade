@@ -253,7 +253,7 @@ bool IOMapSerialize::loadHouseInfo()
 {
 	Database& db = Database::getInstance();
 
-	DBResult_ptr result = db.storeQuery("SELECT `id`, `owner`, `paid`, `warnings` FROM `houses`");
+		DBResult_ptr result = db.storeQuery("SELECT `id`, `owner`, `paid`, `warnings`, `is_protected` FROM `houses`");
 	if (!result) {
 		return false;
 	}
@@ -264,6 +264,7 @@ bool IOMapSerialize::loadHouseInfo()
 			house->setOwner(result->getNumber<uint32_t>("owner"), false);
 			house->setPaidUntil(result->getNumber<time_t>("paid"));
 			house->setPayRentWarnings(result->getNumber<uint32_t>("warnings"));
+			house->setProtected(result->getNumber<uint8_t>("is_protected") != 0);
 		}
 	} while (result->next());
 
@@ -273,6 +274,17 @@ bool IOMapSerialize::loadHouseInfo()
 			House* house = g_game.map.houses.getHouse(result->getNumber<uint32_t>("house_id"));
 			if (house) {
 				house->setAccessList(result->getNumber<uint32_t>("listid"), result->getString("list"));
+			}
+		} while (result->next());
+	}
+
+	// Load house protection guests
+	result = db.storeQuery("SELECT `house_id`, `player_id` FROM `house_guests`");
+	if (result) {
+		do {
+			House* house = g_game.map.houses.getHouse(result->getNumber<uint32_t>("house_id"));
+			if (house) {
+				house->getProtectionGuests().insert(result->getNumber<uint32_t>("player_id"));
 			}
 		} while (result->next());
 	}
@@ -297,14 +309,14 @@ bool IOMapSerialize::saveHouseInfo()
 		DBResult_ptr result = db.storeQuery(fmt::format("SELECT `id` FROM `houses` WHERE `id` = {:d}", house->getId()));
 		if (result) {
 			db.executeQuery(fmt::format(
-			    "UPDATE `houses` SET `owner` = {:d}, `paid` = {:d}, `warnings` = {:d}, `name` = {:s}, `town_id` = {:d}, `rent` = {:d}, `size` = {:d}, `beds` = {:d} WHERE `id` = {:d}",
+			    "UPDATE `houses` SET `owner` = {:d}, `paid` = {:d}, `warnings` = {:d}, `is_protected` = {:d}, `name` = {:s}, `town_id` = {:d}, `rent` = {:d}, `size` = {:d}, `beds` = {:d} WHERE `id` = {:d}",
 			    house->getOwner(), house->getPaidUntil(), house->getPayRentWarnings(),
-			    db.escapeString(house->getName()), house->getTownId(), house->getRent(), house->getTiles().size(),
+			    (house->getProtected() ? 1 : 0), db.escapeString(house->getName()), house->getTownId(), house->getRent(), house->getTiles().size(),
 			    house->getBedCount(), house->getId()));
 		} else {
 			db.executeQuery(fmt::format(
-			    "INSERT INTO `houses` (`id`, `owner`, `paid`, `warnings`, `name`, `town_id`, `rent`, `size`, `beds`) VALUES ({:d}, {:d}, {:d}, {:d}, {:s}, {:d}, {:d}, {:d}, {:d})",
-			    house->getId(), house->getOwner(), house->getPaidUntil(), house->getPayRentWarnings(),
+			"INSERT INTO `houses` (`id`, `owner`, `paid`, `warnings`, `is_protected`, `name`, `town_id`, `rent`, `size`, `beds`) VALUES ({:d}, {:d}, {:d}, {:d}, {:d}, {:s}, {:d}, {:d}, {:d}, {:d})",
+			house->getId(), house->getOwner(), house->getPaidUntil(), house->getPayRentWarnings(), (house->getProtected() ? 1 : 0),
 			    db.escapeString(house->getName()), house->getTownId(), house->getRent(), house->getTiles().size(),
 			    house->getBedCount()));
 		}

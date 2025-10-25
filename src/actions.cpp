@@ -365,6 +365,12 @@ ReturnValue Actions::internalUseItem(Player* player, const Position& pos, uint8_
 	}
 
 	if (Container* container = item->getContainer()) {
+		if (const HouseTile* const houseTile = dynamic_cast<const HouseTile*>(item->getTile())) {
+			House* house = houseTile->getHouse();
+			if (house && house->getProtected() && !item->getTopParent()->getCreature() && !house->canModifyItems(player)) {
+				return RETURNVALUE_CANNOTMOVEITEMISPROTECTED;
+			}
+		}
 		Container* openContainer;
 
 		// depot container
@@ -494,6 +500,14 @@ bool Actions::useItem(Player* player, const Position& pos, uint8_t index, Item* 
 		uint16_t subType = item->getSubType();
 		showUseHotkeyMessage(player, item,
 		                     player->getItemTypeCount(item->getID(), subType != item->getItemCount() ? subType : -1));
+	}
+
+	if (const HouseTile* const houseTile = dynamic_cast<const HouseTile*>(item->getTile())) {
+		House* house = houseTile->getHouse();
+		if (house && house->getProtected() && !item->getTopParent()->getCreature() && !house->canModifyItems(player)) {
+			player->sendCancelMessage(RETURNVALUE_CANNOTMOVEITEMISPROTECTED);
+			return false;
+		}
 	}
 
 	if (getBoolean(ConfigManager::ONLY_INVITED_CAN_MOVE_HOUSE_ITEMS)) {

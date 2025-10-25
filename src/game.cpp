@@ -1121,6 +1121,26 @@ ReturnValue Game::internalMoveItem(Cylinder* fromCylinder, Cylinder* toCylinder,
 		if (ret != RETURNVALUE_NOERROR) {
 			return ret;
 		}
+
+		if (!actorPlayer->hasFlag(PlayerFlag_CanEditHouses)) {
+			if (Tile* fromTile = fromCylinder->getTile()) {
+				if (HouseTile* fromHouseTile = dynamic_cast<HouseTile*>(fromTile)) {
+					House* fromHouse = fromHouseTile->getHouse();
+					if (fromHouse && !fromHouse->canModifyItems(actorPlayer)) {
+						return RETURNVALUE_CANNOTMOVEITEMISPROTECTED;
+					}
+				}
+			}
+
+			if (Tile* toTile = toCylinder->getTile()) {
+				if (HouseTile* toHouseTile = dynamic_cast<HouseTile*>(toTile)) {
+					House* toHouse = toHouseTile->getHouse();
+					if (toHouse && !toHouse->canModifyItems(actorPlayer)) {
+						return RETURNVALUE_CANNOTMOVEITEMISPROTECTED;
+					}
+				}
+			}
+		}
 	}
 
 	Item* toItem = nullptr;

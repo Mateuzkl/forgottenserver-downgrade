@@ -75,6 +75,9 @@ ReturnValue HouseTile::queryAdd(int32_t index, const Thing& thing, uint32_t coun
 		}
 	} else if (thing.getItem()) {
 		if (actor) {
+			if (house->getProtected() && !house->canModifyItems(actor->getPlayer())) {
+				return RETURNVALUE_CANNOTMOVEITEMISPROTECTED;
+			}
 			Player* actorPlayer = actor->getPlayer();
 			if (!house->isInvited(actorPlayer)) {
 				return RETURNVALUE_CANNOTTHROW;
@@ -118,6 +121,10 @@ ReturnValue HouseTile::queryRemove(const Thing& thing, uint32_t count, uint32_t 
 	const Item* item = thing.getItem();
 	if (!item) {
 		return RETURNVALUE_NOTPOSSIBLE;
+	}
+
+	if (actor && house->getProtected() && !house->canModifyItems(actor->getPlayer())) {
+		return RETURNVALUE_CANNOTMOVEITEMISPROTECTED;
 	}
 
 	if (actor && getBoolean(ConfigManager::ONLY_INVITED_CAN_MOVE_HOUSE_ITEMS)) {

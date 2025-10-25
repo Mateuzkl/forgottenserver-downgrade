@@ -700,3 +700,75 @@ void Houses::payHouses(RentPeriod_t rentPeriod) const
 		IOLoginData::savePlayer(&player);
 	}
 }
+
+bool House::addProtectionGuest(uint32_t playerId)
+{
+	if (playerId == 0 || playerId == owner) {
+		return false;
+	}
+
+	auto result = protectionGuests.insert(playerId);
+	if (result.second) {
+		Database& db = Database::getInstance();
+		std::ostringstream query;
+		query << "INSERT INTO `house_guests` (`house_id`, `player_id`) VALUES (" << id << ", " << playerId << ")";
+		return db.executeQuery(query.str());
+	}
+	return false;
+}
+
+bool House::removeProtectionGuest(uint32_t playerId)
+{
+	auto it = protectionGuests.find(playerId);
+	if (it != protectionGuests.end()) {
+		protectionGuests.erase(it);
+
+		Database& db = Database::getInstance();
+		std::ostringstream query;
+		query << "DELETE FROM `house_guests` WHERE `house_id` = " << id << " AND `player_id` = " << playerId;
+		return db.executeQuery(query.str());
+	}
+	return false;
+}
+
+bool House::isProtectionGuest(uint32_t playerId) const
+{
+	return protectionGuests.find(playerId) != protectionGuests.end();
+}
+
+void House::clearProtectionGuests()
+{
+	if (!protectionGuests.empty()) {
+		protectionGuests.clear();
+
+		Database& db = Database::getInstance();
+		std::ostringstream query;
+		query << "DELETE FROM `house_guests` WHERE `house_id` = " << id;
+		db.executeQuery(query.str());
+	}
+}
+
+bool House::canModifyItems(const Player* player) const
+{
+	if (!player) {
+		return false;
+	}
+
+	if (!isProtected) {
+		return true;
+	}
+
+	if (player->hasFlag(PlayerFlag_CanEditHouses)) {
+		return true;
+	}
+
+	if (player->getGUID() == owner) {
+		return true;
+	}
+
+	if (isProtectionGuest(player->getGUID())) {
+		return true;
+	}
+
+	return false;
+}
