@@ -218,14 +218,14 @@ int luaNetworkMessageAddItem(lua_State* L)
 	if (message) {
 		if (getAssociatedValue(L, 1, 1)) {
 			if (const auto player = getPlayer(L, -1)) {
-				message->addItem(item, player->isOTCv8());
+				message->addItem(item);
 			} else {
 				reportErrorFunc(L, LuaScriptInterface::getErrorDesc(LuaErrorCode::PLAYER_NOT_FOUND));
 				lua_pushnil(L);
 				return 1;
 			}
 		} else {
-			message->addItem(item, false);
+			message->addItem(item);
 		}
 		pushBoolean(L, true);
 	} else {
@@ -256,14 +256,14 @@ int luaNetworkMessageAddItemId(lua_State* L)
 
 	if (getAssociatedValue(L, 1, 1)) {
 		if (const auto player = getPlayer(L, -1)) {
-			message->addItemId(itemId, player->isOTCv8());
+			message->addItemId(itemId);
 		} else {
 			reportErrorFunc(L, LuaScriptInterface::getErrorDesc(LuaErrorCode::PLAYER_NOT_FOUND));
 			lua_pushnil(L);
 			return 1;
 		}
 	} else {
-		message->addItemId(itemId, false);
+		message->addItemId(itemId);
 	}
 	pushBoolean(L, true);
 	return 1;

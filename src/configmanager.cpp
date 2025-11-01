@@ -28,9 +28,6 @@ std::array<float, ConfigManager::LAST_FLOAT_CONFIG> floats = {};
 using ExperienceStages = std::vector<std::tuple<uint32_t, uint32_t, float>>;
 ExperienceStages expStages;
 
-using OTCFeatures = std::vector<uint8_t>;
-OTCFeatures otcFeatures;
-
 using FastPotionIds = std::vector<uint16_t>;
 using BlockedTeleportIds = std::vector<uint16_t>;
 FastPotionIds fastPotionIds;
@@ -166,25 +163,6 @@ ExperienceStages loadXMLStages()
 
 	std::sort(stages.begin(), stages.end());
 	return stages;
-}
-
-OTCFeatures loadLuaOTCFeatures(lua_State* L)
-{
-	OTCFeatures features;
-
-	lua_getglobal(L, "OTCFeatures");
-	if (!lua_istable(L, -1)) {
-		return {};
-	}
-
-	lua_pushnil(L);
-	while (lua_next(L, -2) != 0) {
-		const auto feature = static_cast<uint8_t>(lua_tointeger(L, -1));
-		features.push_back(feature);
-		lua_pop(L, 1);
-	}
-	lua_pop(L, 1);
-	return features;
 }
 
 FastPotionIds loadLuaFastPotionIds(lua_State* L)
@@ -400,7 +378,6 @@ bool ConfigManager::load()
 	}
 	expStages.shrink_to_fit();
 
-	otcFeatures = loadLuaOTCFeatures(L);
 	fastPotionIds = loadLuaFastPotionIds(L);
 	blockedTeleportIds = loadLuaBlockedTeleportIds(L);
 
@@ -502,8 +479,6 @@ bool ConfigManager::setFloat(float_config_t what, float value)
 	floats[what] = value;
 	return true;
 }
-
-const OTCFeatures& ConfigManager::getOTCFeatures() { return otcFeatures; }
 
 const FastPotionIds& ConfigManager::getFastPotionIds() { return fastPotionIds; }
 
