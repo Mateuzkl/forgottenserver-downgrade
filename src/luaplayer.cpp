@@ -65,17 +65,6 @@ int luaPlayerIsPlayer(lua_State* L)
 	return 1;
 }
 
-int luaPlayerIsAccountManager(lua_State* L)
-{
-	// player:isAccountManager()
-	const Player* player = getUserdata<const Player>(L, 1);
-	if (player) {
-		pushBoolean(L, player->isAccountManager());
-	} else {
-		lua_pushnil(L);
-	}
-	return 1;
-}
 
 int luaPlayerGetGuid(lua_State* L)
 {
@@ -2519,12 +2508,11 @@ int luaOfflinePlayerRemove(lua_State* L)
 
 void LuaScriptInterface::registerPlayer()
 {
-	// Player
-	registerClass("Player", "Creature", luaPlayerCreate);
-	registerMetaMethod("Player", "__eq", LuaScriptInterface::luaUserdataCompare);
+    // Player
+    registerClass("Player", "Creature", luaPlayerCreate);
+    registerMetaMethod("Player", "__eq", LuaScriptInterface::luaUserdataCompare);
 
-	registerMethod("Player", "isPlayer", luaPlayerIsPlayer);
-	registerMethod("Player", "isAccountManager", luaPlayerIsAccountManager);
+    registerMethod("Player", "isPlayer", luaPlayerIsPlayer);
 
 	registerMethod("Player", "getGuid", luaPlayerGetGuid);
 	registerMethod("Player", "getIp", luaPlayerGetIp);

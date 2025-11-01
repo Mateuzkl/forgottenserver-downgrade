@@ -110,8 +110,6 @@ bool Events::load()
 				info.playerOnNetworkMessage = event;
 			} else if (methodName == "onUpdateInventory") {
 				info.playerOnUpdateInventory = event;
-			} else if (methodName == "onAccountManager") {
-				info.playerOnAccountManager = event;
 			} else if (methodName == "onRotateItem") {
 				info.playerOnRotateItem = event;
 			} else if (methodName == "onSpellCheck") {
@@ -1158,32 +1156,6 @@ void Events::eventPlayerOnUpdateInventory(Player* player, Item* item, const slot
 	Lua::pushBoolean(L, equip);
 
 	scriptInterface.callVoidFunction(4);
-}
-
-void Events::eventPlayerOnAccountManager(Player* player, std::string_view text)
-{
-	// Player:onAccountManager(text)
-	if (info.playerOnAccountManager == -1) {
-		return;
-	}
-
-	if (!scriptInterface.reserveScriptEnv()) {
-		std::cout << "[Error - Events::eventPlayerOnAccountManager] Call stack overflow" << std::endl;
-		return;
-	}
-
-	ScriptEnvironment* env = scriptInterface.getScriptEnv();
-	env->setScriptId(info.playerOnAccountManager, &scriptInterface);
-
-	lua_State* L = scriptInterface.getLuaState();
-	scriptInterface.pushFunction(info.playerOnAccountManager);
-
-	Lua::pushUserdata<Player>(L, player);
-	Lua::setMetatable(L, -1, "Player");
-
-	Lua::pushString(L, text);
-
-	scriptInterface.callVoidFunction(2);
 }
 
 void Events::eventPlayerOnRotateItem(Player* player, Item* item)

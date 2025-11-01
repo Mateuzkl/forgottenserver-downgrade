@@ -36,7 +36,6 @@
 	<event class="Player" method="onGainSkillTries" enabled="1" />
 	<event class="Player" method="onNetworkMessage" enabled="1" />
 	<event class="Player" method="onUpdateInventory" enabled="1" />
-	<event class="Player" method="onAccountManager" enabled="1" />
 	<event class="Player" method="onRotateItem" enabled="1" />
 	<event class="Player" method="onSpellCheck" enabled="1" />
 

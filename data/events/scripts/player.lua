@@ -123,10 +123,6 @@ function Player:onUpdateInventory(item, slot, equip)
 	if hasEvent.onUpdateInventory then Event.onUpdateInventory(self, item, slot, equip) end
 end
 
-function Player:onAccountManager(text)
-	if hasEvent.onAccountManager then Event.onAccountManager(self, text) end
-end
-
 function Player:onRotateItem(item)
 	if hasEvent.onRotateItem then return Event.onRotateItem(self, item) end
 end

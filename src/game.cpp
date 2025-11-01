@@ -1909,17 +1909,6 @@ void Game::playerMove(uint32_t playerId, Direction direction)
 	player->startAutoWalk(direction);
 }
 
-// only for Account Manager
-void Game::playerCancelMove(uint32_t playerId)
-{
-	Player* player = getPlayerByID(playerId);
-	if (!player) {
-		return;
-	}
-
-	player->sendCancelWalk();
-}
-
 bool Game::playerBroadcastMessage(Player* player, std::string_view text) const
 {
 	if (!player->hasFlag(PlayerFlag_CanBroadcast)) {
@@ -3533,15 +3522,6 @@ void Game::playerSay(uint32_t playerId, uint16_t channelId, SpeakClasses type, s
 {
 	Player* player = getPlayerByID(playerId);
 	if (!player) {
-		return;
-	}
-
-	if (player->isAccountManager()) {
-		if (player->isMuted() > 0) {
-			player->removeMessageBuffer();
-		}
-
-		g_events->eventPlayerOnAccountManager(player, text);
 		return;
 	}
 

@@ -1049,10 +1049,7 @@ void Player::onCreatureAppear(Creature* creature, bool isLogin)
 			}
 		}
 
-		if (!isAccountManager()) {
-			g_game.checkPlayersRecord();
-			IOLoginData::updateOnlineStatus(guid, true);
-		}
+		IOLoginData::updateOnlineStatus(guid, false);
 	}
 }
 
@@ -1145,9 +1142,7 @@ void Player::onRemoveCreature(Creature* creature, bool isLogout)
 			guild->removeMember(this);
 		}
 
-		if (!isAccountManager()) {
-			IOLoginData::updateOnlineStatus(guid, false);
-		}
+        IOLoginData::updateOnlineStatus(guid, false);
 
 		bool saved = false;
 		for (uint32_t tries = 0; tries < 3; ++tries) {
@@ -2127,10 +2122,7 @@ void Player::addInFightTicks(bool pzlock /*= false*/)
 	addCondition(condition);
 }
 
-bool Player::isAccountManager() const
-{
-	return getBoolean(ConfigManager::ACCOUNT_MANAGER) && guid == ACCOUNT_MANAGER_PLAYER_ID;
-}
+// Account Manager functionality removed
 
 void Player::removeList()
 {

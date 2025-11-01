@@ -1,16 +1,3 @@
--- OTC Features
--- NOTE: Features added in this list will be forced to be used on the client
--- These features can be found in "modules/gamelib/const.lua"
-OTCFeatures = {
-	9, -- GameSkillsBase
-	12, -- GamePlayerMounts
-	16, -- GamePlayerMounts
-	20, -- GameOfflineTrainingTime
-	29, -- GameDoubleSkills
-	53, -- GameBaseSkillU16
-	76 -- GameAdditionalSkills
-}
-
 -- Protocol things
 -- NOTE: The maximum number of outfits only applies to cip client, OTC will use 255
 maxProtocolOutfits = 50

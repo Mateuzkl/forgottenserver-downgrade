@@ -379,10 +379,10 @@ protected:
 	std::map<int32_t, std::string> cacheFiles;
 
 private:
-	void registerClass(const std::string& className, const std::string& baseClass, lua_CFunction newFunction = nullptr);
-	void registerTable(std::string_view tableName);
-	void registerMetaMethod(std::string_view className, std::string_view methodName, lua_CFunction func);
-	void registerGlobalMethod(std::string_view functionName, lua_CFunction func);
+    void registerClass(const std::string& className, const std::string& baseClass, lua_CFunction newFunction = nullptr);
+    void registerTable(std::string_view tableName);
+    void registerMetaMethod(std::string_view className, std::string_view methodName, lua_CFunction func);
+    void registerGlobalMethod(std::string_view functionName, lua_CFunction func);
 	void registerVariable(std::string_view tableName, std::string_view name, lua_Integer value);
 	void registerGlobalVariable(std::string_view name, lua_Integer value);
 	void registerGlobalBoolean(std::string_view name, bool value);
@@ -393,9 +393,6 @@ private:
 
 	// lua functions
 	static int luaDoPlayerAddItem(lua_State* L);
-
-	// transformToSHA1
-	static int luaTransformToSHA1(lua_State* L);
 
 	// get item info
 	static int luaGetDepotId(lua_State* L);
@@ -468,7 +465,10 @@ private:
 	static int luaSystemTime(lua_State* L);
 	static int luaSystemNanoTime(lua_State* L);
 
-	static int luaTableCreate(lua_State* L);
+    static int luaTableCreate(lua_State* L);
+
+    // global helper declared to satisfy registration in luascript.cpp
+    static int luaTransformToSHA1(lua_State* L);
 
 
 

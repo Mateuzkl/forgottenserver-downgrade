@@ -83,12 +83,6 @@ using MuteCountMap = std::map<uint32_t, uint32_t>;
 inline constexpr int32_t PLAYER_MIN_SPEED = 10;
 inline constexpr int32_t PLAYER_MAX_BLESSINGS = 5;
 
-inline constexpr auto ACCOUNT_MANAGER_PLAYER_NAME = "Account Manager";
-inline constexpr auto ACCOUNT_MANAGER_PLAYER_ID = 1;
-inline constexpr auto ACCOUNT_MANAGER_ACCOUNT_ID = 1;
-inline constexpr auto ACCOUNT_MANAGER_ACCOUNT_NAME = "1";
-inline constexpr auto ACCOUNT_MANAGER_ACCOUNT_PASSWORD = "1";
-
 class Player final : public Creature, public Cylinder
 {
 public:
@@ -140,7 +134,6 @@ public:
 
 	void setGUID(uint32_t guid) { this->guid = guid; }
 	uint32_t getGUID() const { return guid; }
-	bool isAccountManager() const;
 	bool canSeeInvisibility() const override { return hasFlag(PlayerFlag_CanSenseInvisibility) || group->access; }
 
 	void removeList() override;
