@@ -255,7 +255,8 @@ private:
 	// otclient
 	void parseExtendedOpcode(NetworkMessage& msg);
 
-	void sendOTCv8Features();
+	//OTCv8
+	void sendFeatures();
 
 	friend class Player;
 
