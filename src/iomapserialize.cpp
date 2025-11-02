@@ -321,13 +321,13 @@ bool IOMapSerialize::saveHouseInfo()
 		if (result) {
 			db.executeQuery(fmt::format(
 			    "UPDATE `houses` SET `owner` = {:d}, `type` = {:d}, `paid` = {:d}, `warnings` = {:d}, `is_protected` = {:d}, `name` = {:s}, `town_id` = {:d}, `rent` = {:d}, `size` = {:d}, `beds` = {:d} WHERE `id` = {:d}",
-			    house->getOwner(), house->getType(), house->getPaidUntil(), house->getPayRentWarnings(),
+			    house->getOwner(), static_cast<int>(house->getType()), house->getPaidUntil(), house->getPayRentWarnings(),
 			    (house->getProtected() ? 1 : 0), db.escapeString(house->getName()), house->getTownId(), house->getRent(), house->getTiles().size(),
 			    house->getBedCount(), house->getId()));
 		} else {
 			db.executeQuery(fmt::format(
 			"INSERT INTO `houses` (`id`, `type`, `owner`, `paid`, `warnings`, `is_protected`, `name`, `town_id`, `rent`, `size`, `beds`) VALUES ({:d}, {:d}, {:d}, {:d}, {:d}, {:d}, {:s}, {:d}, {:d}, {:d}, {:d})",
-			house->getId(), house->getType(), house->getOwner(), house->getPaidUntil(), house->getPayRentWarnings(), (house->getProtected() ? 1 : 0),
+			house->getId(), static_cast<int>(house->getType()), house->getOwner(), house->getPaidUntil(), house->getPayRentWarnings(), (house->getProtected() ? 1 : 0),
 			    db.escapeString(house->getName()), house->getTownId(), house->getRent(), house->getTiles().size(),
 			    house->getBedCount()));
 		}

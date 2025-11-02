@@ -43,9 +43,8 @@ Wing* Wings::getWingByID(uint8_t id)
 }
 
 Wing* Wings::getWingByName(const std::string& name) {
-	auto wingName = name.c_str();
 	for (auto& it : wings) {
-		if (strcasecmp(wingName, it.name.c_str()) == 0) {
+		if (caseInsensitiveEqual(name, it.name)) {
 			return &it;
 		}
 	}

@@ -43,9 +43,8 @@ Aura* Auras::getAuraByID(uint8_t id)
 }
 
 Aura* Auras::getAuraByName(const std::string& name) {
-	auto auraName = name.c_str();
 	for (auto& it : auras) {
-		if (strcasecmp(auraName, it.name.c_str()) == 0) {
+		if (caseInsensitiveEqual(name, it.name)) {
 			return &it;
 		}
 	}
