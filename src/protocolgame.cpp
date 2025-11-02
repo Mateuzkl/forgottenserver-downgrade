@@ -233,13 +233,21 @@ void ProtocolGame::login(uint32_t characterId, uint32_t accountId, OperatingSyst
 		acceptPackets = true;
 	} else {
 		if (eventConnect != 0 || !getBoolean(ConfigManager::REPLACE_KICK_ON_LOGIN)) {
-			// Already trying to connect
 			disconnectClient("You are already logged in.");
 			return;
 		}
 
 		if (foundPlayer->client) {
-			foundPlayer->disconnect();
+			std::cout << "[ProtocolGame::login] Disconnecting previous client for player: " 
+			          << foundPlayer->getName() << " (ID: " << foundPlayer->getID() << ")" << std::endl;
+			
+			auto oldClient = foundPlayer->client;
+			foundPlayer->client.reset();
+			
+			if (oldClient) {
+				oldClient->disconnect();
+			}
+			
 			foundPlayer->isConnecting = true;
 
 			eventConnect = g_scheduler.addEvent(
@@ -264,10 +272,11 @@ void ProtocolGame::connect(uint32_t playerId, OperatingSystem_t operatingSystem)
 	}
 
 	if (isConnectionExpired()) {
-		// ProtocolGame::release() has been called at this point and the Connection object
-		// no longer exists, so we return to prevent leakage of the Player.
 		return;
 	}
+
+	std::cout << "[ProtocolGame::connect] Reconnecting player: " << foundPlayer->getName() 
+	          << " with client type: " << (isOTCv8 ? "OTCv8" : "CipSoft") << std::endl;
 
 	player = foundPlayer;
 	player->incrementReferenceCounter();
@@ -276,6 +285,8 @@ void ProtocolGame::connect(uint32_t playerId, OperatingSystem_t operatingSystem)
 	g_chat->removeUserFromAllChannels(*player);
 	player->setOperatingSystem(operatingSystem);
 	player->isConnecting = false;
+
+	knownCreatureSet.clear();
 
 	player->client = getThis();
 	sendAddCreature(player, player->getPosition(), 0);
@@ -700,17 +711,31 @@ void ProtocolGame::parsePacket(NetworkMessage& msg)
 
 void ProtocolGame::GetTileDescription(const Tile* tile, NetworkMessage& msg)
 {
-	int32_t count = 0;
-	if (const auto ground = tile->getGround()) {
-		msg.addItem(ground);
-		++count;
+	if (!tile) {
+		std::cout << "[GetTileDescription] ERROR: Tile is NULL!" << std::endl;
+		return;
 	}
 
-	const bool isStacked = player->getPosition() == tile->getPosition();
+	int32_t count = 0;
+	if (const auto ground = tile->getGround()) {
+		if (ground->getID() > 0) {
+			msg.addItem(ground);
+			++count;
+		} else {
+			std::cout << "[GetTileDescription] WARNING: Ground with invalid ID (0) ignored" << std::endl;
+		}
+	}
+
+	const bool isStacked = player && player->getPosition() == tile->getPosition();
 
 	const TileItemVector* items = tile->getItemList();
 	if (items) {
 		for (auto it = items->getBeginTopItem(), end = items->getEndTopItem(); it != end; ++it) {
+			if (!(*it) || (*it)->getID() == 0) {
+				std::cout << "[GetTileDescription] WARNING: Invalid item or ID 0 ignored in TopItems" << std::endl;
+				continue;
+			}
+			
 			msg.addItem(*it);
 
 			if (!isOTCv8) {
@@ -733,7 +758,7 @@ void ProtocolGame::GetTileDescription(const Tile* tile, NetworkMessage& msg)
 				AddCreature(msg, player, known, removedKnown);
 			} else {
 				const Creature* creature = (*it);
-				if (!player->canSeeCreature(creature)) {
+				if (!creature || !player->canSeeCreature(creature)) {
 					continue;
 				}
 
@@ -749,6 +774,11 @@ void ProtocolGame::GetTileDescription(const Tile* tile, NetworkMessage& msg)
 
 	if (items && count < MAX_STACKPOS_THINGS) {
 		for (auto it = items->getBeginDownItem(), end = items->getEndDownItem(); it != end; ++it) {
+			if (!(*it) || (*it)->getID() == 0) {
+				std::cout << "[GetTileDescription] WARNING: Invalid item or ID 0 ignored in DownItems" << std::endl;
+				continue;
+			}
+			
 			msg.addItem(*it);
 
 			if (++count == MAX_STACKPOS_THINGS) {
@@ -2125,11 +2155,22 @@ void ProtocolGame::sendMoveCreature(const Creature* creature, const Position& ne
 				MoveUpCreature(msg, creature, newPos, oldPos);
 			}
 
-			if (!isOTCv8 && newStackPos >= MAX_STACKPOS_THINGS) {
-				msg.addByte(0x4B);
-				msg.addPosition(player->getPosition());
-				GetMapDescription(newPos.x - Map::maxClientViewportX, newPos.y - Map::maxClientViewportY, newPos.z,
-				                  (Map::maxClientViewportX * 2) + 2, (Map::maxClientViewportY * 2) + 2, msg);
+			if (newStackPos >= MAX_STACKPOS_THINGS) {
+				if (isOTCv8) {
+					std::cout << "[sendMoveCreature] OTCv8 - Sending full map (0x4B) for stackPos >= " 
+					          << MAX_STACKPOS_THINGS << std::endl;
+					msg.addByte(0x4B);
+					msg.addPosition(player->getPosition());
+					GetMapDescription(newPos.x - awareRange.left(), newPos.y - awareRange.top(), newPos.z,
+					                  awareRange.horizontal(), awareRange.vertical(), msg);
+				} else {
+					std::cout << "[sendMoveCreature] CipSoft 8.60 - Sending full map for stackPos >= " 
+					          << MAX_STACKPOS_THINGS << std::endl;
+					msg.addByte(0x4B);
+					msg.addPosition(player->getPosition());
+					GetMapDescription(newPos.x - Map::maxClientViewportX, newPos.y - Map::maxClientViewportY, newPos.z,
+					                  (Map::maxClientViewportX * 2) + 2, (Map::maxClientViewportY * 2) + 2, msg);
+				}
 			} else {
 				if (oldPos.y > newPos.y) { // north, for old x
 					msg.addByte(0x65);
