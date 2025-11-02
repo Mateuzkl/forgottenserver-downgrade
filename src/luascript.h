@@ -624,13 +624,35 @@ inline typename std::enable_if<std::is_enum<T>::value, T>::type getNumber(lua_St
 template <typename T>
 inline typename std::enable_if<std::is_floating_point<T>::value, T>::type getNumber(lua_State* L, int32_t arg)
 {
-	int isNum = 0;
-	lua_Number num = lua_tonumberx(L, arg, &isNum);
-	if (isNum == 0) {
-		return 0;
-	}
+    int isNum = 0;
+    lua_Number num = lua_tonumberx(L, arg, &isNum);
+    if (isNum == 0) {
+        return 0;
+    }
 
-	return static_cast<T>(num);
+    return static_cast<T>(num);
+}
+
+// Support integral types for getNumber so callers can parse optional numeric fields
+// (e.g., uint16_t) with a default value when not provided.
+template <typename T>
+inline typename std::enable_if<std::is_integral<T>::value, T>::type getNumber(lua_State* L, int32_t arg)
+{
+    int isNum = 0;
+    lua_Number num = lua_tonumberx(L, arg, &isNum);
+    if (isNum == 0) {
+        return 0;
+    }
+
+    if (num < static_cast<lua_Number>(std::numeric_limits<T>::lowest())) {
+        reportErrorFunc(L, fmt::format("Argument {} has out-of-range value for {}: {}", arg, typeid(T).name(), num));
+        return std::numeric_limits<T>::lowest();
+    } else if (num > static_cast<lua_Number>(std::numeric_limits<T>::max())) {
+        reportErrorFunc(L, fmt::format("Argument {} has out-of-range value for {}: {}", arg, typeid(T).name(), num));
+        return std::numeric_limits<T>::max();
+    }
+
+    return static_cast<T>(num);
 }
 
 template <typename T>

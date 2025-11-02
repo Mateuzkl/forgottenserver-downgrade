@@ -806,6 +806,8 @@ Outfit_t Lua::getOutfit(lua_State* L, int32_t arg)
 	Outfit_t outfit;
 	outfit.lookAddons = getField<uint8_t>(L, arg, "lookAddons");
 
+	outfit.lookWings = getField<uint16_t>(L, arg, "lookWings");
+	outfit.lookAura = getField<uint16_t>(L, arg, "lookAura");
 	outfit.lookFeet = getField<uint8_t>(L, arg, "lookFeet");
 	outfit.lookLegs = getField<uint8_t>(L, arg, "lookLegs");
 	outfit.lookBody = getField<uint8_t>(L, arg, "lookBody");
@@ -813,6 +815,7 @@ Outfit_t Lua::getOutfit(lua_State* L, int32_t arg)
 
 	outfit.lookTypeEx = getField<uint16_t>(L, arg, "lookTypeEx");
 	outfit.lookType = getField<uint16_t>(L, arg, "lookType");
+	outfit.lookShader = getField<uint16_t>(L, arg, "lookShader");
 
 	lua_pop(L, 8);
 	return outfit;
@@ -1027,6 +1030,9 @@ void Lua::pushOutfit(lua_State* L, const Outfit_t& outfit)
 	setField(L, "lookLegs", outfit.lookLegs);
 	setField(L, "lookFeet", outfit.lookFeet);
 	setField(L, "lookAddons", outfit.lookAddons);
+	setField(L, "lookWings", outfit.lookWings);
+	setField(L, "lookAura", outfit.lookAura);
+	setField(L, "lookShader", outfit.lookShader);
 }
 
 void Lua::pushOutfit(lua_State* L, const Outfit* outfit)
@@ -1998,6 +2004,7 @@ void LuaScriptInterface::registerFunctions()
 
 	registerEnum(RELOAD_TYPE_ALL);
 	registerEnum(RELOAD_TYPE_ACTIONS);
+	registerEnum(RELOAD_TYPE_AURAS)
 	registerEnum(RELOAD_TYPE_CHAT);
 	registerEnum(RELOAD_TYPE_CONFIG);
 	registerEnum(RELOAD_TYPE_CREATURESCRIPTS);
@@ -2012,9 +2019,11 @@ void LuaScriptInterface::registerFunctions()
 	registerEnum(RELOAD_TYPE_QUESTS);
 	registerEnum(RELOAD_TYPE_RAIDS);
 	registerEnum(RELOAD_TYPE_SCRIPTS);
+	registerEnum(RELOAD_TYPE_SHADERS)
 	registerEnum(RELOAD_TYPE_SPELLS);
 	registerEnum(RELOAD_TYPE_TALKACTIONS);
 	registerEnum(RELOAD_TYPE_WEAPONS);
+	registerEnum(RELOAD_TYPE_WINGS)
 
 	registerEnum(ZONE_PROTECTION);
 	registerEnum(ZONE_NOPVP);

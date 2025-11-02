@@ -473,6 +473,7 @@ enum ReloadTypes_t : uint8_t
 {
 	RELOAD_TYPE_ALL,
 	RELOAD_TYPE_ACTIONS,
+	RELOAD_TYPE_AURAS,
 	RELOAD_TYPE_CHAT,
 	RELOAD_TYPE_CONFIG,
 	RELOAD_TYPE_CREATURESCRIPTS,
@@ -487,9 +488,11 @@ enum ReloadTypes_t : uint8_t
 	RELOAD_TYPE_QUESTS,
 	RELOAD_TYPE_RAIDS,
 	RELOAD_TYPE_SCRIPTS,
+	RELOAD_TYPE_SHADERS,
 	RELOAD_TYPE_SPELLS,
 	RELOAD_TYPE_TALKACTIONS,
 	RELOAD_TYPE_WEAPONS,
+	RELOAD_TYPE_WINGS,
 };
 
 // OTCv8 features (from src/client/const.h)
@@ -618,9 +621,25 @@ inline constexpr int32_t CHANNEL_PRIVATE = 0xFFFF;
 // Guild rank level constants
 enum GuildLevel_t : uint8_t
 {
-	GUILDLEVEL_MEMBER = 1,
-	GUILDLEVEL_VICE = 2,
-	GUILDLEVEL_LEADER = 3,
+    GUILDLEVEL_MEMBER = 1,
+    GUILDLEVEL_VICE = 2,
+    GUILDLEVEL_LEADER = 3,
 };
+
+// [2012 - 2022]
+// Base for reserved player storage ranges (choose a high, unused base)
+static constexpr int32_t PSTRG_RESERVED_RANGE_START = 100000;
+// Wings/Auras/Shaders storage ranges
+static constexpr int32_t PSTRG_WINGS_RANGE_START = (PSTRG_RESERVED_RANGE_START + 2012);
+static constexpr int32_t PSTRG_WINGS_RANGE_SIZE = 10;
+static constexpr int32_t PSTRG_WINGS_CURRENTWINGS = (PSTRG_WINGS_RANGE_START + 10);
+// [2023 - 2033]
+static constexpr int32_t PSTRG_AURAS_RANGE_START = (PSTRG_RESERVED_RANGE_START + 2023);
+static constexpr int32_t PSTRG_AURAS_RANGE_SIZE = 10;
+static constexpr int32_t PSTRG_AURAS_CURRENTAURA = (PSTRG_AURAS_RANGE_START + 10);
+// [2034 - 2044]
+static constexpr int32_t PSTRG_SHADERS_RANGE_START = (PSTRG_RESERVED_RANGE_START + 2034);
+static constexpr int32_t PSTRG_SHADERS_RANGE_SIZE = 10;
+static constexpr int32_t PSTRG_SHADERS_CURRENTSHADER = (PSTRG_SHADERS_RANGE_START + 10);
 
 #endif

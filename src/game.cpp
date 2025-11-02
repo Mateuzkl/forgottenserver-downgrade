@@ -91,6 +91,9 @@ void Game::setGameState(GameState_t newState)
 			map.spawns.startup();
 
 			mounts.loadFromXml();
+			auras.loadFromXml();
+			wings.loadFromXml();
+			shaders.loadFromXml();
 
 			raids.loadFromXml();
 			raids.startup();
@@ -3467,6 +3470,9 @@ void Game::playerChangeOutfit(uint32_t playerId, Outfit_t outfit, bool randomize
 	const Outfit* playerOutfit = Outfits::getInstance().getOutfitByLookType(outfit.lookType);
 	if (!playerOutfit) {
 		outfit.lookMount = 0;
+		outfit.lookWings = 0;
+		outfit.lookAura = 0;
+		outfit.lookShader = 0;
 	}
 
 	if (outfit.lookMount != 0) {
@@ -3494,6 +3500,38 @@ void Game::playerChangeOutfit(uint32_t playerId, Outfit_t outfit, bool randomize
 			player->dismount();
 		}
 
+		if (outfit.lookWings != 0) {
+        Wing* wing = wings.getWingByClientID(outfit.lookWings);
+		if (!wing) {
+			return;
+		}
+
+		if (!player->hasWing(wing)) {
+			return;
+		}
+	}
+
+	if (outfit.lookAura != 0) {
+		Aura* aura = auras.getAuraByClientID(outfit.lookAura);
+		if (!aura) {
+			return;
+		}
+
+		if (!player->hasAura(aura)) {
+			return;
+		}
+	}
+
+	if (outfit.lookShader) {
+		Shader* shader = shaders.getShaderByID(outfit.lookShader);
+		if (!shader) {
+			return;
+		}
+
+		if (!player->hasShader(shader)) {
+			return;
+		}
+	}
 		player->wasMounted = false;
 	}
 
@@ -3515,6 +3553,24 @@ void Game::playerChangeOutfit(uint32_t playerId, Outfit_t outfit, bool randomize
 	if (player->isMounted()) {
 		player->onChangeZone(player->getZone());
 	}
+}
+
+void Game::playerToggleOutfitExtension(uint32_t playerId, int mount, int wings, int aura, int shader)
+{
+    Player* player = getPlayerByID(playerId);
+    if (!player) {
+        return;
+    }
+
+    // Toggle mount only if a value was provided (-1 means no change)
+    if (mount != -1) {
+        player->toggleMount(mount == 1);
+    }
+
+    // Currently, wings/aura/shader are placeholders to be handled elsewhere
+    (void)wings;
+    (void)aura;
+    (void)shader;
 }
 
 void Game::playerSay(uint32_t playerId, uint16_t channelId, SpeakClasses type, std::string_view receiver,
@@ -5358,6 +5414,7 @@ bool Game::reload(ReloadTypes_t reloadType)
 {
 	switch (reloadType) {
 		case RELOAD_TYPE_ACTIONS:
+		case RELOAD_TYPE_AURAS: return auras.reload();
 			return g_actions->reload();
 		case RELOAD_TYPE_CHAT:
 			return g_chat->load();
@@ -5388,6 +5445,7 @@ bool Game::reload(ReloadTypes_t reloadType)
 		case RELOAD_TYPE_RAIDS:
 			return raids.reload() && raids.startup();
 
+		case RELOAD_TYPE_SHADERS: return shaders.reload();
 		case RELOAD_TYPE_SPELLS: {
 			if (!g_spells->reload()) {
 				std::cout << "[Error - Game::reload] Failed to reload spells." << std::endl;
@@ -5407,6 +5465,8 @@ bool Game::reload(ReloadTypes_t reloadType)
 			g_weapons->loadDefaults();
 			return results;
 		}
+
+		case RELOAD_TYPE_WINGS: return wings.reload();
 
 		case RELOAD_TYPE_SCRIPTS: {
 			// commented out stuff is TODO, once we approach further in revscriptsys
@@ -5453,6 +5513,9 @@ bool Game::reload(ReloadTypes_t reloadType)
 			g_weapons->clear(true);
 			g_weapons->loadDefaults();
 			mounts.reload();
+			auras.reload();
+			wings.reload();
+			shaders.reload();
 			g_globalEvents->reload();
 			g_events->load();
 			g_chat->load();

@@ -11,6 +11,9 @@
 #include "const.h"
 #include "map.h"
 #include "mounts.h"
+#include "wings.h"
+#include "auras.h"
+#include "shaders.h"
 #include "player.h"
 #include "spells.h"
 #include "tile.h"
@@ -1625,6 +1628,81 @@ int luaPlayerHasMount(lua_State* L)
 	return 1;
 }
 
+int luaPlayerAddWing(lua_State* L)
+{
+    // player:addWing(wingId or wingName)
+    Player* player = getUserdata<Player>(L, 1);
+    if (!player) {
+        lua_pushnil(L);
+        return 1;
+    }
+
+    uint8_t wingId;
+    if (isInteger(L, 2)) {
+        wingId = getInteger<uint8_t>(L, 2);
+    } else {
+        Wing* wing = g_game.wings.getWingByName(getString(L, 2));
+        if (!wing) {
+            lua_pushnil(L);
+            return 1;
+        }
+        wingId = wing->id;
+    }
+
+    pushBoolean(L, player->addWing(wingId));
+    return 1;
+}
+
+int luaPlayerAddAura(lua_State* L)
+{
+    // player:addAura(auraId or auraName)
+    Player* player = getUserdata<Player>(L, 1);
+    if (!player) {
+        lua_pushnil(L);
+        return 1;
+    }
+
+    uint8_t auraId;
+    if (isInteger(L, 2)) {
+        auraId = getInteger<uint8_t>(L, 2);
+    } else {
+        Aura* aura = g_game.auras.getAuraByName(getString(L, 2));
+        if (!aura) {
+            lua_pushnil(L);
+            return 1;
+        }
+        auraId = aura->id;
+    }
+
+    pushBoolean(L, player->addAura(auraId));
+    return 1;
+}
+
+int luaPlayerAddShader(lua_State* L)
+{
+    // player:addShader(shaderId or shaderName)
+    Player* player = getUserdata<Player>(L, 1);
+    if (!player) {
+        lua_pushnil(L);
+        return 1;
+    }
+
+    uint8_t shaderId;
+    if (isInteger(L, 2)) {
+        shaderId = getInteger<uint8_t>(L, 2);
+    } else {
+        Shader* shader = g_game.shaders.getShaderByName(getString(L, 2));
+        if (!shader) {
+            lua_pushnil(L);
+            return 1;
+        }
+        shaderId = shader->id;
+    }
+
+    pushBoolean(L, player->addShader(shaderId));
+    return 1;
+}
+
 int luaPlayerToggleMount(lua_State* L)
 {
 	// player:toggleMount(mount)
@@ -2634,6 +2712,11 @@ void LuaScriptInterface::registerPlayer()
 	registerMethod("Player", "removeMount", luaPlayerRemoveMount);
 	registerMethod("Player", "hasMount", luaPlayerHasMount);
 	registerMethod("Player", "toggleMount", luaPlayerToggleMount);
+
+	// Wings/Auras/Shaders
+	registerMethod("Player", "addWing", luaPlayerAddWing);
+	registerMethod("Player", "addAura", luaPlayerAddAura);
+	registerMethod("Player", "addShader", luaPlayerAddShader);
 
 	registerMethod("Player", "getPremiumEndsAt", luaPlayerGetPremiumEndsAt);
 	registerMethod("Player", "setPremiumEndsAt", luaPlayerSetPremiumEndsAt);

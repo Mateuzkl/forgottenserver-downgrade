@@ -14,6 +14,8 @@
 #include "monster.h"
 #include "movement.h"
 #include "raids.h"
+#include "auras.h"
+#include "wings.h"
 #include "scheduler.h"
 #include "spells.h"
 #include "talkaction.h"
@@ -101,6 +103,12 @@ void sighupHandler()
 	g_weapons->reload();
 	g_weapons->loadDefaults();
 	std::cout << "Reloaded weapons." << std::endl;
+
+	g_game.auras.reload();
+	std::cout << "Reloaded auras." << std::endl;
+
+	g_game.wings.reload();
+	std::cout << "Reloaded wings." << std::endl;
 
 	g_globalEvents->reload();
 	std::cout << "Reloaded globalevents." << std::endl;

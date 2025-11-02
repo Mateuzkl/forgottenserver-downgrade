@@ -982,8 +982,28 @@ void ProtocolGame::parseSetOutfit(NetworkMessage& msg)
 	newOutfit.lookLegs = msg.getByte();
 	newOutfit.lookFeet = msg.getByte();
 	newOutfit.lookAddons = msg.getByte();
+	newOutfit.lookWings = isOTCv8 ? msg.get<uint16_t>() : 0;
+	newOutfit.lookAura = isOTCv8 ? msg.get<uint16_t>() : 0;
+    std::string shaderName = isOTCv8 ? std::string(msg.getString()) : std::string();
+    Shader* shader = g_game.shaders.getShaderByName(shaderName);
+	newOutfit.lookShader = shader ? shader->id : 0;
 	newOutfit.lookMount = isOTCv8 ? msg.get<uint16_t>() : 0;
 	g_dispatcher.addTask([=, playerID = player->getID()]() { g_game.playerChangeOutfit(playerID, newOutfit); });
+}
+
+void ProtocolGame::parseToggleMount(NetworkMessage& msg)
+{
+
+    int mount = msg.get<int8_t>();
+    int wings = -1, aura = -1, shader = -1;
+    if (isOTCv8) {
+        wings = msg.get<int8_t>();
+        aura = msg.get<int8_t>();
+        shader = msg.get<int8_t>();
+    }
+    g_dispatcher.addTask([=, playerID = player->getID()]() {
+        g_game.playerToggleOutfitExtension(playerID, mount, wings, aura, shader);
+    });
 }
 
 void ProtocolGame::parseUseItem(NetworkMessage& msg)
@@ -2357,6 +2377,47 @@ void ProtocolGame::sendOutfitWindow()
 		}
 	}
 
+	if (isOTCv8) {
+		std::vector<const Wing*> wings;
+		for (const Wing& wing: g_game.wings.getWings()) {
+			if (player->hasWing(&wing)) {
+				wings.push_back(&wing);
+			}
+		}
+
+		msg.addByte(wings.size());
+		for (const Wing* wing : wings) {
+			msg.add<uint16_t>(wing->clientId);
+			msg.addString(wing->name);
+		}
+
+		std::vector<const Aura*> auras;
+		for (const Aura& aura : g_game.auras.getAuras()) {
+			if (player->hasAura(&aura)) {
+				auras.push_back(&aura);
+			}
+		}
+
+		msg.addByte(auras.size());
+		for (const Aura* aura : auras) {
+			msg.add<uint16_t>(aura->clientId);
+			msg.addString(aura->name);
+		}
+
+		std::vector<const Shader*> shaders;
+		for (const Shader& shader : g_game.shaders.getShaders()) {
+			if (player->hasShader(&shader)) {
+				shaders.push_back(&shader);
+			}
+		}
+
+		msg.addByte(shaders.size());
+		for (const Shader* shader : shaders) {
+			msg.add<uint16_t>(shader->id);
+			msg.addString(shader->name);
+		}
+	}
+
 	writeToOutputBuffer(msg);
 }
 
@@ -2535,6 +2596,12 @@ void ProtocolGame::AddOutfit(NetworkMessage& msg, const Outfit_t& outfit)
 
 	if (isOTCv8) {
 		msg.add<uint16_t>(outfit.lookMount);
+		if (isOTCv8) {
+		msg.add<uint16_t>(outfit.lookWings);
+		msg.add<uint16_t>(outfit.lookAura);
+		Shader* shader = g_game.shaders.getShaderByID(outfit.lookShader);
+		msg.addString(shader ? shader->name : "");
+	}
 	}
 }
 
@@ -2710,6 +2777,8 @@ void ProtocolGame::sendFeatures()
 	features[GameBaseSkillU16] = true;
 	features[GameAdditionalSkills] = true;
 	features[GameChangeMapAwareRange] = true;
+	features[GameWingsAndAura] = true;
+	features[GameOutfitShaders] = true;
 
 	if(features.empty())
 		return;

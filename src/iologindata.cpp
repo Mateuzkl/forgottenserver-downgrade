@@ -191,22 +191,22 @@ bool IOLoginData::preloadPlayer(Player* player)
 
 bool IOLoginData::loadPlayerById(Player* player, uint32_t id)
 {
-	Database& db = Database::getInstance();
-	return loadPlayer(
-	    player,
-	    db.storeQuery(fmt::format(
-	        "SELECT `id`, `name`, `account_id`, `group_id`, `sex`, `vocation`, `experience`, `level`, `maglevel`, `health`, `healthmax`, `blessings`, `mana`, `manamax`, `manaspent`, `soul`, `lookbody`, `lookfeet`, `lookhead`, `looklegs`, `looktype`, `lookaddons`, `currentmount`, `randomizemount`, `posx`, `posy`, `posz`, `cap`, `lastlogin`, `lastlogout`, `lastip`, `conditions`, `skulltime`, `skull`, `town_id`, `balance`, `stamina`, `skill_fist`, `skill_fist_tries`, `skill_club`, `skill_club_tries`, `skill_sword`, `skill_sword_tries`, `skill_axe`, `skill_axe_tries`, `skill_dist`, `skill_dist_tries`, `skill_shielding`, `skill_shielding_tries`, `skill_fishing`, `skill_fishing_tries`, `direction`, `offlinetraining_time`, `offlinetraining_skill` FROM `players` WHERE `id` = {:d}",
-	        id)));
+    Database& db = Database::getInstance();
+    return loadPlayer(
+        player,
+        db.storeQuery(fmt::format(
+            "SELECT `id`, `name`, `account_id`, `group_id`, `sex`, `vocation`, `experience`, `level`, `maglevel`, `health`, `healthmax`, `blessings`, `mana`, `manamax`, `manaspent`, `soul`, `lookbody`, `lookfeet`, `lookhead`, `looklegs`, `looktype`, `lookaddons`, `lookwings`, `lookauras`, `shaderlook`, `currentmount`, `randomizemount`, `posx`, `posy`, `posz`, `cap`, `lastlogin`, `lastlogout`, `lastip`, `conditions`, `skulltime`, `skull`, `town_id`, `balance`, `stamina`, `skill_fist`, `skill_fist_tries`, `skill_club`, `skill_club_tries`, `skill_sword`, `skill_sword_tries`, `skill_axe`, `skill_axe_tries`, `skill_dist`, `skill_dist_tries`, `skill_shielding`, `skill_shielding_tries`, `skill_fishing`, `skill_fishing_tries`, `direction`, `offlinetraining_time`, `offlinetraining_skill` FROM `players` WHERE `id` = {:d}",
+            id)));
 }
 
 bool IOLoginData::loadPlayerByName(Player* player, std::string_view name)
 {
-	Database& db = Database::getInstance();
-	return loadPlayer(
-	    player,
-	    db.storeQuery(fmt::format(
-	        "SELECT `id`, `name`, `account_id`, `group_id`, `sex`, `vocation`, `experience`, `level`, `maglevel`, `health`, `healthmax`, `blessings`, `mana`, `manamax`, `manaspent`, `soul`, `lookbody`, `lookfeet`, `lookhead`, `looklegs`, `looktype`, `lookaddons`, `currentmount`, `randomizemount`, `posx`, `posy`, `posz`, `cap`, `lastlogin`, `lastlogout`, `lastip`, `conditions`, `skulltime`, `skull`, `town_id`, `balance`, `stamina`, `skill_fist`, `skill_fist_tries`, `skill_club`, `skill_club_tries`, `skill_sword`, `skill_sword_tries`, `skill_axe`, `skill_axe_tries`, `skill_dist`, `skill_dist_tries`, `skill_shielding`, `skill_shielding_tries`, `skill_fishing`, `skill_fishing_tries`, `direction`, `offlinetraining_time`, `offlinetraining_skill` FROM `players` WHERE `name` = {:s}",
-	        db.escapeString(name))));
+    Database& db = Database::getInstance();
+    return loadPlayer(
+        player,
+        db.storeQuery(fmt::format(
+            "SELECT `id`, `name`, `account_id`, `group_id`, `sex`, `vocation`, `experience`, `level`, `maglevel`, `health`, `healthmax`, `blessings`, `mana`, `manamax`, `manaspent`, `soul`, `lookbody`, `lookfeet`, `lookhead`, `looklegs`, `looktype`, `lookaddons`, `lookwings`, `lookauras`, `shaderlook`, `currentmount`, `randomizemount`, `posx`, `posy`, `posz`, `cap`, `lastlogin`, `lastlogout`, `lastip`, `conditions`, `skulltime`, `skull`, `town_id`, `balance`, `stamina`, `skill_fist`, `skill_fist_tries`, `skill_club`, `skill_club_tries`, `skill_sword`, `skill_sword_tries`, `skill_axe`, `skill_axe_tries`, `skill_dist`, `skill_dist_tries`, `skill_shielding`, `skill_shielding_tries`, `skill_fishing`, `skill_fishing_tries`, `direction`, `offlinetraining_time`, `offlinetraining_skill` FROM `players` WHERE `name` = {:s}",
+            db.escapeString(name))));
 }
 
 static GuildWarVector getWarList(uint32_t guildId)
@@ -333,6 +333,9 @@ bool IOLoginData::loadPlayer(Player* player, DBResult_ptr result)
 	player->defaultOutfit.lookLegs = result->getNumber<uint16_t>("looklegs");
 	player->defaultOutfit.lookFeet = result->getNumber<uint16_t>("lookfeet");
 	player->defaultOutfit.lookAddons = result->getNumber<uint16_t>("lookaddons");
+	player->defaultOutfit.lookWings = result->getNumber<uint16_t>("lookwings");
+	player->defaultOutfit.lookAura = result->getNumber<uint16_t>("lookauras");
+	player->defaultOutfit.lookShader = result->getNumber<uint16_t>("shaderlook");
 	player->currentOutfit = player->defaultOutfit;
 	player->currentMount = result->getNumber<uint16_t>("currentmount");
 	player->direction = static_cast<Direction>(result->getNumber<uint16_t>("direction"));
@@ -786,6 +789,9 @@ bool IOLoginData::savePlayer(Player* player)
 	query << "`looklegs` = " << static_cast<uint32_t>(player->defaultOutfit.lookLegs) << ',';
 	query << "`looktype` = " << player->defaultOutfit.lookType << ',';
 	query << "`lookaddons` = " << static_cast<uint32_t>(player->defaultOutfit.lookAddons) << ',';
+	query << "`lookwings` = " << static_cast<uint16_t>(player->defaultOutfit.lookWings) << ',';
+	query << "`lookauras` = " << static_cast<uint16_t>(player->defaultOutfit.lookAura) << ',';
+	query << "`shaderlook` = " << static_cast<uint16_t>(player->defaultOutfit.lookShader) << ',';
 	query << "`currentmount` = " << static_cast<uint16_t>(player->currentMount) << ',';
 	query << "`randomizemount` = " << player->randomizeMount << ",";
 	query << "`maglevel` = " << player->magLevel << ',';

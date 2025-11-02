@@ -16,6 +16,7 @@
 #include "position.h"
 #include "raids.h"
 #include "wildcardtree.h"
+#include "shaders.h"
 
 class ServiceManager;
 class Creature;
@@ -394,6 +395,7 @@ public:
 	void playerSay(uint32_t playerId, uint16_t channelId, SpeakClasses type, std::string_view receiver,
 	               std::string_view text);
 	void playerChangeOutfit(uint32_t playerId, Outfit_t outfit, bool randomizeMount = false);
+    void playerToggleOutfitExtension(uint32_t playerId, int mount, int wings, int aura, int shader);
 	void playerInviteToParty(uint32_t playerId, uint32_t invitedId);
 	void playerJoinParty(uint32_t playerId, uint32_t leaderId);
 	void playerRevokePartyInvitation(uint32_t playerId, uint32_t invitedId);
@@ -501,10 +503,13 @@ public:
 
 	bool reload(ReloadTypes_t reloadType);
 
+	Auras auras;
 	Groups groups;
 	Map map;
 	Raids raids;
 	Mounts mounts;
+	Wings wings;
+	Shaders shaders;
 
 	std::forward_list<Item*> toDecayItems;
 

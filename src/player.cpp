@@ -17,6 +17,18 @@
 #include "weapons.h"
 #include "rewardchest.h"
 
+#define IS_IN_KEYRANGE(KEY, RANGE) ((KEY) >= RANGE##_START && (KEY) < ((RANGE##_START) + (RANGE##_SIZE)))
+#define MOUNTS_RANGE_START 10000000u
+#define MOUNTS_RANGE_SIZE 10000000u
+#define WINGS_RANGE_START PSTRG_WINGS_RANGE_START
+#define WINGS_RANGE_SIZE PSTRG_WINGS_RANGE_SIZE
+#define AURAS_RANGE_START PSTRG_AURAS_RANGE_START
+#define AURAS_RANGE_SIZE PSTRG_AURAS_RANGE_SIZE
+#define SHADERS_RANGE_START PSTRG_SHADERS_RANGE_START
+#define SHADERS_RANGE_SIZE PSTRG_SHADERS_RANGE_SIZE
+
+ 
+
 extern Game g_game;
 extern Chat* g_chat;
 extern Vocations g_vocations;
@@ -4228,141 +4240,6 @@ void Player::dismount()
 	defaultOutfit.lookMount = 0;
 }
 
-/*bool Player::addOfflineTrainingTries(skills_t skill, uint64_t tries)
-{
-    if (tries == 0 || skill == SKILL_LEVEL) {
-        return false;
-    }
-
-    bool sendUpdate = false;
-    uint32_t oldSkillValue, newSkillValue;
-    long double oldPercentToNextLevel, newPercentToNextLevel;
-
-    if (skill == SKILL_MAGLEVEL) {
-        uint64_t currReqMana = vocation->getReqMana(magLevel);
-        uint64_t nextReqMana = vocation->getReqMana(magLevel + 1);
-
-        if (currReqMana >= nextReqMana) {
-            return false;
-        }
-
-        oldSkillValue = magLevel;
-        oldPercentToNextLevel = static_cast<long double>(manaSpent * 100) / nextReqMana;
-
-        g_events->eventPlayerOnGainSkillTries(this, SKILL_MAGLEVEL, tries);
-        uint32_t currMagLevel = magLevel;
-
-        while ((manaSpent + tries) >= nextReqMana) {
-            tries -= nextReqMana - manaSpent;
-
-            magLevel++;
-            manaSpent = 0;
-
-            g_creatureEvents->playerAdvance(this, SKILL_MAGLEVEL, magLevel - 1, magLevel);
-
-            sendUpdate = true;
-            currReqMana = nextReqMana;
-            nextReqMana = vocation->getReqMana(magLevel + 1);
-
-            if (currReqMana >= nextReqMana) {
-                tries = 0;
-                break;
-            }
-        }
-
-        manaSpent += tries;
-
-        if (magLevel != currMagLevel) {
-            sendTextMessage(MESSAGE_EVENT_ADVANCE, fmt::format("You advanced to magic level {:d}.", magLevel));
-        }
-
-        uint8_t newPercent;
-        if (nextReqMana > currReqMana) {
-            uint32_t basis = Player::getBasisPointLevel(manaSpent, nextReqMana);
-            uint32_t percent = basis / 100;
-            if (percent > 100) percent = 100;
-            newPercent = static_cast<uint8_t>(percent);
-            newPercentToNextLevel = static_cast<long double>(manaSpent * 100) / nextReqMana;
-        } else {
-            newPercent = 0;
-            newPercentToNextLevel = 0;
-        }
-
-        if (newPercent != magLevelPercent) {
-            magLevelPercent = newPercent;
-            sendUpdate = true;
-        }
-
-        newSkillValue = magLevel;
-    } else {
-        uint64_t currReqTries = vocation->getReqSkillTries(skill, skills[skill].level);
-        uint64_t nextReqTries = vocation->getReqSkillTries(skill, skills[skill].level + 1);
-        if (currReqTries >= nextReqTries) {
-            return false;
-        }
-
-        oldSkillValue = skills[skill].level;
-        oldPercentToNextLevel = static_cast<long double>(skills[skill].tries * 100) / nextReqTries;
-
-        g_events->eventPlayerOnGainSkillTries(this, skill, tries);
-        uint32_t currSkillLevel = skills[skill].level;
-
-        while ((skills[skill].tries + tries) >= nextReqTries) {
-            tries -= nextReqTries - skills[skill].tries;
-
-            skills[skill].level++;
-            skills[skill].tries = 0;
-            skills[skill].percent = 0;
-
-            g_creatureEvents->playerAdvance(this, skill, (skills[skill].level - 1), skills[skill].level);
-
-            sendUpdate = true;
-            currReqTries = nextReqTries;
-            nextReqTries = vocation->getReqSkillTries(skill, skills[skill].level + 1);
-
-            if (currReqTries >= nextReqTries) {
-                tries = 0;
-                break;
-            }
-        }
-
-        skills[skill].tries += tries;
-
-        if (currSkillLevel != skills[skill].level) {
-            sendTextMessage(MESSAGE_EVENT_ADVANCE, fmt::format("You advanced to {:s} level {:d}.", getSkillName(skill),
-skills[skill].level));
-        }
-
-        uint8_t newPercent;
-        if (nextReqTries > currReqTries) {
-            uint32_t basis = Player::getBasisPointLevel(skills[skill].tries, nextReqTries);
-            uint32_t percent = basis / 100;
-            if (percent > 100) percent = 100;
-            newPercent = static_cast<uint8_t>(percent);
-            newPercentToNextLevel = static_cast<long double>(skills[skill].tries * 100) / nextReqTries;
-        } else {
-            newPercent = 0;
-            newPercentToNextLevel = 0;
-        }
-
-        if (skills[skill].percent != newPercent) {
-            skills[skill].percent = newPercent;
-            sendUpdate = true;
-        }
-
-        newSkillValue = skills[skill].level;
-    }
-
-    if (sendUpdate) {
-        sendSkills();
-    }
-
-    sendTextMessage(MESSAGE_EVENT_ADVANCE, fmt::format("Your {:s} skill changed from level {:d} (with {:.2f}% progress
-towards level {:d}) to level {:d} (with {:.2f}% progress towards level {:d})", ucwords(getSkillName(skill)),
-oldSkillValue, oldPercentToNextLevel, (oldSkillValue + 1), newSkillValue, newPercentToNextLevel, (newSkillValue + 1)));
-    return sendUpdate;
-}*/
-
 bool Player::hasModalWindowOpen(uint32_t modalWindowId) const
 {
 	return find(modalWindows.begin(), modalWindows.end(), modalWindowId) != modalWindows.end();
@@ -4504,6 +4381,171 @@ void Player::updateRegeneration()
 		condition->setParam(CONDITION_PARAM_MANAGAIN, vocation->getManaGainAmount());
 		condition->setParam(CONDITION_PARAM_MANATICKS, vocation->getManaGainTicks() * 1000);
 	}
+}
+
+bool Player::hasWing(const Wing* wing) const
+{
+	if (isAccessPlayer()) {
+		return true;
+	}
+
+	if (wing->premium && !isPremium()) {
+		return false;
+	}
+
+	const uint8_t tmpWingId = wing->id - 1;
+
+	int32_t value;
+	if (!getStorageValue(PSTRG_WINGS_RANGE_START + (tmpWingId / 31), value)) {
+		return false;
+	}
+
+	return ((1 << (tmpWingId % 31)) & value) != 0;
+}
+
+uint8_t Player::getCurrentWing() const
+{
+	int32_t value;
+	if (getStorageValue(PSTRG_WINGS_CURRENTWINGS, value)) {
+		return value;
+	}
+	return 0;
+}
+
+void Player::setCurrentWing(uint8_t wingId)
+{
+	addStorageValue(PSTRG_WINGS_CURRENTWINGS, wingId);
+}
+
+bool Player::hasAura(const Aura* aura) const
+{
+	if (isAccessPlayer()) {
+		return true;
+	}
+
+	if (aura->premium && !isPremium()) {
+		return false;
+	}
+
+	const uint8_t tmpAuraId = aura->id - 1;
+
+	int32_t value;
+	if (!getStorageValue(PSTRG_AURAS_RANGE_START + (tmpAuraId / 31), value)) {
+		return false;
+	}
+
+	return ((1 << (tmpAuraId % 31)) & value) != 0;
+}
+
+uint8_t Player::getCurrentAura() const
+{
+	int32_t value;
+	if (getStorageValue(PSTRG_AURAS_CURRENTAURA, value)) {
+		return value;
+	}
+	return 0;
+}
+
+void Player::setCurrentAura(uint8_t auraId)
+{
+	addStorageValue(PSTRG_AURAS_CURRENTAURA, auraId);
+}
+
+bool Player::hasShader(const Shader* shader) const
+{
+    if (isAccessPlayer()) {
+        return true;
+    }
+
+    if (shader->premium && !isPremium()) {
+        return false;
+    }
+
+    const uint8_t tmpShaderId = shader->id - 1;
+
+    int32_t value;
+    if (!getStorageValue(PSTRG_SHADERS_RANGE_START + (tmpShaderId / 31), value)) {
+        return false;
+    }
+
+    return ((1 << (tmpShaderId % 31)) & value) != 0;
+}
+
+bool Player::addWing(uint8_t wingId)
+{
+    Wing* wing = g_game.wings.getWingByID(wingId);
+    if (!wing) {
+        return false;
+    }
+
+    const uint8_t tmpWingId = wing->id - 1;
+    const uint32_t key = PSTRG_WINGS_RANGE_START + (tmpWingId / 31);
+
+    int32_t value = 0;
+    // If not present, treat as 0
+    getStorageValue(key, value);
+
+    value |= (1 << (tmpWingId % 31));
+    addStorageValue(key, value);
+    return true;
+}
+
+bool Player::addAura(uint8_t auraId)
+{
+    Aura* aura = g_game.auras.getAuraByID(auraId);
+    if (!aura) {
+        return false;
+    }
+
+    const uint8_t tmpAuraId = aura->id - 1;
+    const uint32_t key = PSTRG_AURAS_RANGE_START + (tmpAuraId / 31);
+
+    int32_t value = 0;
+    // If not present, treat as 0
+    getStorageValue(key, value);
+
+    value |= (1 << (tmpAuraId % 31));
+    addStorageValue(key, value);
+    return true;
+}
+
+bool Player::addShader(uint8_t shaderId)
+{
+    Shader* shader = g_game.shaders.getShaderByID(shaderId);
+    if (!shader) {
+        return false;
+    }
+
+    const uint8_t tmpShaderId = shader->id - 1;
+    const uint32_t key = PSTRG_SHADERS_RANGE_START + (tmpShaderId / 31);
+
+    int32_t value = 0;
+    // If not present, treat as 0
+    getStorageValue(key, value);
+
+    value |= (1 << (tmpShaderId % 31));
+    addStorageValue(key, value);
+    return true;
+}
+
+// Legacy-style storage wrappers for wings/auras/shaders code paths
+bool Player::getStorageValue(uint32_t key, int32_t& value) const
+{
+    const auto& opt = Creature::getStorageValue(key);
+    if (!opt) {
+        return false;
+    }
+    value = static_cast<int32_t>(opt.value());
+    return true;
+}
+
+void Player::addStorageValue(uint32_t key, int64_t v)
+{
+    if (IS_IN_KEYRANGE(key, MOUNTS_RANGE) || IS_IN_KEYRANGE(key, WINGS_RANGE) || IS_IN_KEYRANGE(key, AURAS_RANGE) || IS_IN_KEYRANGE(key, SHADERS_RANGE)) {
+        setStorageValue(key, v);
+        return;
+    }
+    setStorageValue(key, v);
 }
 
 bool Player::addOfflineTrainingTries(skills_t skill, uint64_t tries)

@@ -19,6 +19,9 @@
 #include "town.h"
 #include "vocation.h"
 #include "rewardchest.h"
+#include "auras.h"
+#include "wings.h"
+#include "shaders.h"
 
 #include <bitset>
 
@@ -118,12 +121,36 @@ public:
 	uint16_t getCurrentMount() const;
 	void setCurrentMount(uint16_t mountId);
 	bool isMounted() const { return defaultOutfit.lookMount != 0; }
+	bool hasMount() const { return defaultOutfit.lookMount != 0; }
 	bool toggleMount(bool mount);
 	bool tameMount(uint16_t mountId);
 	bool untameMount(uint16_t mountId);
 	bool hasMount(const Mount* mount) const;
 	bool hasMounts() const;
 	void dismount();
+
+	bool hasAura() const { return defaultOutfit.lookAura != 0; }
+	bool hasWings() const { return defaultOutfit.lookWings != 0; }
+	bool hasShader() const { return defaultOutfit.lookShader != 0; }
+
+	// Wings/Auras/Shaders helpers
+	bool hasWing(const Wing* wing) const;
+
+	// Add ownership entries for wings/auras/shaders
+	bool addWing(uint8_t wingId);
+	bool addAura(uint8_t auraId);
+	bool addShader(uint8_t shaderId);
+
+	uint8_t getCurrentAura() const;
+	void setCurrentAura(uint8_t auraId);
+	bool hasAura(const Aura* aura) const;
+	uint8_t getCurrentWing() const;
+	void setCurrentWing(uint8_t wingId);
+	bool hasShader(const Shader* shader) const;
+
+	// Backward-compatible storage helpers used by legacy code paths
+	bool getStorageValue(uint32_t key, int32_t& value) const;
+	void addStorageValue(uint32_t key, int64_t value);
 
 	void sendFYIBox(std::string_view message)
 	{
