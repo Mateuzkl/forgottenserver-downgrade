@@ -131,18 +131,6 @@ void ProtocolGame::release()
 
 void ProtocolGame::login(uint32_t characterId, uint32_t accountId, OperatingSystem_t operatingSystem)
 {
-
-	// OTCv8 features and extended opcodes
-	if (isOTCv8 || operatingSystem >= CLIENTOS_OTCLIENT_LINUX) {
-		if(isOTCv8)
-			sendFeatures();
-		NetworkMessage opcodeMessage;
-		opcodeMessage.addByte(0x32);
-		opcodeMessage.addByte(0x00);
-		opcodeMessage.add<uint16_t>(0x00);
-		writeToOutputBuffer(opcodeMessage);
-	}
-
     // dispatcher thread
     Player* foundPlayer = g_game.getPlayerByGUID(characterId);
     if (!foundPlayer || getBoolean(ConfigManager::ALLOW_CLONES)) {
@@ -222,6 +210,17 @@ void ProtocolGame::login(uint32_t characterId, uint32_t accountId, OperatingSyst
 				disconnectClient("Temple position is wrong. Contact the administrator.");
 				return;
 			}
+		}
+
+		// OTCv8 features and extended opcodes
+		if (isOTCv8 || operatingSystem >= CLIENTOS_OTCLIENT_LINUX) {
+			if(isOTCv8)
+				sendFeatures();
+			NetworkMessage opcodeMessage;
+			opcodeMessage.addByte(0x32);
+			opcodeMessage.addByte(0x00);
+			opcodeMessage.add<uint16_t>(0x00);
+			writeToOutputBuffer(opcodeMessage);
 		}
 
 		if (operatingSystem >= CLIENTOS_OTCLIENT_LINUX) {
@@ -2848,9 +2847,12 @@ void ProtocolGame::updateAwareRange(int width, int height)
 		return;
 	}
 
-	// If you want to change max awareRange, edit maxViewportX, maxViewportY, maxClientViewportX, maxClientViewportY in map.h
+	width = std::max(width, 49);
+	height = std::max(height, 29);
+
 	awareRange.width = std::min(Map::maxViewportX * 2 - 1, std::min(Map::maxClientViewportX * 2 + 1, std::max(15, width)));
 	awareRange.height = std::min(Map::maxViewportY * 2 - 1, std::min(Map::maxClientViewportY * 2 + 1, std::max(11, height)));
+	
 	// numbers must be odd
 	if (awareRange.width % 2 != 1)
 		awareRange.width -= 1;
@@ -2858,7 +2860,7 @@ void ProtocolGame::updateAwareRange(int width, int height)
 		awareRange.height -= 1;
 
 	sendAwareRange();
-	sendMapDescription(player->getPosition()); // refresh map
+	sendMapDescription(player->getPosition());
 }
 
 void ProtocolGame::sendAwareRange()

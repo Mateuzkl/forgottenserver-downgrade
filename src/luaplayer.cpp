@@ -2358,19 +2358,6 @@ int luaPlayerSetExperienceRate(lua_State* L)
 	return 1;
 }
 
-int luaPlayerIsUsingOtcV8(lua_State* L)
-{
-	// player:isUsingOtcV8()
-	const Player* player = getUserdata<const Player>(L, 1);
-	if (!player) {
-		lua_pushnil(L);
-		return 1;
-	}
-
-	pushBoolean(L, player->isOTCv8());
-	return 1;
-}
-
 int luaPlayerGetLastIp(lua_State* L)
 {
 	// player:getLastIp()
@@ -2771,7 +2758,6 @@ void LuaScriptInterface::registerPlayer()
 	registerMethod("Player", "getExperienceRate", luaPlayerGetExperienceRate);
 	registerMethod("Player", "setExperienceRate", luaPlayerSetExperienceRate);
 
-	registerMethod("Player", "isUsingOtcV8", luaPlayerIsUsingOtcV8);
 	registerMethod("Player", "getLastIp", luaPlayerGetLastIp);
 
 	// Offline Training Functions
