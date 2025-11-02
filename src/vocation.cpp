@@ -95,6 +95,10 @@ bool Vocations::loadFromXml()
 					voc.meleeDamageMultiplier = pugi::cast<float>(attr.value());
 				}
 
+				if ((attr = childNode.attribute("magicDamage"))) {
+					voc.magicDamageMultiplier = pugi::cast<float>(attr.value());
+				}
+
 				if ((attr = childNode.attribute("distDamage"))) {
 					voc.distDamageMultiplier = pugi::cast<float>(attr.value());
 				}
@@ -105,6 +109,10 @@ bool Vocations::loadFromXml()
 
 				if ((attr = childNode.attribute("armor"))) {
 					voc.armorMultiplier = pugi::cast<float>(attr.value());
+				}
+
+				if ((attr = childNode.attribute("healMulti"))) {
+					voc.healMultiplier = pugi::cast<float>(attr.value());
 				}
 
 				if ((attr = childNode.attribute("wandDamage"))) {

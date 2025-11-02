@@ -75,10 +75,13 @@ CombatDamage Combat::getCombatDamage(Creature* creature, Creature* target) const
 			if (params.valueCallback) {
 				params.valueCallback->getMinMaxValues(player, damage);
 			} else if (formulaType == COMBAT_FORMULA_LEVELMAGIC) {
-				int32_t levelFormula = player->getLevel() * 2 + player->getMagicLevel() * 3;
+				int32_t levelFormula = (player->getLevel()) + (player->getMagicLevel() * 15) * (player->getVocation()->magicDamageMultiplier);
 				damage.primary.value =
 				    normal_random(std::fma(levelFormula, mina, minb), std::fma(levelFormula, maxa, maxb));
-			} else if (formulaType == COMBAT_FORMULA_SKILL) {
+			} else if (formulaType == COMBAT_FORMULA_HEALING) {
+				int32_t levelFormulaHeal = (player->getLevel() + player->getMagicLevel() * 5) * (player->getVocation()->healMultiplier);
+				damage.primary.value = normal_random(std::fma(levelFormulaHeal, mina, minb), std::fma(levelFormulaHeal, maxa, maxb));
+				} else if (formulaType == COMBAT_FORMULA_SKILL) {
 				Item* tool = player->getWeapon();
 				const Weapon* weapon = g_weapons->getWeapon(tool);
 				if (weapon) {
@@ -482,6 +485,11 @@ bool Combat::setCallback(CallBackParam key)
 			return true;
 		}
 
+		case CallBackParam::LEVELHEALING: {
+			params.valueCallback.reset(new ValueCallback(COMBAT_FORMULA_HEALING));
+			return true;
+		}
+
 		case CallBackParam::SKILLVALUE: {
 			params.valueCallback.reset(new ValueCallback(COMBAT_FORMULA_SKILL));
 			return true;
@@ -504,6 +512,7 @@ CallBack* Combat::getCallback(CallBackParam key)
 {
 	switch (key) {
 		case CallBackParam::LEVELMAGICVALUE:
+		case CallBackParam::LEVELHEALING:
 		case CallBackParam::SKILLVALUE: {
 			return params.valueCallback.get();
 		}
@@ -1088,6 +1097,14 @@ void ValueCallback::getMinMaxValues(Player* player, CombatDamage& damage) const
 			// onGetPlayerMinMaxValues(player, level, maglevel)
 			lua_pushinteger(L, player->getLevel());
 			lua_pushinteger(L, player->getMagicLevel());
+			parameters += 2;
+			break;
+		}
+
+		case COMBAT_FORMULA_HEALING: {
+			//onGetPlayerMinMaxValues(player, level, maglevel)
+			lua_pushnumber(L, player->getLevel());
+			lua_pushnumber(L, player->getMagicLevel());
 			parameters += 2;
 			break;
 		}

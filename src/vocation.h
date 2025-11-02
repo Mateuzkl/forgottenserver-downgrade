@@ -55,9 +55,11 @@ public:
 	void setLossSkill(bool v) { skillLoss = v; }
 
 	float meleeDamageMultiplier = 1.0f;
+	float magicDamageMultiplier = 1.0f;
 	float distDamageMultiplier = 1.0f;
 	float defenseMultiplier = 1.0f;
 	float armorMultiplier = 1.0f;
+	float healMultiplier = 1.0f;
 	float wandDamageMultiplier = 1.0f;
 
 private:
