@@ -275,7 +275,7 @@ private:
 	bool debugAssertSent = false;
 	bool acceptPackets = false;
 
-	uint16_t isOTCv8 = 0;
+	bool isOTCv8 = false;
 
 	struct AwareRange {
 		int width = 17;
