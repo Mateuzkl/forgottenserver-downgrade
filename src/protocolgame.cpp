@@ -676,6 +676,9 @@ void ProtocolGame::parsePacket(NetworkMessage& msg)
 		case 0xD3:
 			parseSetOutfit(msg);
 			break;
+		case 0xD4:
+			parseToggleMount(msg);
+			break;
 		case 0xDC:
 			parseAddVip(msg);
 			break;
@@ -1011,28 +1014,33 @@ void ProtocolGame::parseSetOutfit(NetworkMessage& msg)
 	newOutfit.lookLegs = msg.getByte();
 	newOutfit.lookFeet = msg.getByte();
 	newOutfit.lookAddons = msg.getByte();
+	newOutfit.lookMount = isOTCv8 ? msg.get<uint16_t>() : 0;
 	newOutfit.lookWings = isOTCv8 ? msg.get<uint16_t>() : 0;
 	newOutfit.lookAura = isOTCv8 ? msg.get<uint16_t>() : 0;
-    std::string shaderName = isOTCv8 ? std::string(msg.getString()) : std::string();
-    Shader* shader = g_game.shaders.getShaderByName(shaderName);
+	std::string shaderName;
+	if (isOTCv8) {
+		shaderName = std::string(msg.getString());
+	}
+	Shader* shader = g_game.shaders.getShaderByName(shaderName);
 	newOutfit.lookShader = shader ? shader->id : 0;
-	newOutfit.lookMount = isOTCv8 ? msg.get<uint16_t>() : 0;
+	
 	g_dispatcher.addTask([=, playerID = player->getID()]() { g_game.playerChangeOutfit(playerID, newOutfit); });
 }
 
 void ProtocolGame::parseToggleMount(NetworkMessage& msg)
 {
-
-    int mount = msg.get<int8_t>();
-    int wings = -1, aura = -1, shader = -1;
-    if (isOTCv8) {
-        wings = msg.get<int8_t>();
-        aura = msg.get<int8_t>();
-        shader = msg.get<int8_t>();
-    }
-    g_dispatcher.addTask([=, playerID = player->getID()]() {
-        g_game.playerToggleOutfitExtension(playerID, mount, wings, aura, shader);
-    });
+	bool mount = msg.getByte() != 0;
+	
+	if (msg.getRemainingBufferLength() > 0) {
+		msg.skipBytes(msg.getRemainingBufferLength());
+	}
+	
+	g_dispatcher.addTask([=, playerID = player->getID()]() {
+		Player* player = g_game.getPlayerByID(playerID);
+		if (player) {
+			player->toggleMount(mount);
+		}
+	});
 }
 
 void ProtocolGame::parseUseItem(NetworkMessage& msg)
@@ -2359,10 +2367,13 @@ void ProtocolGame::sendOutfitWindow()
 		currentOutfit = newOutfit;
 	}
 
-	Mount* currentMount = g_game.mounts.getMountByID(player->getCurrentMount());
-	if (currentMount) {
-		currentOutfit.lookMount = currentMount->clientId;
-	}
+    Mount* currentMount = g_game.mounts.getMountByID(player->getCurrentMount());
+    // Only include mount in the outfit preview if the player is actually mounted.
+    if (currentMount && player->isMounted()) {
+        currentOutfit.lookMount = currentMount->clientId;
+    } else {
+        currentOutfit.lookMount = 0;
+    }
 
 	/*bool mounted;
 	if (player->wasMounted) {
@@ -2637,11 +2648,11 @@ void ProtocolGame::AddOutfit(NetworkMessage& msg, const Outfit_t& outfit)
 	if (isOTCv8) {
 		msg.add<uint16_t>(outfit.lookMount);
 		if (isOTCv8) {
-		msg.add<uint16_t>(outfit.lookWings);
-		msg.add<uint16_t>(outfit.lookAura);
-		Shader* shader = g_game.shaders.getShaderByID(outfit.lookShader);
-		msg.addString(shader ? shader->name : "");
-	}
+			msg.add<uint16_t>(outfit.lookWings);
+			msg.add<uint16_t>(outfit.lookAura);
+			Shader* shader = g_game.shaders.getShaderByID(outfit.lookShader);
+			msg.addString(shader ? shader->name : "");
+		}
 	}
 }
 

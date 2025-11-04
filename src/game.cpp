@@ -3470,9 +3470,6 @@ void Game::playerChangeOutfit(uint32_t playerId, Outfit_t outfit, bool randomize
 	const Outfit* playerOutfit = Outfits::getInstance().getOutfitByLookType(outfit.lookType);
 	if (!playerOutfit) {
 		outfit.lookMount = 0;
-		outfit.lookWings = 0;
-		outfit.lookAura = 0;
-		outfit.lookShader = 0;
 	}
 
 	if (outfit.lookMount != 0) {
@@ -3499,8 +3496,10 @@ void Game::playerChangeOutfit(uint32_t playerId, Outfit_t outfit, bool randomize
 		if (player->isMounted()) {
 			player->dismount();
 		}
+		player->wasMounted = false;
+	}
 
-		if (outfit.lookWings != 0) {
+	if (outfit.lookWings != 0) {
         Wing* wing = wings.getWingByClientID(outfit.lookWings);
 		if (!wing) {
 			return;
@@ -3532,8 +3531,6 @@ void Game::playerChangeOutfit(uint32_t playerId, Outfit_t outfit, bool randomize
 			return;
 		}
 	}
-		player->wasMounted = false;
-	}
 
 	if (player->canWear(outfit.lookType, outfit.lookAddons)) {
 		player->defaultOutfit = outfit;
@@ -3555,23 +3552,6 @@ void Game::playerChangeOutfit(uint32_t playerId, Outfit_t outfit, bool randomize
 	}
 }
 
-void Game::playerToggleOutfitExtension(uint32_t playerId, int mount, int wings, int aura, int shader)
-{
-    Player* player = getPlayerByID(playerId);
-    if (!player) {
-        return;
-    }
-
-    // Toggle mount only if a value was provided (-1 means no change)
-    if (mount != -1) {
-        player->toggleMount(mount == 1);
-    }
-
-    // Currently, wings/aura/shader are placeholders to be handled elsewhere
-    (void)wings;
-    (void)aura;
-    (void)shader;
-}
 
 void Game::playerSay(uint32_t playerId, uint16_t channelId, SpeakClasses type, std::string_view receiver,
                      std::string_view text)

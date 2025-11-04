@@ -184,30 +184,27 @@ int luaConditionSetFormula(lua_State* L)
 
 int luaConditionSetOutfit(lua_State* L)
 {
-    // condition:setOutfit(outfit)
-    // condition:setOutfit(lookTypeEx, lookType, lookHead, lookBody, lookLegs, lookFeet[, lookAddons[, lookMount, lookWings, lookAura, lookShader]])
-    Outfit_t outfit;
-    if (isTable(L, 2)) {
-        outfit = getOutfit(L, 2);
-    } else {
-        outfit.lookAddons = getInteger<uint8_t>(L, 8, outfit.lookAddons);
-        outfit.lookFeet = getInteger<uint8_t>(L, 7);
-        outfit.lookLegs = getInteger<uint8_t>(L, 6);
-        outfit.lookBody = getInteger<uint8_t>(L, 5);
-        outfit.lookHead = getInteger<uint8_t>(L, 4);
-        outfit.lookType = getInteger<uint16_t>(L, 3);
-        outfit.lookTypeEx = getInteger<uint16_t>(L, 2);
+   	// condition:setOutfit(outfit)
+	// condition:setOutfit(lookTypeEx, lookType, lookHead, lookBody, lookLegs, lookFeet[, lookAddons])
+	Outfit_t outfit;
+	if (isTable(L, 2)) {
+		outfit = getOutfit(L, 2);
+	} else {
+		outfit.lookAddons = getInteger<uint8_t>(L, 8, outfit.lookAddons);
+		outfit.lookFeet = getInteger<uint8_t>(L, 7);
+		outfit.lookLegs = getInteger<uint8_t>(L, 6);
+		outfit.lookBody = getInteger<uint8_t>(L, 5);
+		outfit.lookHead = getInteger<uint8_t>(L, 4);
+		outfit.lookType = getInteger<uint16_t>(L, 3);
+		outfit.lookTypeEx = getInteger<uint16_t>(L, 2);
+		outfit.lookWings = getNumber<uint16_t>(L, 10, outfit.lookWings);
+		outfit.lookAura = getNumber<uint16_t>(L, 11, outfit.lookAura);
+		outfit.lookShader = getNumber<uint16_t>(L, 12, outfit.lookShader);
+	}
 
-        // Optional extended fields
-        outfit.lookMount = getNumber<uint16_t>(L, 9, outfit.lookMount);
-        outfit.lookWings = getNumber<uint16_t>(L, 10, outfit.lookWings);
-        outfit.lookAura = getNumber<uint16_t>(L, 11, outfit.lookAura);
-        outfit.lookShader = getNumber<uint16_t>(L, 12, outfit.lookShader);
-    }
-
-    ConditionOutfit* condition = dynamic_cast<ConditionOutfit*>(getUserdata<Condition>(L, 1));
-    if (condition) {
-        condition->setOutfit(outfit);
+	ConditionOutfit* condition = dynamic_cast<ConditionOutfit*>(getUserdata<Condition>(L, 1));
+	if (condition) {
+		condition->setOutfit(outfit);
 		pushBoolean(L, true);
 	} else {
 		lua_pushnil(L);
