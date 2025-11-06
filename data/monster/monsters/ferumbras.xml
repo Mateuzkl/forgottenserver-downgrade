@@ -116,7 +116,7 @@
 		<item name="runed sword" chance="14000" />
 		<item name="spellscroll of prophecies" chance="14000" />
 		<item name="chaos mace" chance="12000" />
-		<item name="demonwing axe" chance="12000" />
+		<item id="8926" chance="12000" /><!-- demonwing axe -->
 		<item name="greenwood coat" chance="12000" />
 		<item name="small sapphire" countmax="98" chance="12000" />
 		<item name="white pearl" countmax="88" chance="12000" />
@@ -133,7 +133,7 @@
 		<item name="skullcrusher" chance="8100" />
 		<item name="soul orb" countmax="9" chance="8100" />
 		<item name="vile axe" chance="8100" />
-		<item name="abyss hammer" chance="6100" />
+		<item id="7414" chance="6100" /><!-- abyss hammer -->
 		<item name="berserker" chance="6100" />
 		<item name="black pearl" countmax="83" chance="6100" />
 		<item name="bloody edge" chance="6100" />

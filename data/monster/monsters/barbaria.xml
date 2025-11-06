@@ -56,7 +56,7 @@
 		<item id="2050" chance="25000" /><!-- torch -->
 		<item name="gold coin" countmax="35" chance="48000" />
 		<item name="chain armor" chance="11000" />
-		<item name="hunting spear" chance="12500" />
+		<item id="3965" chance="12500" /><!-- hunting spear -->
 		<item name="fur bag" chance="1000" />
 	</loot>
 </monster>

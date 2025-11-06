@@ -34,6 +34,7 @@ const std::unordered_map<std::string, ItemParseAttributes_t> ItemParseAttributes
     {"moveable", ITEM_PARSE_MOVEABLE},
     {"movable", ITEM_PARSE_MOVEABLE},
     {"blockprojectile", ITEM_PARSE_BLOCKPROJECTILE},
+    {"ignoreblocking", ITEM_PARSE_IGNOREBLOCKING},
     {"allowpickupable", ITEM_PARSE_PICKUPABLE},
     {"pickupable", ITEM_PARSE_PICKUPABLE},
     {"forceserialize", ITEM_PARSE_FORCESERIALIZE},
@@ -204,6 +205,7 @@ const std::unordered_map<std::string, ItemParseAttributes_t> ItemParseAttributes
     {"allowdistread", ITEM_PARSE_ALLOWDISTREAD},
     {"storeitem", ITEM_PARSE_STOREITEM},
     {"worth", ITEM_PARSE_WORTH},
+    {"stacksize", ITEM_PARSE_STACKSIZE},
     {"supply", ITEM_PARSE_SUPPLY},
     {"experienceratebase", ITEM_PARSE_EXPERIENCERATE_BASE},
     {"experienceratelowlevel", ITEM_PARSE_EXPERIENCERATE_LOW_LEVEL},
@@ -772,6 +774,11 @@ void Items::parseItemNode(const pugi::xml_node& itemNode, uint16_t id)
 
 				case ITEM_PARSE_BLOCKPROJECTILE: {
 					it.blockProjectile = valueAttribute.as_bool();
+					break;
+				}
+
+				case ITEM_PARSE_IGNOREBLOCKING: {
+					it.ignoreBlocking = valueAttribute.as_bool();
 					break;
 				}
 
@@ -1913,6 +1920,11 @@ void Items::parseItemNode(const pugi::xml_node& itemNode, uint16_t id)
 				case ITEM_PARSE_REDUCESKILLLOSS: {
 					it.reduceSkillLoss = pugi::cast<int32_t>(valueAttribute.value());
 					abilities.reduceSkillLoss = pugi::cast<int32_t>(valueAttribute.value());
+					break;
+				}
+
+				case ITEM_PARSE_STACKSIZE: {
+					it.stackSize = pugi::cast<uint8_t>(valueAttribute.value());
 					break;
 				}
 

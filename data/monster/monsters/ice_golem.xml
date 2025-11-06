@@ -58,7 +58,7 @@
 		<item id="7441" chance="5000" /><!-- ice cube -->
 		<item name="crystal sword" chance="177" />
 		<item name="strong health potion" chance="444" />
-		<item name="glacier mask" chance="111" />
+		<item id="7902" chance="111" /><!-- glacier mask -->
 		<item name="frosty heart" chance="11111" />
 	</loot>
 </monster>

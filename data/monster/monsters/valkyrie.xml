@@ -47,7 +47,7 @@
 		<item name="chain armor" chance="10000" />
 		<item name="red apple" countmax="2" chance="7500" />
 		<item name="girlish hair decoration" chance="6000" />
-		<item name="hunting spear" chance="5155" />
+		<item id="3965" chance="5155" /><!-- hunting spear -->
 		<item name="protective charm" chance="3200" />
 		<item name="protection amulet" chance="1100" />
 		<item name="plate armor" chance="820" />

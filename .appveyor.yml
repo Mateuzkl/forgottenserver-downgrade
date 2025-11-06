@@ -1,0 +1,52 @@
+version: '{build}'
+image: Visual Studio 2022
+
+environment:
+  VCPKG_ROOT: C:\vcpkg
+  VCPKG_DEFAULT_TRIPLET: x64-windows
+  matrix:
+    - BUILD_TYPE: Release
+      CONFIGURATION: Release
+    - BUILD_TYPE: Debug
+      CONFIGURATION: Debug
+
+install:
+  # Install vcpkg
+  - if not exist "%VCPKG_ROOT%" (
+      git clone https://github.com/Microsoft/vcpkg.git "%VCPKG_ROOT%"
+      cd "%VCPKG_ROOT%"
+      call bootstrap-vcpkg.bat
+    )
+  # Install dependencies
+  - cd "%VCPKG_ROOT%"
+  - vcpkg integrate install
+  - cd "%APPVEYOR_BUILD_FOLDER%"
+  - vcpkg install --triplet %VCPKG_DEFAULT_TRIPLET% boost-asio boost-iostreams boost-locale boost-lockfree boost-system boost-variant fmt libmariadb openssl pugixml zlib lua boost-beast boost-json
+
+before_build:
+  # Create build directory
+  - if not exist build mkdir build
+  - cd build
+  # Configure CMake
+  - cmake .. -DCMAKE_TOOLCHAIN_FILE="%VCPKG_ROOT%/scripts/buildsystems/vcpkg.cmake" -DCMAKE_BUILD_TYPE=%BUILD_TYPE% -DCMAKE_GENERATOR_PLATFORM=x64
+
+build_script:
+  - cmake --build . --config %CONFIGURATION% --parallel
+
+after_build:
+  # Copy executable to root for artifacts
+  - cd %APPVEYOR_BUILD_FOLDER%
+  - if "%CONFIGURATION%"=="Release" (
+      if exist "build\Release\tfs.exe" copy "build\Release\tfs.exe" "tfs.exe"
+    ) else (
+      if exist "build\Debug\tfs.exe" copy "build\Debug\tfs.exe" "tfs.exe"
+    )
+
+artifacts:
+  - path: tfs.exe
+    name: TFS-$(APPVEYOR_BUILD_VERSION)-$(CONFIGURATION)-x64
+
+test: off
+
+deploy: off
+

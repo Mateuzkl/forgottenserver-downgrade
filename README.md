@@ -12,6 +12,33 @@
 
 [Compiling on Windows](https://github.com/MillhioreBT/forgottenserver-downgrade/wiki/Compiling-on-Windows-(vcpkg))
 
+## Client Update (OTCv8)
+
+If you are using **OTCv8** client, you need to enable the correct game features for version **860**.
+
+Add the following code to your client's `modules/game_features/game_features.lua` file:
+
+```lua
+if(version >= 860) then
+    g_game.enableFeature(GameAttackSeq)
+    g_game.enableFeature(GameBot)
+    g_game.enableFeature(GameExtendedOpcode)       
+    g_game.enableFeature(GameSkillsBase)
+    g_game.enableFeature(GamePlayerMounts)
+    g_game.enableFeature(GameMagicEffectU16)
+    g_game.enableFeature(GameOfflineTrainingTime)
+    g_game.enableFeature(GameDoubleSkills)
+    g_game.enableFeature(GameBaseSkillU16)
+    g_game.enableFeature(GameAdditionalSkills)
+    g_game.enableFeature(GameIdleAnimations)
+    g_game.enableFeature(GameEnhancedAnimations)
+    --g_game.enableFeature(GameSpritesU32) -- Extended sprites
+    --g_game.enableFeature(GameSpritesAlphaChannel) -- Transparency
+end
+```
+
+**Note:** Make sure to check your OTCv8 client version and adjust the version check accordingly.
+
 ## Contributing
 
 Pull requests are welcome.

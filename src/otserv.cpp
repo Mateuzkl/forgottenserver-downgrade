@@ -19,6 +19,7 @@
 #include "server.h"
 
 #include <fmt/format.h>
+#include <fmt/color.h>
 #include <fstream>
 #if __has_include("gitmetadata.h")
 #include "gitmetadata.h"
@@ -326,6 +327,10 @@ void printServerVersion()
 	std::cout << "A server developed by " << STATUS_SERVER_DEVELOPERS << std::endl;
 	std::cout << "Downgraded and further developed by Nekiro / MillhioreBT" << std::endl;
 	std::cout << "Visit our forum for updates, support, and resources: http://otland.net/." << std::endl;
+	std::cout << std::endl;
+	std::cout << fmt::format(fg(fmt::color::yellow), "Further developed by Mateuzkl (Custom Modified Version)") << std::endl;
+	std::cout << fmt::format(fg(fmt::color::yellow), "Repository ORIGINAL: https://github.com/MillhioreBT/forgottenserver-downgrade") << std::endl;
+	std::cout << fmt::format(fg(fmt::color::yellow), "Repository CUSTOM: https://github.com/Mateuzkl/forgottenserver-downgrade") << std::endl;
 	std::cout << std::endl;
 
 	std::cout << "Repository: " << fmt::format(fg(fmt::color::floral_white), "{}", STATUS_SERVER_REPOSITORY)

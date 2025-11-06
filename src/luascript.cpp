@@ -257,7 +257,9 @@ int32_t LuaScriptInterface::scriptEnvIndex = -1;
 
 LuaScriptInterface::LuaScriptInterface(std::string_view interfaceName) : interfaceName{interfaceName}
 {
-	if (!g_luaEnvironment.getLuaState()) {
+	// Don't initialize g_luaEnvironment here if we ARE g_luaEnvironment
+	// This prevents infinite recursion during static initialization
+	if (this != &g_luaEnvironment && !g_luaEnvironment.getLuaState()) {
 		g_luaEnvironment.initState();
 	}
 }
@@ -2595,7 +2597,7 @@ int LuaScriptInterface::luaDoAreaCombat(lua_State* L)
 		CombatDamage damage;
 		damage.origin = Lua::getInteger<CombatOrigin>(L, 8, ORIGIN_SPELL);
 		damage.primary.type = combatType;
-		damage.primary.value = normal_random(Lua::getInteger<int32_t>(L, 6), Lua::getInteger<int32_t>(L, 5));
+		damage.primary.value = normal_random(Lua::getNumber<int32_t>(L, 6), Lua::getNumber<int32_t>(L, 5));
 
 		Combat::doAreaCombat(creature, Lua::getPosition(L, 3), area, damage, params);
 		Lua::pushBoolean(L, true);
@@ -2636,7 +2638,7 @@ int LuaScriptInterface::luaDoTargetCombat(lua_State* L)
 	CombatDamage damage;
 	damage.origin = Lua::getInteger<CombatOrigin>(L, 7, ORIGIN_SPELL);
 	damage.primary.type = combatType;
-	damage.primary.value = normal_random(Lua::getInteger<int32_t>(L, 4), Lua::getInteger<int32_t>(L, 5));
+	damage.primary.value = normal_random(Lua::getNumber<int32_t>(L, 4), Lua::getNumber<int32_t>(L, 5));
 
 	Combat::doTargetCombat(creature, target, damage, params);
 	Lua::pushBoolean(L, true);

@@ -62,6 +62,7 @@ enum ItemParseAttributes_t
 	ITEM_PARSE_ROTATETO,
 	ITEM_PARSE_MOVEABLE,
 	ITEM_PARSE_BLOCKPROJECTILE,
+	ITEM_PARSE_IGNOREBLOCKING,
 	ITEM_PARSE_PICKUPABLE,
 	ITEM_PARSE_FORCESERIALIZE,
 	ITEM_PARSE_FLOORCHANGE,
@@ -175,6 +176,7 @@ enum ItemParseAttributes_t
 	ITEM_PARSE_ALLOWDISTREAD,
 	ITEM_PARSE_STOREITEM,
 	ITEM_PARSE_WORTH,
+	ITEM_PARSE_STACKSIZE,
 	ITEM_PARSE_REFLECTPERCENTALL,
 	ITEM_PARSE_REFLECTPERCENTELEMENTS,
 	ITEM_PARSE_REFLECTPERCENTMAGIC,
@@ -396,6 +398,7 @@ public:
 	bool blockPickupable = false;
 	bool blockProjectile = false;
 	bool blockPathFind = false;
+	bool ignoreBlocking = false;
 	bool allowPickupable = false;
 	bool showDuration = false;
 	bool showCharges = false;
