@@ -105,3 +105,26 @@ bool IOBan::isPlayerNamelocked(uint32_t playerId)
 	    .storeQuery(fmt::format("SELECT 1 FROM `player_namelocks` WHERE `player_id` = {:d}", playerId))
 	    .get();
 }
+
+bool IOBan::accountHasNamelockedPlayer(uint32_t accountId)
+{
+	Database& db = Database::getInstance();
+	DBResult_ptr result = db.storeQuery(fmt::format(
+		"SELECT 1 FROM `player_namelocks` pn "
+		"JOIN `players` p ON p.`id` = pn.`player_id` "
+		"WHERE p.`account_id` = {:d} LIMIT 1", accountId));
+	return result != nullptr;
+}
+
+uint32_t IOBan::getNamelockedPlayerByAccount(uint32_t accountId)
+{
+	Database& db = Database::getInstance();
+	DBResult_ptr result = db.storeQuery(fmt::format(
+		"SELECT pn.`player_id` FROM `player_namelocks` pn "
+		"JOIN `players` p ON p.`id` = pn.`player_id` "
+		"WHERE p.`account_id` = {:d} LIMIT 1", accountId));
+	if (!result) {
+		return 0;
+	}
+	return result->getNumber<uint32_t>("player_id");
+}

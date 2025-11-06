@@ -966,6 +966,12 @@ public:
 
 	void updateRegeneration();
 
+	void manageAccount(const std::string& text);
+	bool isAccountManager() const { return accountManager != ACCOUNT_MANAGER_NONE; }
+	AccountManagerMode getAccountManagerMode() const { return accountManager; }
+	void setAccountManagerMode(AccountManagerMode mode) { accountManager = mode; }
+	void setAccountManagerData(uint32_t accId) { managerData.accountId = accId; }
+
 	const auto& getOpenContainers() const { return openContainers; }
 
 	// for lua module
@@ -1015,6 +1021,12 @@ private:
 
 	void checkTradeState(const Item* item);
 	bool hasCapacity(const Item* item, uint32_t count) const;
+
+	void handleNamelockManager(const std::string& text, std::ostringstream& msg, bool& shouldShowHelp);
+	void handleAccountManager(const std::string& text, std::ostringstream& msg, bool& shouldShowHelp);
+	void handleNewAccountManager(const std::string& text, std::ostringstream& msg, bool& shouldShowHelp);
+	bool checkText(std::string_view text, std::string_view match) const;
+	void resetTalkState(size_t from = 0, size_t to = 15);
 
 	void gainExperience(uint64_t gainExp, Creature* source);
 
@@ -1174,6 +1186,18 @@ private:
 	bool addAttackSkillPoint = false;
 	bool randomizeMount = false;
 	bool inventoryAbilities[CONST_SLOT_LAST + 1] = {};
+
+	AccountManagerMode accountManager{ACCOUNT_MANAGER_NONE};
+	std::array<bool, 15> managerTalkState{};
+	struct {
+		PlayerSex_t sex{PLAYERSEX_FEMALE};
+		uint32_t accountId{0};
+		uint32_t vocationId{0};
+		uint32_t townId{0};
+		std::string string1;
+		std::string string2;
+		std::string accountName;
+	} managerData;
 
 	void updateItemsLight(bool internal = false);
 

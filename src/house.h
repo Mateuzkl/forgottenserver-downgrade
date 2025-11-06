@@ -137,6 +137,11 @@ public:
 	uint32_t getOwner() const { return owner; }
 	uint32_t getOwnerAccountId() const { return ownerAccountId; }
 
+	void updateOwnerName(const std::string& newName) {
+		ownerName = newName;
+		updateDoorDescription();
+	}
+
 	void setPaidUntil(time_t paid) { paidUntil = paid; }
 	time_t getPaidUntil() const { return paidUntil; }
 
@@ -190,6 +195,7 @@ private:
 	std::tuple<uint32_t, uint32_t, std::string, uint32_t, std::string> initializeOwnerDataFromDatabase(uint32_t guid_guild, HouseType_t type);
 	bool transferToDepot() const;
 	bool transferToDepot(Player* player) const;
+	void updateDoorDescription();
 
 	AccessList guestList;
 	AccessList subOwnerList;

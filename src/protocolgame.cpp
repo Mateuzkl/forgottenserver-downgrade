@@ -133,7 +133,11 @@ void ProtocolGame::login(uint32_t characterId, uint32_t accountId, OperatingSyst
 {
     // dispatcher thread
     Player* foundPlayer = g_game.getPlayerByGUID(characterId);
-    if (!foundPlayer || getBoolean(ConfigManager::ALLOW_CLONES)) {
+    std::string name;
+    if (foundPlayer) {
+        name = foundPlayer->getName();
+    }
+    if (!foundPlayer || name == "Account Manager" || getBoolean(ConfigManager::ALLOW_CLONES)) {
         player = new Player(getThis());
         player->setGUID(characterId);
 
@@ -145,7 +149,27 @@ void ProtocolGame::login(uint32_t characterId, uint32_t accountId, OperatingSyst
 			return;
 		}
 
-		if (IOBan::isPlayerNamelocked(player->getGUID())) {
+		name = player->getName();
+		bool isAccountManager = (name == "Account Manager" && ConfigManager::getBoolean(ConfigManager::ACCOUNT_MANAGER));
+
+		if (isAccountManager && accountId != 1) {
+			player->accountNumber = accountId;
+		}
+
+		if (IOBan::isPlayerNamelocked(player->getGUID()) && accountId != 1) {
+			if (ConfigManager::getBoolean(ConfigManager::NAMELOCK_MANAGER)) {
+				std::string originalName = player->getName();
+
+				player->setName("Account Manager");
+				player->setAccountManagerMode(ACCOUNT_MANAGER_NAMELOCK);
+				player->accountNumber = accountId;
+				player->setAccountManagerData(accountId);
+				player->managerData.string2 = originalName;
+			} else {
+				disconnectClient("Your character has been namelocked.");
+				return;
+			}
+		} else if (IOBan::isPlayerNamelocked(player->getGUID())) {
 			disconnectClient("Your character has been namelocked.");
 			return;
 		}
@@ -160,7 +184,7 @@ void ProtocolGame::login(uint32_t characterId, uint32_t accountId, OperatingSyst
 			return;
 		}
 
-        if (getBoolean(ConfigManager::ONE_PLAYER_ON_ACCOUNT) && player->getAccountType() < ACCOUNT_TYPE_GAMEMASTER &&
+        if (getBoolean(ConfigManager::ONE_PLAYER_ON_ACCOUNT) && name != "Account Manager" && player->getAccountType() < ACCOUNT_TYPE_GAMEMASTER &&
             g_game.getPlayerByAccount(player->getAccount())) {
             disconnectClient("You may only login with one character\nof your account at the same time.");
             return;
@@ -214,6 +238,21 @@ void ProtocolGame::login(uint32_t characterId, uint32_t accountId, OperatingSyst
 
 		if (operatingSystem >= CLIENTOS_OTCLIENT_LINUX) {
 			player->registerCreatureEvent("ExtendedOpcode");
+		}
+
+		// Setup Account Manager mode (only if not already set by namelock handler above)
+		if (ConfigManager::getBoolean(ConfigManager::ACCOUNT_MANAGER) && name == "Account Manager" &&
+		    player->getAccountManagerMode() == ACCOUNT_MANAGER_NONE) {
+			if (accountId == 1) {
+				player->setAccountManagerMode(ACCOUNT_MANAGER_NEW);
+			} else {
+				player->setAccountManagerMode(ACCOUNT_MANAGER_ACCOUNT);
+				player->setAccountManagerData(accountId);
+			}
+		}
+		// Block movement for all Account Manager modes
+		if (player->isAccountManager()) {
+			player->setMovementBlocked(true);
 		}
 
 		player->lastIP = player->getIP();
@@ -313,18 +352,19 @@ void ProtocolGame::logout(bool displayEffect, bool forced)
 
 void ProtocolGame::onRecvFirstMessage(NetworkMessage& msg)
 {
-	if (g_game.getGameState() == GAME_STATE_SHUTDOWN) {
-		disconnect();
-		return;
-	}
+    if (g_game.getGameState() == GAME_STATE_SHUTDOWN) {
+        disconnect();
+        return;
+    }
 
 	OperatingSystem_t operatingSystem = static_cast<OperatingSystem_t>(msg.get<uint16_t>());
 	version = msg.get<uint16_t>();
+	
+    if (!Protocol::RSA_decrypt(msg)) {
+        disconnect();
+        return;
+    }
 
-	if (!Protocol::RSA_decrypt(msg)) {
-		disconnect();
-		return;
-	}
 
 	xtea::key key;
 	key[0] = msg.get<uint32_t>();
@@ -340,17 +380,20 @@ void ProtocolGame::onRecvFirstMessage(NetworkMessage& msg)
     auto characterName = msg.getString();
     auto password = msg.getString();
 
-	if (accountName.empty()) {
-		disconnectClient("You must enter your account name.");
-		return;
-	}
+
+    if (accountName.empty()) {
+        disconnectClient("You must enter your account name.");
+        return;
+    }
 
 	uint32_t timeStamp = msg.get<uint32_t>();
 	uint8_t randNumber = msg.getByte();
-	if (challengeTimestamp != timeStamp || challengeRandom != randNumber) {
-		disconnect();
-		return;
-	}
+	
+    if (challengeTimestamp != timeStamp || challengeRandom != randNumber) {
+        disconnect();
+        return;
+    }
+
 
 	if (operatingSystem >= CLIENTOS_OTCLIENT_LINUX) {
 		NetworkMessage opcodeMessage;
@@ -379,6 +422,10 @@ void ProtocolGame::onRecvFirstMessage(NetworkMessage& msg)
     auto authPair = IOLoginData::gameworldAuthentication(accountName, password, characterName);
     uint32_t accountId = authPair.first;
     uint32_t characterId = authPair.second;
+    
+    if (accountId == 0 || characterId == 0) {
+        // auth failed, will disconnect below
+    }
 
     BanInfo banInfo;
     if (IOBan::isIpBanned(getIP(), banInfo)) {
@@ -962,6 +1009,11 @@ void ProtocolGame::parseAutoWalk(NetworkMessage& msg)
 
 void ProtocolGame::parseSetOutfit(NetworkMessage& msg)
 {
+	if (player->isAccountManager()) {
+		player->sendCancelMessage(RETURNVALUE_NOTPOSSIBLE);
+		return;
+	}
+
 	Outfit_t newOutfit;
 	newOutfit.lookType = msg.get<uint16_t>();
 	newOutfit.lookHead = msg.getByte();
@@ -975,6 +1027,11 @@ void ProtocolGame::parseSetOutfit(NetworkMessage& msg)
 
 void ProtocolGame::parseUseItem(NetworkMessage& msg)
 {
+	if (player->isAccountManager()) {
+		player->sendCancelMessage(RETURNVALUE_NOTPOSSIBLE);
+		return;
+	}
+
 	Position pos = msg.getPosition();
 	uint16_t spriteId = msg.get<uint16_t>();
 	uint8_t stackpos = msg.getByte();
@@ -986,6 +1043,11 @@ void ProtocolGame::parseUseItem(NetworkMessage& msg)
 
 void ProtocolGame::parseUseItemEx(NetworkMessage& msg)
 {
+	if (player->isAccountManager()) {
+		player->sendCancelMessage(RETURNVALUE_NOTPOSSIBLE);
+		return;
+	}
+
 	Position fromPos = msg.getPosition();
 	uint16_t fromSpriteId = msg.get<uint16_t>();
 	uint8_t fromStackPos = msg.getByte();
@@ -999,6 +1061,11 @@ void ProtocolGame::parseUseItemEx(NetworkMessage& msg)
 
 void ProtocolGame::parseUseWithCreature(NetworkMessage& msg)
 {
+	if (player->isAccountManager()) {
+		player->sendCancelMessage(RETURNVALUE_NOTPOSSIBLE);
+		return;
+	}
+
 	Position fromPos = msg.getPosition();
 	uint16_t spriteId = msg.get<uint16_t>();
 	uint8_t fromStackPos = msg.getByte();
@@ -1028,6 +1095,11 @@ void ProtocolGame::parseUpdateContainer(NetworkMessage& msg)
 
 void ProtocolGame::parseThrow(NetworkMessage& msg)
 {
+	if (player->isAccountManager()) {
+		player->sendCancelMessage(RETURNVALUE_NOTPOSSIBLE);
+		return;
+	}
+
 	Position fromPos = msg.getPosition();
 	uint16_t spriteId = msg.get<uint16_t>();
 	uint8_t fromStackpos = msg.getByte();
@@ -1086,6 +1158,11 @@ void ProtocolGame::parseSay(NetworkMessage& msg)
 		return;
 	}
 
+	if (player->isAccountManager()) {
+		player->manageAccount(std::string{text});
+		return;
+	}
+
 	g_dispatcher.addTask([=, playerID = player->getID(), receiver = std::string{receiver}, text = std::string{text}]() {
 		g_game.playerSay(playerID, channelId, type, receiver, text);
 	});
@@ -1113,6 +1190,11 @@ void ProtocolGame::parseFightModes(NetworkMessage& msg)
 
 void ProtocolGame::parseAttack(NetworkMessage& msg)
 {
+	if (player->isAccountManager()) {
+		player->sendCancelMessage(RETURNVALUE_NOTPOSSIBLE);
+		return;
+	}
+
 	uint32_t creatureId = msg.get<uint32_t>();
 	// msg.get<uint32_t>(); creatureId (same as above)
 	g_dispatcher.addTask([=, playerID = player->getID()]() { g_game.playerSetAttackedCreature(playerID, creatureId); });
@@ -1177,6 +1259,11 @@ void ProtocolGame::parsePlayerSale(NetworkMessage& msg)
 
 void ProtocolGame::parseRequestTrade(NetworkMessage& msg)
 {
+	if (player->isAccountManager()) {
+		player->sendCancelMessage(RETURNVALUE_NOTPOSSIBLE);
+		return;
+	}
+
 	Position pos = msg.getPosition();
 	uint16_t spriteId = msg.get<uint16_t>();
 	uint8_t stackpos = msg.getByte();

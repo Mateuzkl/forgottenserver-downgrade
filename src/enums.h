@@ -171,6 +171,14 @@ enum AccountType_t : uint8_t
 	ACCOUNT_TYPE_GOD = 6
 };
 
+enum AccountManagerMode : uint8_t
+{
+	ACCOUNT_MANAGER_NONE = 0,
+	ACCOUNT_MANAGER_NEW = 1,
+	ACCOUNT_MANAGER_ACCOUNT = 2,
+	ACCOUNT_MANAGER_NAMELOCK = 3
+};
+
 enum RaceType_t : uint8_t
 {
 	RACE_NONE,

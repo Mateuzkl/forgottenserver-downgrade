@@ -59,18 +59,23 @@ std::string decodeSecret(std::string_view secret)
 
 bool IOLoginData::loginserverAuthentication(std::string_view name, std::string_view password, Account& account)
 {
-	Database& db = Database::getInstance();
+    Database& db = Database::getInstance();
 
-	DBResult_ptr result = db.storeQuery(fmt::format(
-	    "SELECT `id`, `name`, UNHEX(`password`) AS `password`, `secret`, `type`, `premium_ends_at`, `tibia_coins` FROM `accounts` WHERE `name` = {:s}",
-	    db.escapeString(name)));
-	if (!result) {
-		return false;
-	}
 
-	if (transformToSHA1(password) != result->getString("password")) {
-		return false;
-	}
+    DBResult_ptr result = db.storeQuery(fmt::format(
+        "SELECT `id`, `name`, `password`, `secret`, `type`, `premium_ends_at`, `tibia_coins` FROM `accounts` WHERE LOWER(`name`) = LOWER({:s})",
+        db.escapeString(name)));
+    if (!result) {
+        return false;
+    }
+
+    std::string storedPassword = std::string{result->getString("password")};
+    std::string inputPassword = transformToSHA1Hex(password);
+    
+    if (storedPassword != inputPassword) {
+        return false;
+    }
+    
 
 	account.id = result->getNumber<uint32_t>("id");
 	account.name = result->getString("name");
@@ -79,34 +84,87 @@ bool IOLoginData::loginserverAuthentication(std::string_view name, std::string_v
 	account.premiumEndsAt = result->getNumber<time_t>("premium_ends_at");
 	account.tibiaCoins = result->getNumber<uint64_t>("tibia_coins");
 
-	result = db.storeQuery(fmt::format(
-	    "SELECT `name` FROM `players` WHERE `account_id` = {:d} AND `deletion` = 0 ORDER BY `name` ASC", account.id));
-	if (result) {
-		do {
-			account.characters.push_back(std::string{result->getString("name")});
-		} while (result->next());
-	}
-	return true;
+    result = db.storeQuery(fmt::format(
+        "SELECT `name` FROM `players` WHERE `account_id` = {:d} AND `deletion` = 0 ORDER BY `name` ASC", account.id));
+    if (result) {
+        do {
+            std::string charName = std::string{result->getString("name")};
+            account.characters.push_back(charName);
+        } while (result->next());
+    } else {
+    }
+    return true;
 }
 
 std::pair<uint32_t, uint32_t> IOLoginData::gameworldAuthentication(std::string_view accountName,
                                                                    std::string_view password,
                                                                    std::string_view characterName)
 {
-	Database& db = Database::getInstance();
-	DBResult_ptr result = db.storeQuery(fmt::format(
-	    "SELECT `a`.`id` AS `account_id`, UNHEX(`a`.`password`) AS `password`, `a`.`secret`, `p`.`id` AS `character_id` FROM `accounts` `a` JOIN `players` `p` ON `a`.`id` = `p`.`account_id` WHERE (`a`.`name` = {:s} OR `a`.`email` = {:s}) AND `p`.`name` = {:s} AND `p`.`deletion` = 0",
-	    db.escapeString(accountName), db.escapeString(accountName), db.escapeString(characterName)));
-	if (!result) {
-		return {};
-	}
+    Database& db = Database::getInstance();
+    
+    std::string query = fmt::format(
+        "SELECT `a`.`id` AS `account_id`, `a`.`password`, `a`.`secret`, `p`.`id` AS `character_id` FROM `accounts` `a` JOIN `players` `p` ON `a`.`id` = `p`.`account_id` WHERE LOWER(`a`.`name`) = LOWER({:s}) AND LOWER(`p`.`name`) = LOWER({:s}) AND `p`.`deletion` = 0",
+        db.escapeString(accountName), db.escapeString(characterName));
+    
+    DBResult_ptr result = db.storeQuery(query);
+    if (!result) {
+        // Fallback path: validate account and use the first available character of the account
+        DBResult_ptr accountCheck = db.storeQuery(fmt::format(
+            "SELECT `id`, `name`, `password`, `secret` FROM `accounts` WHERE LOWER(`name`) = LOWER({:s})",
+            db.escapeString(accountName)));
+        if (!accountCheck) {
+            return {};
+        }
 
-	if (transformToSHA1(password) != result->getString("password")) {
-		return {};
-	}
+        uint32_t fallbackAccountId = accountCheck->getNumber<uint32_t>("id");
+        std::string storedPassword = std::string{accountCheck->getString("password")};
+        std::string inputPassword = transformToSHA1Hex(password);
+        if (storedPassword != inputPassword) {
+            return {};
+        }
+
+        // Special-case: Account Manager selection from non-1 account
+        if (ConfigManager::getBoolean(ConfigManager::ACCOUNT_MANAGER) && characterName == "Account Manager" && fallbackAccountId != 1) {
+            DBResult_ptr accMgrRes = db.storeQuery("SELECT `id` FROM `players` WHERE `name` = 'Account Manager' AND `account_id` = 1 AND `deletion` = 0");
+            if (!accMgrRes) {
+                return {};
+            }
+            uint32_t accountManagerId = accMgrRes->getNumber<uint32_t>("id");
+            return std::make_pair(1, accountManagerId);
+        }
+
+        // Pick the first character from this account if specific character was not found/matched
+        DBResult_ptr firstCharRes = db.storeQuery(fmt::format(
+            "SELECT `id`, `name` FROM `players` WHERE `account_id` = {:d} AND `deletion` = 0 ORDER BY `name` ASC LIMIT 1",
+            fallbackAccountId));
+        if (!firstCharRes) {
+            return {};
+        }
+
+        uint32_t fallbackCharacterId = firstCharRes->getNumber<uint32_t>("id");
+        std::string fallbackCharacterName = std::string{firstCharRes->getString("name")};
+        return std::make_pair(fallbackAccountId, fallbackCharacterId);
+    }
+
+    std::string storedPassword = std::string{result->getString("password")};
+    std::string inputPassword = transformToSHA1Hex(password);
+    
+    if (storedPassword != inputPassword) {
+        return {};
+    }
+    
 
 	uint32_t accountId = result->getNumber<uint32_t>("account_id");
 	uint32_t characterId = result->getNumber<uint32_t>("character_id");
+
+	if (ConfigManager::getBoolean(ConfigManager::ACCOUNT_MANAGER) && characterName == "Account Manager" && accountId != 1) {
+		result = db.storeQuery("SELECT `id` FROM `players` WHERE `name` = 'Account Manager' AND `account_id` = 1 AND `deletion` = 0");
+		if (!result) {
+			return {};
+		}
+		uint32_t accountManagerId = result->getNumber<uint32_t>("id");
+		return std::make_pair(1, accountManagerId);
+	}
 
 	return std::make_pair(accountId, characterId);
 }
@@ -152,6 +210,10 @@ void IOLoginData::setAccountType(uint32_t accountId, AccountType_t accountType)
 
 void IOLoginData::updateOnlineStatus(uint32_t guid, bool login)
 {
+	if (guid == 1) {
+		return;
+	}
+
 	if (getBoolean(ConfigManager::ALLOW_CLONES)) {
 		return;
 	}
@@ -1184,4 +1246,128 @@ void IOLoginData::updateTibiaCoins(uint32_t accountId, uint64_t tibiaCoins)
 {
 	Database::getInstance().executeQuery(
 	    fmt::format("UPDATE `accounts` SET `tibia_coins` = {:d} WHERE `id` = {:d}", tibiaCoins, accountId));
+}
+
+bool IOLoginData::createAccount(const std::string& name, const std::string& password, uint32_t& accountId)
+{
+	Database& db = Database::getInstance();
+	
+	std::cout << "[DEBUG] createAccount - Account name: " << name << std::endl;
+	std::cout << "[DEBUG] createAccount - Password length: " << password.length() << std::endl;
+	
+	DBResult_ptr result = db.storeQuery(fmt::format("SELECT `id` FROM `accounts` WHERE LOWER(`name`) = LOWER({:s})", db.escapeString(name)));
+	if (result) {
+		std::cout << "[DEBUG] createAccount - Account already exists!" << std::endl;
+		return false;
+	}
+	
+	std::string hashedPassword = transformToSHA1Hex(password);
+	std::cout << "[DEBUG] createAccount - Hashed password (hex): " << hashedPassword << std::endl;
+	std::cout << "[DEBUG] createAccount - Hashed password length: " << hashedPassword.length() << std::endl;
+	
+	if (!db.executeQuery(fmt::format("INSERT INTO `accounts` (`name`, `password`, `type`, `premium_ends_at`, `email`, `creation`) VALUES ({:s}, {:s}, 1, 0, '', {:d})",
+		db.escapeString(name), db.escapeString(hashedPassword), static_cast<uint32_t>(time(nullptr))))) {
+		std::cout << "[DEBUG] createAccount - Failed to insert account into database!" << std::endl;
+		return false;
+	}
+	
+	std::cout << "[DEBUG] createAccount - Account inserted successfully!" << std::endl;
+	
+	result = db.storeQuery(fmt::format("SELECT `id` FROM `accounts` WHERE LOWER(`name`) = LOWER({:s})", db.escapeString(name)));
+	if (!result) {
+		std::cout << "[DEBUG] createAccount - Failed to retrieve account ID after creation!" << std::endl;
+		return false;
+	}
+	accountId = result->getNumber<uint32_t>("id");
+	std::cout << "[DEBUG] createAccount - Account created with ID: " << accountId << std::endl;
+	return true;
+}
+
+bool IOLoginData::setPassword(uint32_t accountId, const std::string& newPassword)
+{
+	Database& db = Database::getInstance();
+	std::string hashedPassword = transformToSHA1Hex(newPassword);
+	return db.executeQuery(fmt::format("UPDATE `accounts` SET `password` = {:s} WHERE `id` = {:d}", db.escapeString(hashedPassword), accountId));
+}
+
+bool IOLoginData::setRecoveryKey(uint32_t accountId, const std::string& recoveryKey)
+{
+	Database& db = Database::getInstance();
+	std::string hashedKey = transformToSHA1Hex(recoveryKey);
+	return db.executeQuery(fmt::format("UPDATE `accounts` SET `secret` = {:s} WHERE `id` = {:d}", db.escapeString(hashedKey), accountId));
+}
+
+bool IOLoginData::createPlayer(uint32_t accountId, const std::string& name, uint16_t vocationId, PlayerSex_t sex)
+{
+	Database& db = Database::getInstance();
+
+	if (playerNameExists(name)) {
+		return false;
+	}
+
+	uint16_t level = static_cast<uint16_t>(ConfigManager::getInteger(ConfigManager::NEW_PLAYER_LEVEL));
+	uint16_t magicLevel = static_cast<uint16_t>(ConfigManager::getInteger(ConfigManager::NEW_PLAYER_MAGIC_LEVEL));
+	uint32_t townId = static_cast<uint32_t>(ConfigManager::getInteger(ConfigManager::NEW_PLAYER_TOWN_ID));
+	int32_t posX = static_cast<int32_t>(ConfigManager::getInteger(ConfigManager::NEW_PLAYER_SPAWN_POS_X));
+	int32_t posY = static_cast<int32_t>(ConfigManager::getInteger(ConfigManager::NEW_PLAYER_SPAWN_POS_Y));
+	int32_t posZ = static_cast<int32_t>(ConfigManager::getInteger(ConfigManager::NEW_PLAYER_SPAWN_POS_Z));
+
+	uint32_t health = 150;
+	uint32_t mana = 0;
+	uint16_t lookType = (sex == PLAYERSEX_FEMALE) ? 136 : 128;
+
+	std::ostringstream query;
+	query << "INSERT INTO `players` (`name`, `group_id`, `account_id`, `level`, `vocation`, `health`, `healthmax`, `experience`, "
+		  << "`lookbody`, `lookfeet`, `lookhead`, `looklegs`, `looktype`, `lookaddons`, `direction`, `maglevel`, `mana`, `manamax`, "
+		  << "`manaspent`, `soul`, `town_id`, `posx`, `posy`, `posz`, `cap`, `sex`, `lastlogin`, `lastip`, `save`, `skull`, "
+		  << "`skulltime`, `lastlogout`, `blessings`, `onlinetime`, `deletion`, `balance`, `offlinetraining_time`, `offlinetraining_skill`, "
+		  << "`stamina`, `skill_fist`, `skill_fist_tries`, `skill_club`, `skill_club_tries`, `skill_sword`, `skill_sword_tries`, "
+		  << "`skill_axe`, `skill_axe_tries`, `skill_dist`, `skill_dist_tries`, `skill_shielding`, `skill_shielding_tries`, "
+		  << "`skill_fishing`, `skill_fishing_tries`) VALUES (";
+
+	query << db.escapeString(name) << ", 1, " << accountId << ", " << level << ", " << vocationId << ", "
+		  << health << ", " << health << ", 0, 0, 0, 0, 0, " << lookType << ", 0, 2, " << magicLevel << ", "
+		  << mana << ", " << mana << ", 0, 0, " << townId << ", " << posX << ", " << posY << ", " << posZ
+		  << ", 400, " << static_cast<uint16_t>(sex) << ", 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 43200, -1, 2520, "
+		  << "10, 0, 10, 0, 10, 0, 10, 0, 10, 0, 10, 0, 10, 0)";
+
+	return db.executeQuery(query.str());
+}
+
+bool IOLoginData::deletePlayer(uint32_t playerId)
+{
+	if (playerId == 1) {
+		std::cout << "[Security] Attempted to delete Account Manager (guid=1) - BLOCKED" << std::endl;
+		return false;
+	}
+
+	Database& db = Database::getInstance();
+	return db.executeQuery(fmt::format("UPDATE `players` SET `deletion` = {:d} WHERE `id` = {:d}", static_cast<uint64_t>(time(nullptr) + 86400), playerId));
+}
+
+std::vector<std::string> IOLoginData::getPlayersByAccountId(uint32_t accountId)
+{
+	std::vector<std::string> players;
+	Database& db = Database::getInstance();
+	DBResult_ptr result = db.storeQuery(fmt::format("SELECT `name` FROM `players` WHERE `account_id` = {:d} AND `deletion` = 0 AND `name` != 'Account Manager' ORDER BY `name` ASC", accountId));
+	if (result) {
+		do {
+			players.push_back(std::string{result->getString("name")});
+		} while (result->next());
+	}
+	return players;
+}
+
+bool IOLoginData::playerNameExists(const std::string& name)
+{
+	Database& db = Database::getInstance();
+	DBResult_ptr result = db.storeQuery(fmt::format("SELECT `id` FROM `players` WHERE `name` = {:s}", db.escapeString(name)));
+	return result != nullptr;
+}
+
+bool IOLoginData::accountNameExists(const std::string& name)
+{
+	Database& db = Database::getInstance();
+	DBResult_ptr result = db.storeQuery(fmt::format("SELECT `id` FROM `accounts` WHERE LOWER(`name`) = LOWER({:s})", db.escapeString(name)));
+	return result != nullptr;
 }

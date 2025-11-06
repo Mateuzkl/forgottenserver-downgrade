@@ -2306,6 +2306,30 @@ int luaPlayerGetLastIp(lua_State* L)
 	return 1;
 }
 
+int luaPlayerIsAccountManager(lua_State* L)
+{
+	// player:isAccountManager()
+	Player* player = getUserdata<Player>(L, 1);
+	if (player) {
+		pushBoolean(L, player->isAccountManager());
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
+
+int luaPlayerGetAccountManagerMode(lua_State* L)
+{
+	// player:getAccountManagerMode()
+	Player* player = getUserdata<Player>(L, 1);
+	if (player) {
+		lua_pushnumber(L, static_cast<uint8_t>(player->getAccountManagerMode()));
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
+
 // Offline Training Functions
 int luaPlayerAddOfflineTrainingTime(lua_State* L)
 {
@@ -2700,6 +2724,9 @@ void LuaScriptInterface::registerPlayer()
 	registerMethod("Player", "setOfflineTrainingSkill", luaPlayerSetOfflineTrainingSkill);
 	registerMethod("Player", "isNearBed", luaPlayerIsNearBed);
 	registerMethod("Player", "startOfflineTraining", luaPlayerStartOfflineTraining);
+
+	registerMethod("Player", "isAccountManager", luaPlayerIsAccountManager);
+	registerMethod("Player", "getAccountManagerMode", luaPlayerGetAccountManagerMode);
 
 	// OfflinePlayer
 	registerClass("OfflinePlayer", "Player", luaOfflinePlayerCreate);

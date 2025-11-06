@@ -47,11 +47,26 @@ void ProtocolLogin::getCharacterList(std::string_view accountName, std::string_v
 	output->addByte(0x64);
 
 	uint8_t size = std::min<size_t>(std::numeric_limits<uint8_t>::max(), account.characters.size());
+	bool hasAccountManager = ConfigManager::getBoolean(ConfigManager::ACCOUNT_MANAGER);
+	bool hasNamelock = ConfigManager::getBoolean(ConfigManager::NAMELOCK_MANAGER) && IOBan::accountHasNamelockedPlayer(account.id);
+	
+	if ((hasAccountManager && account.id != 1) || hasNamelock) {
+		size++;
+	}
+
 	auto IP = getIP(getString(ConfigManager::IP));
 	auto serverName = getString(ConfigManager::SERVER_NAME);
 	auto gamePort = getInteger(ConfigManager::GAME_PORT);
+	
 	output->addByte(size);
-	for (uint8_t i = 0; i < size; i++) {
+	if ((hasAccountManager && account.id != 1) || hasNamelock) {
+		output->addString("Account Manager");
+		output->addString(serverName);
+		output->add<uint32_t>(IP);
+		output->add<uint16_t>(gamePort);
+	}
+	uint8_t charCount = size - (((hasAccountManager && account.id != 1) || hasNamelock) ? 1 : 0);
+	for (uint8_t i = 0; i < charCount; i++) {
 		output->addString(account.characters[i]);
 		output->addString(serverName);
 		output->add<uint32_t>(IP);

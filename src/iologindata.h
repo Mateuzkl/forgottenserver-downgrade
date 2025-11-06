@@ -48,6 +48,15 @@ public:
 	static uint64_t getTibiaCoins(uint32_t accountId);
 	static void updateTibiaCoins(uint32_t accountId, uint64_t tibiaCoins);
 
+	static bool createAccount(const std::string& name, const std::string& password, uint32_t& accountId);
+	static bool setPassword(uint32_t accountId, const std::string& newPassword);
+	static bool setRecoveryKey(uint32_t accountId, const std::string& recoveryKey);
+	static bool createPlayer(uint32_t accountId, const std::string& name, uint16_t vocationId, PlayerSex_t sex);
+	static bool deletePlayer(uint32_t playerId);
+	static std::vector<std::string> getPlayersByAccountId(uint32_t accountId);
+	static bool playerNameExists(const std::string& name);
+	static bool accountNameExists(const std::string& name);
+
 private:
 	using ItemMap = std::map<uint32_t, std::pair<Item*, uint32_t>>;
 

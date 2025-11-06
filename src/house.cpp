@@ -650,6 +650,17 @@ void Door::onRemoved()
 	}
 }
 
+void House::updateDoorDescription()
+{
+	for (Door* door : doorSet) {
+		if (ownerName.empty()) {
+			door->setSpecialDescription("");
+		} else {
+			door->setSpecialDescription(fmt::format("It belongs to house '{:s}'. Owner: {:s}.", getName(), ownerName));
+		}
+	}
+}
+
 House* Houses::getHouseByPlayerId(uint32_t playerId)
 {
 	for (const auto& it : houseMap) {

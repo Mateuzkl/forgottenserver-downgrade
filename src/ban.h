@@ -42,6 +42,8 @@ public:
 	static bool isAccountBanned(uint32_t accountId, BanInfo& banInfo);
 	static bool isIpBanned(const uint32_t clientIP, BanInfo& banInfo);
 	static bool isPlayerNamelocked(uint32_t playerId);
+	static bool accountHasNamelockedPlayer(uint32_t accountId);
+	static uint32_t getNamelockedPlayerByAccount(uint32_t accountId);
 };
 
 #endif // FS_BAN_H

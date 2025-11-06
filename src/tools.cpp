@@ -7,6 +7,7 @@
 
 #include "configmanager.h"
 
+#include <iomanip>
 #include <openssl/evp.h>
 #include <openssl/hmac.h>
 
@@ -88,6 +89,17 @@ std::string transformToSHA1(std::string_view input)
 	return digest;
 }
 
+std::string transformToSHA1Hex(std::string_view input)
+{
+	std::string digest = transformToSHA1(input);
+	std::ostringstream hexStream;
+	hexStream << std::hex << std::setfill('0');
+	for (unsigned char c : digest) {
+		hexStream << std::setw(2) << static_cast<unsigned int>(c);
+	}
+	return hexStream.str();
+}
+
 std::string hmac(std::string_view algorithm, std::string_view key, std::string_view message)
 {
 	std::unique_ptr<EVP_MD_CTX, decltype(&EVP_MD_CTX_free)> ctx{EVP_MD_CTX_new(), EVP_MD_CTX_free};
@@ -130,6 +142,115 @@ std::string generateToken(std::string_view key, uint64_t counter, size_t length 
 
 	auto token = std::to_string(p & 0x7fffffff);
 	return token.substr(token.size() - length);
+}
+
+std::string generateRecoveryKey(int32_t fieldCount, int32_t fieldLength, bool mixCase/* = false*/)
+{
+	std::string key;
+	key.reserve(fieldCount * (fieldLength + 1));
+	for (int32_t i = 0; i < fieldCount; ++i) {
+		if (i > 0) {
+			key += '-';
+		}
+		for (int32_t j = 0; j < fieldLength; ++j) {
+			char ch;
+			int32_t charType = uniform_random(0, mixCase ? 2 : 1);
+			if (charType == 0) {
+				ch = '0' + uniform_random(2, 9);
+			} else if (charType == 1 || !mixCase) {
+				ch = 'A' + uniform_random(0, 25);
+			} else {
+				ch = 'a' + uniform_random(0, 25);
+			}
+			key += ch;
+		}
+	}
+	return key;
+}
+
+std::string generateSecurePassword(int32_t length/*= 12*/)
+{
+	const char* uppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+	const char* lowercase = "abcdefghijklmnopqrstuvwxyz";
+	const char* numbers = "0123456789";
+	const char* symbols = "!@#$%^&*-_+=";
+
+	std::string password;
+	password.reserve(length);
+
+	password += uppercase[uniform_random(0, 25)];
+	password += lowercase[uniform_random(0, 25)];
+	password += numbers[uniform_random(0, 9)];
+	password += symbols[uniform_random(0, 11)];
+
+	const char* allChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*-_+=";
+	const int32_t allCharsLen = 74;
+
+	for (int32_t i = 4; i < length; ++i) {
+		password += allChars[uniform_random(0, allCharsLen - 1)];
+	}
+
+	for (int32_t i = length - 1; i > 0; --i) {
+		int32_t j = uniform_random(0, i);
+		std::swap(password[i], password[j]);
+	}
+
+	return password;
+}
+
+bool validateAndFormatPlayerName(std::string& name)
+{
+	if (name.empty()) {
+		return false;
+	}
+
+	size_t start = name.find_first_not_of(' ');
+	size_t end = name.find_last_not_of(' ');
+	if (start == std::string::npos) {
+		return false;
+	}
+
+	name = name.substr(start, end - start + 1);
+
+	if (name.length() < 3 || name.length() > 29) {
+		return false;
+	}
+
+	if (!std::isalpha(static_cast<unsigned char>(name[0]))) {
+		return false;
+	}
+
+	if (!std::isalpha(static_cast<unsigned char>(name[name.length() - 1]))) {
+		return false;
+	}
+
+	char lastChar = ' ';
+	bool capitalizeNext = true;
+
+	for (size_t i = 0; i < name.length(); ++i) {
+		char c = name[i];
+
+		if (!std::isalpha(static_cast<unsigned char>(c)) && c != ' ' && c != '\'') {
+			return false;
+		}
+
+		if ((c == ' ' || c == '\'') && (lastChar == ' ' || lastChar == '\'')) {
+			return false;
+		}
+
+		if (capitalizeNext && std::isalpha(static_cast<unsigned char>(c))) {
+			name[i] = std::toupper(static_cast<unsigned char>(c));
+			capitalizeNext = false;
+		} else if (std::isalpha(static_cast<unsigned char>(c))) {
+			name[i] = std::tolower(static_cast<unsigned char>(c));
+		} else if (c == ' ') {
+			capitalizeNext = true;
+		}
+
+		lastChar = c;
+	}
+
+	return true;
 }
 
 bool caseInsensitiveEqual(std::string_view str1, std::string_view str2)

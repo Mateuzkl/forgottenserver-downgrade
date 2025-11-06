@@ -4,6 +4,15 @@ maxProtocolOutfits = 50
 
 -- Account Manager
 accountManager = true
+namelockManager = true
+newPlayerChooseVoc = true
+newPlayerSpawnPosX = 0
+newPlayerSpawnPosY = 0
+newPlayerSpawnPosZ = 0
+newPlayerTownId = 1
+newPlayerLevel = 1
+newPlayerMagicLevel = 0
+generateAccountNumber = false
 
 -- Combat settings
 -- NOTE: valid values for worldType are: "pvp", "no-pvp" and "pvp-enforced"

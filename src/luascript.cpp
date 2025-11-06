@@ -1214,6 +1214,11 @@ void LuaScriptInterface::registerFunctions()
 	registerEnum(ACCOUNT_TYPE_COMMUNITYMANAGER);
 	registerEnum(ACCOUNT_TYPE_GOD);
 
+	registerGlobalVariable("ACCOUNT_MANAGER_NONE", static_cast<uint8_t>(AccountManagerMode::ACCOUNT_MANAGER_NONE));
+	registerGlobalVariable("ACCOUNT_MANAGER_NEW", static_cast<uint8_t>(AccountManagerMode::ACCOUNT_MANAGER_NEW));
+	registerGlobalVariable("ACCOUNT_MANAGER_ACCOUNT", static_cast<uint8_t>(AccountManagerMode::ACCOUNT_MANAGER_ACCOUNT));
+	registerGlobalVariable("ACCOUNT_MANAGER_NAMELOCK", static_cast<uint8_t>(AccountManagerMode::ACCOUNT_MANAGER_NAMELOCK));
+
 	registerEnum(AMMO_NONE);
 	registerEnum(AMMO_BOLT);
 	registerEnum(AMMO_ARROW);
