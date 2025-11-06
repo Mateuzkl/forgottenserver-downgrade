@@ -32,12 +32,24 @@ if(version >= 860) then
     g_game.enableFeature(GameAdditionalSkills)
     g_game.enableFeature(GameIdleAnimations)
     g_game.enableFeature(GameEnhancedAnimations)
-    --g_game.enableFeature(GameSpritesU32) -- Extended sprites
+    g_game.enableFeature(GameSpritesU32) -- Extended sprites
     --g_game.enableFeature(GameSpritesAlphaChannel) -- Transparency
 end
 ```
 
 **Note:** Make sure to check your OTCv8 client version and adjust the version check accordingly.
+
+### 📦 Using Extended Sprites (GameSpritesU32)
+
+To use the extended sprites feature, you need to extract the sprite files from the provided `.rar` archive:
+
+1. **Download the sprite archive**: Look for the `860 by marko.rar` file in the repository
+2. **Extract the files**: Extract the `.spr` and `.dat` files from the archive
+3. **Copy to OTCv8**: Place the extracted `.spr` and `.dat` files into your OTCv8 client directory
+4. **Enable the feature**: Make sure `g_game.enableFeature(GameSpritesU32)` is enabled in your `game_features.lua` file (already enabled above)
+5. **Enjoy**: Start your client and use the extended sprites!
+
+**Important**: The `.spr` and `.dat` files must match the client version (860) for proper functionality.
 
 ## 🎮 New Systems & Features
 
