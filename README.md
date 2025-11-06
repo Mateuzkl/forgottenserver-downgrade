@@ -39,6 +39,66 @@ end
 
 **Note:** Make sure to check your OTCv8 client version and adjust the version check accordingly.
 
+## 🎮 New Systems & Features
+
+This custom version includes several enhanced systems and features:
+
+### ⚔️ Tier & Classification System
+- Items can have **Tier** and **Classification** attributes
+- Tier system allows for item upgrades and progression
+- Classification system for categorizing items
+- Fully integrated with Lua scripting API
+
+### 🏆 Reward Boss System
+- **Reward Boss** system similar to Global Tibia
+- Tracks player contribution (damage done, damage taken, healing done)
+- Distributes rewards based on contribution score
+- Supports multiple contributors with proportional loot distribution
+- Rewards are stored in reward containers (ID: 21518) and reward chests (ID: 21584)
+- Configurable reward rates via config manager
+
+### 💤 Offline Training System
+- Train skills while offline using beds
+- Available skills: Sword, Axe, Club, Distance, Shielding, and Magic Level
+- Premium account required
+- Commands:
+  - `!train <skill>` - Select skill to train (sword, axe, club, distance, shielding, magic)
+  - `!sleep` - Start offline training (must be near a bed inside a house)
+- Automatically calculates training time based on logout duration
+- Maximum training time: 12 hours per session
+
+### 🏰 Guild Halls System
+- **Guild Leaders** and **Vice-Leaders** can purchase guild halls
+- Guild halls are purchased using guild bank balance
+- Only one guild hall per guild
+- Guild halls support all house features (doors, beds, etc.)
+- Commands:
+  - `!buyhouse` - Purchase a guild hall (Leader/Vice-Leader only)
+  - `!leavehouse` - Leave/abandon a guild hall (Leader/Vice-Leader only)
+
+### 🛡️ House Protection System
+- **Per-house protection** system (not global)
+- House owners can enable/disable protection for their specific house
+- When protection is enabled, only the owner and authorized guests can move items
+- When protection is disabled, anyone can move items
+- Protection state persists across server restarts
+- Commands:
+  - `!protecthouse on` - Enable protection for your house
+  - `!protecthouse off` - Disable protection for your house
+  - `!protecthouse` - Check current protection status
+  - `!houseguest add <name>` - Add a player to the protection guest list
+  - `!houseguest remove <name>` - Remove a player from the protection guest list
+  - `!houseguest list` - List all protection guests
+- **Guild Halls**: Leaders and Vice-Leaders can use protection commands
+- **Normal Houses**: Only the owner can use protection commands
+- Door messages show house ownership when clicking on house doors
+
+### ⚡ Improved Decay System
+- Enhanced decay system for better performance
+- Optimized item decay processing
+- Improved decay state management
+- Better handling of decay timers and item removal
+
 ## Contributing
 
 Pull requests are welcome.
