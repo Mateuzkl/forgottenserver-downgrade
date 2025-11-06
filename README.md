@@ -1,4 +1,7 @@
 # 🌺 𝓜𝓲𝓵𝓵𝓱𝓲𝓸𝓻𝓮 𝓣𝓕𝓢 𝓓𝓸𝔀𝓷𝓰𝓻𝓪𝓭𝓮 🌺
+
+[![Build status](https://ci.appveyor.com/api/projects/status/github/Mateuzkl/forgottenserver-downgrade?branch=official&svg=true)](https://ci.appveyor.com/project/Mateuzkl/forgottenserver-downgrade)
+
 ### 🐱 [Based nekiro downgrade.](https://github.com/nekiro/TFS-1.5-Downgrades)
 
 - This downgrade is not download and run distribution, monsters and spells are probably not 100% correct.
