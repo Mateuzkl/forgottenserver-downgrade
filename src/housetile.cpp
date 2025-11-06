@@ -68,6 +68,9 @@ ReturnValue HouseTile::queryAdd(int32_t index, const Thing& thing, uint32_t coun
 	if (const Creature* creature = thing.getCreature()) {
 		if (const Player* player = creature->getPlayer()) {
 			if (!house->isInvited(player)) {
+				if (house->getType() == HOUSE_TYPE_GUILDHALL) {
+					return RETURNVALUE_ONLYGUILDMEMBERSMAYENTER;
+				}
 				return RETURNVALUE_PLAYERISNOTINVITED;
 			}
 		} else {

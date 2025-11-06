@@ -13,8 +13,37 @@ function houseGuest.onSay(player, words, param)
         return false
     end
 
-    if house:getOwnerGuid() ~= player:getGuid() then
-        player:sendCancelMessage("Only the house owner can use this command.")
+    local houseType = house:getType()
+    local canUse = false
+
+    if houseType == HOUSE_TYPE_NORMAL then
+        -- Normal house: check if player is the owner
+        if house:getOwner() == player:getGuid() then
+            canUse = true
+        end
+    elseif houseType == HOUSE_TYPE_GUILDHALL then
+        -- Guildhall: check if player is leader or vice-leader of the owning guild
+        local guild = player:getGuild()
+        if guild then
+            local houseOwnerGuildId = house:getOwnerGuild()
+            local guildId = guild:getId()
+            
+            if houseOwnerGuildId == guildId then
+                local isLeader = player:isGuildLeader()
+                local isVice = player:isGuildVice()
+                if isLeader or isVice then
+                    canUse = true
+                end
+            end
+        end
+    end
+
+    if not canUse then
+        if houseType == HOUSE_TYPE_GUILDHALL then
+            player:sendCancelMessage("Only Guild Leader or Vice-Leader of the owning guild can use this command.")
+        else
+            player:sendCancelMessage("Only the house owner can use this command.")
+        end
         return false
     end
 

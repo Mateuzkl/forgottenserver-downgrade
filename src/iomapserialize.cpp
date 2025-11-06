@@ -254,7 +254,7 @@ bool IOMapSerialize::loadHouseInfo()
 {
 	Database& db = Database::getInstance();
 
-		DBResult_ptr result = db.storeQuery("SELECT `id`, CAST(`type` as UNSIGNED) AS `type`, `owner`, `paid`, `warnings`, `is_protected` FROM `houses`");
+	DBResult_ptr result = db.storeQuery("SELECT `id`, CAST(`type` as UNSIGNED) AS `type`, `owner`, `paid`, `warnings`, `is_protected` FROM `houses`");
 	if (!result) {
 		return false;
 	}
@@ -263,20 +263,25 @@ bool IOMapSerialize::loadHouseInfo()
 			House* house = g_game.map.houses.getHouse(result->getNumber<uint32_t>("id"));
 			if (house) {
 				std::string_view typeStr = result->getString("type");
-				// Default to the map-defined type; only override when DB is explicit
 				uint32_t typeVal = house->getType();
 				if (caseInsensitiveEqual(typeStr, "guildhall") || typeStr == "2") {
 					typeVal = HOUSE_TYPE_GUILDHALL;
 				} else if (caseInsensitiveEqual(typeStr, "house") || caseInsensitiveEqual(typeStr, "normal") || typeStr == "1") {
-					// Do not downgrade a guildhall defined in the map to normal
 					typeVal = (house->getType() == HOUSE_TYPE_GUILDHALL) ? HOUSE_TYPE_GUILDHALL : HOUSE_TYPE_NORMAL;
 				}
-				house->setType(static_cast<HouseType_t>(typeVal));
-				house->setOwner(result->getNumber<uint32_t>("owner"), false);
-				house->setPaidUntil(result->getNumber<time_t>("paid"));
-				house->setPayRentWarnings(result->getNumber<uint32_t>("warnings"));
-				house->setProtected(result->getNumber<uint8_t>("is_protected") != 0);
-			}
+			house->setType(static_cast<HouseType_t>(typeVal));
+        uint32_t ownerValue = result->getNumber<uint32_t>("owner");
+        house->setOwner(ownerValue, false);
+        std::string_view isProtectedRaw = result->getString("is_protected");
+        char isProtectedChar = isProtectedRaw.empty() ? '0' : isProtectedRaw[0];
+        bool protect = (isProtectedChar == '1');
+        if (ownerValue == 0) {
+            protect = false;
+        }
+        house->setProtected(protect);
+			house->setPaidUntil(result->getNumber<time_t>("paid"));
+			house->setPayRentWarnings(result->getNumber<uint32_t>("warnings"));
+		}
 		} while (result->next());
 
 	result = db.storeQuery("SELECT `house_id`, `listid`, `list` FROM `house_lists`");

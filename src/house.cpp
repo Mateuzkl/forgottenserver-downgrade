@@ -65,9 +65,17 @@ void House::setOwner(uint32_t guid_guild, bool updateDatabase /* = true*/, Playe
 {
 	if (updateDatabase && owner != guid_guild) {
 		Database& db = Database::getInstance();
-		db.executeQuery(fmt::format(
-		    "UPDATE `houses` SET `owner` = {:d}, `bid` = 0, `bid_end` = 0, `last_bid` = 0, `highest_bidder` = 0  WHERE `id` = {:d}",
-		    guid_guild, id));
+	bool resetProtection = (guid_guild == 0 || owner == 0);
+	if (resetProtection) {
+            db.executeQuery(fmt::format(
+                "UPDATE `houses` SET `owner` = {:d}, `bid` = 0, `bid_end` = 0, `last_bid` = 0, `highest_bidder` = 0, `is_protected` = 0 WHERE `id` = {:d}",
+                guid_guild, id));
+        setProtected(false);
+	} else {
+			db.executeQuery(fmt::format(
+			    "UPDATE `houses` SET `owner` = {:d}, `bid` = 0, `bid_end` = 0, `last_bid` = 0, `highest_bidder` = 0 WHERE `id` = {:d}",
+			    guid_guild, id));
+		}
 	}
 
 	if (isLoaded && owner == guid_guild) {
@@ -76,7 +84,7 @@ void House::setOwner(uint32_t guid_guild, bool updateDatabase /* = true*/, Playe
 
 	isLoaded = true;
 
-	if (owner != 0) {
+	if (owner != 0 && updateDatabase) {
 		// send items to depot
 		if (previousPlayer) {
 			transferToDepot(previousPlayer);
@@ -103,6 +111,9 @@ void House::setOwner(uint32_t guid_guild, bool updateDatabase /* = true*/, Playe
 		owner = 0;
 		ownerAccountId = 0;
 		ownerName.clear();
+		if (updateDatabase) {
+			isProtected = false;
+		}
 		setAccessList(SUBOWNER_LIST, "");
 		setAccessList(GUEST_LIST, "");
 
@@ -142,7 +153,6 @@ void House::setOwner(uint32_t guid_guild, bool updateDatabase /* = true*/, Playe
 			return;
 		}
 
-		// Save the new owner to the house object
 		owner = guid_guild;
 		ownerAccountId = sqlAccountId;
 		if (type == HOUSE_TYPE_GUILDHALL) {
@@ -152,14 +162,17 @@ void House::setOwner(uint32_t guid_guild, bool updateDatabase /* = true*/, Playe
 		} else {
 			ownerName = sqlPlayerName;
 		}
+		updateDoorDescription();
+	} else {
+		updateDoorDescription();
 	}
 }
 
 AccessHouseLevel_t House::getHouseAccessLevel(const Player* player) const
 {
-	if (!player) {
-		return HOUSE_OWNER;
-	}
+    if (!player) {
+        return HOUSE_OWNER;
+    }
 
 	if (player->hasFlag(PlayerFlag_CanEditHouses)) {
 		return HOUSE_OWNER;
@@ -176,18 +189,19 @@ AccessHouseLevel_t House::getHouseAccessLevel(const Player* player) const
 		if (guid == owner) {
 			return HOUSE_OWNER;
 		}
-	} else { // HOUSE_TYPE_GUILDHALL
-		Guild* guild = player->getGuild();
-		uint32_t guid = player->getGUID();
-		if (guild && guild->getId() == owner) {
-			if (guild->getOwnerGUID() == guid) {
-				return HOUSE_OWNER;
-			}
-			if (player->getGuildRank() == guild->getRankByLevel(2)) {
-				return HOUSE_SUBOWNER;
-			}
-		}
-	}
+    } else { // HOUSE_TYPE_GUILDHALL
+        Guild* guild = player->getGuild();
+        uint32_t guid = player->getGUID();
+        if (guild && guild->getId() == owner) {
+            if (guild->getOwnerGUID() == guid) {
+                return HOUSE_OWNER;
+            }
+            if (player->getGuildRank() == guild->getRankByLevel(2)) {
+                return HOUSE_SUBOWNER;
+            }
+            return HOUSE_GUEST;
+        }
+    }
 
 	if (subOwnerList.isInList(player)) {
 		return HOUSE_SUBOWNER;
@@ -612,15 +626,21 @@ void Door::setHouse(House* house)
 
 bool Door::canUse(const Player* player)
 {
-	if (!house) {
-		return true;
-	}
+    if (!house) {
+        return true;
+    }
 
-	if (house->getHouseAccessLevel(player) >= HOUSE_SUBOWNER) {
-		return true;
-	}
+    if (house->getType() == HOUSE_TYPE_GUILDHALL) {
+        if (house->getHouseAccessLevel(player) >= HOUSE_GUEST) {
+            return true;
+        }
+    } else {
+        if (house->getHouseAccessLevel(player) >= HOUSE_SUBOWNER) {
+            return true;
+        }
+    }
 
-	return accessList->isInList(player);
+    return accessList->isInList(player);
 }
 
 void Door::setAccessList(std::string_view textlist)
@@ -656,7 +676,8 @@ void House::updateDoorDescription()
 		if (ownerName.empty()) {
 			door->setSpecialDescription("");
 		} else {
-			door->setSpecialDescription(fmt::format("It belongs to house '{:s}'. Owner: {:s}.", getName(), ownerName));
+			// Description will be personalized in Lua script based on player
+			door->setSpecialDescription(fmt::format("This house belongs to {:s}.", ownerName));
 		}
 	}
 }

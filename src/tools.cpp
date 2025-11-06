@@ -1009,6 +1009,9 @@ std::string_view getReturnMessage(ReturnValue value)
 		case RETURNVALUE_PLAYERISNOTINVITED:
 			return "You are not invited.";
 
+		case RETURNVALUE_ONLYGUILDMEMBERSMAYENTER:
+			return "Only members of this guild may enter.";
+
 		case RETURNVALUE_CREATUREDOESNOTEXIST:
 			return "Creature does not exist.";
 
