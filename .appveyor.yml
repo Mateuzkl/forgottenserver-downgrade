@@ -16,12 +16,13 @@ environment:
 install:
   # Install vcpkg
   - if not exist "%VCPKG_ROOT%" (
-      git clone https://github.com/Microsoft/vcpkg.git "%VCPKG_ROOT%"
-      cd "%VCPKG_ROOT%"
+      git clone --depth 1 https://github.com/Microsoft/vcpkg.git "%VCPKG_ROOT%"
+    )
+  - cd "%VCPKG_ROOT%"
+  - if not exist "vcpkg.exe" (
       call bootstrap-vcpkg.bat
     )
   # Install dependencies
-  - cd "%VCPKG_ROOT%"
   - vcpkg integrate install
   - cd "%APPVEYOR_BUILD_FOLDER%"
   - vcpkg install --triplet %VCPKG_DEFAULT_TRIPLET% boost-asio boost-iostreams boost-locale boost-lockfree boost-system boost-variant fmt libmariadb openssl pugixml zlib lua boost-beast boost-json
