@@ -1,6 +1,9 @@
 version: '{build}'
 image: Visual Studio 2022
 
+# Disable auto-detection of .sln/.vcxproj files
+build: off
+
 environment:
   VCPKG_ROOT: C:\vcpkg
   VCPKG_DEFAULT_TRIPLET: x64-windows
@@ -27,8 +30,8 @@ before_build:
   # Create build directory
   - if not exist build mkdir build
   - cd build
-  # Configure CMake
-  - cmake .. -DCMAKE_TOOLCHAIN_FILE="%VCPKG_ROOT%/scripts/buildsystems/vcpkg.cmake" -DCMAKE_BUILD_TYPE=%BUILD_TYPE% -DCMAKE_GENERATOR_PLATFORM=x64
+  # Configure CMake with Visual Studio generator (multi-config, no CMAKE_BUILD_TYPE needed)
+  - cmake .. -G "Visual Studio 17 2022" -A x64 -DCMAKE_TOOLCHAIN_FILE="%VCPKG_ROOT%/scripts/buildsystems/vcpkg.cmake"
 
 build_script:
   - cmake --build . --config %CONFIGURATION% --parallel
@@ -36,11 +39,7 @@ build_script:
 after_build:
   # Copy executable to root for artifacts
   - cd %APPVEYOR_BUILD_FOLDER%
-  - if "%CONFIGURATION%"=="Release" (
-      if exist "build\Release\tfs.exe" copy "build\Release\tfs.exe" "tfs.exe"
-    ) else (
-      if exist "build\Debug\tfs.exe" copy "build\Debug\tfs.exe" "tfs.exe"
-    )
+  - if exist "build\%CONFIGURATION%\tfs.exe" copy "build\%CONFIGURATION%\tfs.exe" "tfs.exe"
 
 artifacts:
   - path: tfs.exe
