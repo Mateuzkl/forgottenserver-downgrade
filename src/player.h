@@ -1027,6 +1027,7 @@ private:
 	void handleNewAccountManager(const std::string& text, std::ostringstream& msg, bool& shouldShowHelp);
 	bool checkText(std::string_view text, std::string_view match) const;
 	void resetTalkState(size_t from = 0, size_t to = 15);
+	void setManagerTalkState(size_t index, bool value) { managerTalkState[index] = value; }
 
 	void gainExperience(uint64_t gainExp, Creature* source);
 

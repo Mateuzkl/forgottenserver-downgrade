@@ -257,9 +257,15 @@ void ProtocolGame::login(uint32_t characterId, uint32_t accountId, OperatingSyst
 		    player->getAccountManagerMode() == ACCOUNT_MANAGER_NONE) {
 			if (accountId == 1) {
 				player->setAccountManagerMode(ACCOUNT_MANAGER_NEW);
+				player->sendTextMessage(MESSAGE_STATUS_CONSOLE_ORANGE,
+                    "Account Manager: Welcome! You are now speaking with the Account Manager. To create a new account, type {account}. If you already have one and need to recover it, type {recover}. Type {cancel} anytime to restart this conversation.");
 			} else {
 				player->setAccountManagerMode(ACCOUNT_MANAGER_ACCOUNT);
 				player->setAccountManagerData(accountId);
+				player->resetTalkState(0, 0);
+				player->setManagerTalkState(1, true);
+                player->sendTextMessage(MESSAGE_STATUS_CONSOLE_ORANGE,
+                    "Account Manager: Welcome back. Type {account} to manage your account, {character} to create a new character, or {cancel} to start over.");
 			}
 		}
 		// Block movement for all Account Manager modes
