@@ -186,6 +186,9 @@ pip-log.txt
 # Others
 *.lnk
 
+# Archive files
+*.rar
+
 #############
 ## TFS / OT
 #############

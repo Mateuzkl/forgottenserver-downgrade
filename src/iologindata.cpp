@@ -130,7 +130,7 @@ std::pair<uint32_t, uint32_t> IOLoginData::gameworldAuthentication(std::string_v
                 return {};
             }
             uint32_t accountManagerId = accMgrRes->getNumber<uint32_t>("id");
-            return std::make_pair(1, accountManagerId);
+			return std::make_pair(fallbackAccountId, accountManagerId);
         }
 
         // Pick the first character from this account if specific character was not found/matched
@@ -158,13 +158,14 @@ std::pair<uint32_t, uint32_t> IOLoginData::gameworldAuthentication(std::string_v
 	uint32_t characterId = result->getNumber<uint32_t>("character_id");
 
 	if (ConfigManager::getBoolean(ConfigManager::ACCOUNT_MANAGER) && characterName == "Account Manager" && accountId != 1) {
-		result = db.storeQuery("SELECT `id` FROM `players` WHERE `name` = 'Account Manager' AND `account_id` = 1 AND `deletion` = 0");
-		if (!result) {
-			return {};
-		}
-		uint32_t accountManagerId = result->getNumber<uint32_t>("id");
-		return std::make_pair(1, accountManagerId);
-	}
+        result = db.storeQuery("SELECT `id` FROM `players` WHERE `name` = 'Account Manager' AND `account_id` = 1 AND `deletion` = 0");
+        if (!result) {
+            return {};
+        }
+        uint32_t accountManagerId = result->getNumber<uint32_t>("id");
+        // Return the user's authenticated account id with the Account Manager character id
+        return std::make_pair(accountId, accountManagerId);
+    }
 
 	return std::make_pair(accountId, characterId);
 }
@@ -1251,36 +1252,21 @@ void IOLoginData::updateTibiaCoins(uint32_t accountId, uint64_t tibiaCoins)
 bool IOLoginData::createAccount(const std::string& name, const std::string& password, uint32_t& accountId)
 {
 	Database& db = Database::getInstance();
-	
-	std::cout << "[DEBUG] createAccount - Account name: " << name << std::endl;
-	std::cout << "[DEBUG] createAccount - Password length: " << password.length() << std::endl;
-	
-	DBResult_ptr result = db.storeQuery(fmt::format("SELECT `id` FROM `accounts` WHERE LOWER(`name`) = LOWER({:s})", db.escapeString(name)));
-	if (result) {
-		std::cout << "[DEBUG] createAccount - Account already exists!" << std::endl;
-		return false;
-	}
-	
-	std::string hashedPassword = transformToSHA1Hex(password);
-	std::cout << "[DEBUG] createAccount - Hashed password (hex): " << hashedPassword << std::endl;
-	std::cout << "[DEBUG] createAccount - Hashed password length: " << hashedPassword.length() << std::endl;
-	
-	if (!db.executeQuery(fmt::format("INSERT INTO `accounts` (`name`, `password`, `type`, `premium_ends_at`, `email`, `creation`) VALUES ({:s}, {:s}, 1, 0, '', {:d})",
-		db.escapeString(name), db.escapeString(hashedPassword), static_cast<uint32_t>(time(nullptr))))) {
-		std::cout << "[DEBUG] createAccount - Failed to insert account into database!" << std::endl;
-		return false;
-	}
-	
-	std::cout << "[DEBUG] createAccount - Account inserted successfully!" << std::endl;
-	
-	result = db.storeQuery(fmt::format("SELECT `id` FROM `accounts` WHERE LOWER(`name`) = LOWER({:s})", db.escapeString(name)));
-	if (!result) {
-		std::cout << "[DEBUG] createAccount - Failed to retrieve account ID after creation!" << std::endl;
-		return false;
-	}
-	accountId = result->getNumber<uint32_t>("id");
-	std::cout << "[DEBUG] createAccount - Account created with ID: " << accountId << std::endl;
-	return true;
+    DBResult_ptr result = db.storeQuery(fmt::format("SELECT `id` FROM `accounts` WHERE LOWER(`name`) = LOWER({:s})", db.escapeString(name)));
+    if (result) {
+        return false;
+    }
+    std::string hashedPassword = transformToSHA1Hex(password);
+    if (!db.executeQuery(fmt::format("INSERT INTO `accounts` (`name`, `password`, `type`, `premium_ends_at`, `email`, `creation`) VALUES ({:s}, {:s}, 1, 0, '', {:d})",
+        db.escapeString(name), db.escapeString(hashedPassword), static_cast<uint32_t>(time(nullptr))))) {
+        return false;
+    }
+    result = db.storeQuery(fmt::format("SELECT `id` FROM `accounts` WHERE LOWER(`name`) = LOWER({:s})", db.escapeString(name)));
+    if (!result) {
+        return false;
+    }
+    accountId = result->getNumber<uint32_t>("id");
+    return true;
 }
 
 bool IOLoginData::setPassword(uint32_t accountId, const std::string& newPassword)
