@@ -1934,6 +1934,11 @@ void Monster::death(Creature*)
 
 	setAttackedCreature(nullptr);
 
+	for (Creature* summon : summons) {
+		summon->changeHealth(-summon->getHealth());
+		summon->removeMaster();
+	}
+
 	summons.clear();
 
 	clearTargetList();
