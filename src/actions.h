@@ -58,6 +58,10 @@ public:
 	}
 	void addActionId(uint16_t id) { aids.emplace_back(id); }
 
+	void setPositionList(const std::vector<Position>& posList) { positionList = posList; }
+	const std::vector<Position>& getPositionList() const { return positionList; }
+	bool hasPosition() const { return !positionList.empty(); }
+
 	virtual ReturnValue canExecuteAction(const Player* player, const Position& toPos);
 	virtual bool hasOwnErrorHandler() { return false; }
 	virtual Thing* getTarget(Player* player, Creature* targetCreature, const Position& toPosition,
@@ -74,6 +78,7 @@ private:
 	std::vector<uint16_t> ids;
 	std::vector<uint16_t> uids;
 	std::vector<uint16_t> aids;
+	std::vector<Position> positionList;
 };
 
 class Actions final : public BaseEvents
@@ -109,8 +114,10 @@ private:
 	ActionUseMap useItemMap;
 	ActionUseMap uniqueItemMap;
 	ActionUseMap actionItemMap;
+	std::map<Position, Action> positionMap;
 
 	Action* getAction(const Item* item);
+	Action* getAction(const Position& pos);
 	void clearMap(ActionUseMap& map, bool fromLua);
 
 	LuaScriptInterface scriptInterface;
