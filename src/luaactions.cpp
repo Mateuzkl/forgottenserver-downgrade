@@ -164,6 +164,49 @@ int luaActionCheckFloor(lua_State* L)
 	}
 	return 1;
 }
+
+int luaActionPosition(lua_State* L)
+{
+	// action:position(position)
+    // action:position({position1, position2, ...})
+	Action* action = getUserdata<Action>(L, 1);
+	if (!action) {
+		lua_pushnil(L);
+		return 1;
+	}
+
+	std::vector<Position> positionList;
+
+	if (isUserdata(L, 2) || lua_istable(L, 2)) {
+		lua_getfield(L, 2, "x");
+		bool hasX = !lua_isnil(L, -1);
+		lua_pop(L, 1);
+
+		if (hasX) {
+			Position pos = getPosition(L, 2);
+			positionList.push_back(pos);
+		} else {
+			lua_pushnil(L);
+			while (lua_next(L, 2) != 0) {
+				if (isUserdata(L, -1) || lua_istable(L, -1)) {
+					Position pos = getPosition(L, -1);
+					positionList.push_back(pos);
+				}
+				lua_pop(L, 1);
+			}
+		}
+	} else {
+		lua_pushnil(L);
+		return 1;
+	}
+
+	const auto& existingPositions = action->getPositionList();
+	positionList.insert(positionList.end(), existingPositions.begin(), existingPositions.end());
+	action->setPositionList(positionList);
+
+	pushBoolean(L, true);
+	return 1;
+}
 } // namespace
 
 void LuaScriptInterface::registerActions()
@@ -175,6 +218,7 @@ void LuaScriptInterface::registerActions()
 	registerMethod("Action", "id", luaActionItemId);
 	registerMethod("Action", "aid", luaActionActionId);
 	registerMethod("Action", "uid", luaActionUniqueId);
+	registerMethod("Action", "position", luaActionPosition);
 	registerMethod("Action", "allowFarUse", luaActionAllowFarUse);
 	registerMethod("Action", "blockWalls", luaActionBlockWalls);
 	registerMethod("Action", "checkFloor", luaActionCheckFloor);
