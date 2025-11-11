@@ -94,6 +94,8 @@ bool Events::load()
 				info.playerOnItemMoved = event;
 			} else if (methodName == "onMoveCreature") {
 				info.playerOnMoveCreature = event;
+			} else if (methodName == "onStepTile") {
+				info.playerOnStepTile = event;
 			} else if (methodName == "onReportRuleViolation") {
 				info.playerOnReportRuleViolation = event;
 			} else if (methodName == "onReportBug") {
@@ -802,6 +804,32 @@ bool Events::eventPlayerOnMoveCreature(Player* player, Creature* creature, const
 	Lua::pushPosition(L, toPosition);
 
 	return scriptInterface.callFunction(4);
+}
+
+bool Events::eventPlayerOnStepTile(Player* player, const Position& fromPosition, const Position& toPosition)
+{
+	// Player:onStepTile(fromPosition, toPosition)
+	if (info.playerOnStepTile == -1) {
+		return true;
+	}
+
+	if (!scriptInterface.reserveScriptEnv()) {
+		std::cout << "[Error - Events::eventPlayerOnStepTile] Call stack overflow" << std::endl;
+		return false;
+	}
+
+	ScriptEnvironment* env = scriptInterface.getScriptEnv();
+	env->setScriptId(info.playerOnStepTile, &scriptInterface);
+
+	lua_State* L = scriptInterface.getLuaState();
+	scriptInterface.pushFunction(info.playerOnStepTile);
+
+	Lua::pushUserdata<Player>(L, player);
+	Lua::setMetatable(L, -1, "Player");
+	Lua::pushPosition(L, fromPosition);
+	Lua::pushPosition(L, toPosition);
+
+	return scriptInterface.callFunction(3);
 }
 
 void Events::eventPlayerOnReportRuleViolation(Player* player, std::string_view targetName, uint8_t reportType,

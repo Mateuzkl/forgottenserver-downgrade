@@ -16,7 +16,8 @@ PlayerStorageKeys = {
     houseProtectionBase = 40000,
     houseGuestListBase = 41000, 
     achievementsBase = 300000,
-    achievementsCounter = 20000
+    achievementsCounter = 20000,
+    ExerciseDummyExhaust = 30029,
 }
 
 

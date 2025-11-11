@@ -52,6 +52,7 @@ class Events
 		int32_t playerOnMoveItem = -1;
 		int32_t playerOnItemMoved = -1;
 		int32_t playerOnMoveCreature = -1;
+		int32_t playerOnStepTile = -1;
 		int32_t playerOnReportRuleViolation = -1;
 		int32_t playerOnReportBug = -1;
 		int32_t playerOnTurn = -1;
@@ -106,6 +107,7 @@ public:
 	                            const Position& toPosition, Cylinder* fromCylinder, Cylinder* toCylinder);
 	bool eventPlayerOnMoveCreature(Player* player, Creature* creature, const Position& fromPosition,
 	                               const Position& toPosition);
+	bool eventPlayerOnStepTile(Player* player, const Position& fromPosition, const Position& toPosition);
 	void eventPlayerOnReportRuleViolation(Player* player, std::string_view targetName, uint8_t reportType,
 	                                      uint8_t reportReason, std::string_view comment, std::string_view translation);
 	bool eventPlayerOnReportBug(Player* player, std::string_view message);
