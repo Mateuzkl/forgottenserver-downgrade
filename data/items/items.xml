@@ -33687,6 +33687,7 @@
 		<attribute key="loottype" value="tool" />
 	</item>
 	<item id="21584" article="a" name="reward chest">
+		<attribute key="type" value="rewardchest" />
 		<attribute key="description" value="This chest contains your rewards earned in battles." />
 		<attribute key="containersize" value="32" />
 		<attribute key="pickupable" value="0" />
