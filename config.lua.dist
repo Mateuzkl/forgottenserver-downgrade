@@ -156,7 +156,7 @@ depotPremiumLimit = 10000
 
 -- Max player allowed on a dummy
 maxAllowedOnADummy = 5
-rateExerciseTrainingSpeed = rateAttackSpeed
+rateExerciseTrainingSpeed = 1.0
 
 -- World Light
 -- NOTE: if defaultWorldLight is set to true the world light algorithm will

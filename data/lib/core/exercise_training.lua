@@ -3,12 +3,18 @@ ExerciseWeaponsTable = {
 	[31208] = { skill = SKILL_SWORD, allowFarUse = true },
 	[31209] = { skill = SKILL_AXE, allowFarUse = true },
 	[31210] = { skill = SKILL_CLUB, allowFarUse = true },
+	[37941] = { skill = SKILL_SWORD, allowFarUse = true },
+	[37942] = { skill = SKILL_AXE, allowFarUse = true },
+	[37943] = { skill = SKILL_CLUB, allowFarUse = true },
 	-- PALADIN
 	[31211] = { skill = SKILL_DISTANCE, effect = CONST_ANI_SIMPLEARROW, allowFarUse = true },
+	[37944] = { skill = SKILL_DISTANCE, effect = CONST_ANI_SIMPLEARROW, allowFarUse = true },
 	-- DRUID
 	[31212] = { skill = SKILL_MAGLEVEL, effect = CONST_ANI_SMALLICE, allowFarUse = true },
+	[37945] = { skill = SKILL_MAGLEVEL, effect = CONST_ANI_SMALLICE, allowFarUse = true },
 	-- SORCERER
 	[31213] = { skill = SKILL_MAGLEVEL, effect = CONST_ANI_FIRE, allowFarUse = true },
+	[37946] = { skill = SKILL_MAGLEVEL, effect = CONST_ANI_FIRE, allowFarUse = true },
 	-- KNIGHT (Free)
 	[31196] = { skill = SKILL_SWORD, allowFarUse = true },
 	[31197] = { skill = SKILL_AXE, allowFarUse = true },
