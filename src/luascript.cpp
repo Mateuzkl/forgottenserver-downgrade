@@ -2151,6 +2151,8 @@ void LuaScriptInterface::registerFunctions()
 	registerEnumIn("configKeys", ConfigManager::REWARD_RATE_DAMAGE_DONE);
 	registerEnumIn("configKeys", ConfigManager::REWARD_RATE_DAMAGE_TAKEN);
 	registerEnumIn("configKeys", ConfigManager::REWARD_RATE_HEALING_DONE);
+	registerEnumIn("configKeys", ConfigManager::MAX_ALLOWED_ON_A_DUMMY);
+	registerEnumIn("configKeys", ConfigManager::RATE_EXERCISE_TRAINING_SPEED);
 
 	// os
 	registerMethod("os", "mtime", LuaScriptInterface::luaSystemTime);
@@ -2795,11 +2797,11 @@ int LuaScriptInterface::luaAddEvent(lua_State* L)
 		return 1;
 	}
 
-	if (!Lua::isInteger(L, 2)) {
-		reportErrorFunc(L, "delay parameter should be a integer.");
-		Lua::pushBoolean(L, false);
-		return 1;
-	}
+	// if (!Lua::isInteger(L, 2)) {
+	// 	reportErrorFunc(L, "delay parameter should be a integer.");
+	// 	Lua::pushBoolean(L, false);
+	// 	return 1;
+	// }
 
 	if (getBoolean(ConfigManager::WARN_UNSAFE_SCRIPTS) || getBoolean(ConfigManager::CONVERT_UNSAFE_SCRIPTS)) {
 		std::vector<std::pair<int32_t, LuaDataType>> indexes;

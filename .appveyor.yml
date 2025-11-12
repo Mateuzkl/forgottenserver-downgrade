@@ -1,52 +1,53 @@
 version: '{build}'
 image: Visual Studio 2022
+shallow_clone: true
 
-# Disable auto-detection of .sln/.vcxproj files
-build: off
+platform:
+  - x64
+
+configuration:
+  - Release
+
+matrix:
+  fast_finish: false
+
+only_commits:
+  files:
+    - /src/
+    - /vc17/
+    - .appveyor.yml
+    - /cmake/
 
 environment:
-  VCPKG_ROOT: C:\vcpkg
+  VCPKG_ROOT: C:\Tools\vcpkg
   VCPKG_DEFAULT_TRIPLET: x64-windows
-  matrix:
-    - BUILD_TYPE: Release
-      CONFIGURATION: Release
-    - BUILD_TYPE: Debug
-      CONFIGURATION: Debug
 
 install:
-  # Install vcpkg
-  - if not exist "%VCPKG_ROOT%" (
-      git clone --depth 1 https://github.com/Microsoft/vcpkg.git "%VCPKG_ROOT%"
-    )
-  - cd "%VCPKG_ROOT%"
-  - if not exist "vcpkg.exe" (
-      call bootstrap-vcpkg.bat
-    )
-  # Install dependencies
-  - vcpkg integrate install
-  - cd "%APPVEYOR_BUILD_FOLDER%"
-  - vcpkg install --triplet %VCPKG_DEFAULT_TRIPLET% boost-asio boost-iostreams boost-locale boost-lockfree boost-system boost-variant fmt libmariadb openssl pugixml zlib lua boost-beast boost-json
+  - cmd: vcpkg install
 
 before_build:
-  # Create build directory
   - if not exist build mkdir build
   - cd build
-  # Configure CMake with Visual Studio generator (multi-config, no CMAKE_BUILD_TYPE needed)
   - cmake .. -G "Visual Studio 17 2022" -A x64 -DCMAKE_TOOLCHAIN_FILE="%VCPKG_ROOT%/scripts/buildsystems/vcpkg.cmake"
+
+build:
+  parallel: true
 
 build_script:
   - cmake --build . --config %CONFIGURATION% --parallel
 
 after_build:
-  # Copy executable to root for artifacts
   - cd %APPVEYOR_BUILD_FOLDER%
-  - if exist "build\%CONFIGURATION%\tfs.exe" copy "build\%CONFIGURATION%\tfs.exe" "tfs.exe"
+  - 7z a -tzip TFS.zip -r .\build\%CONFIGURATION%\*.exe -ir!.\build\%CONFIGURATION%\*.dll
+
+cache:
+  - c:\tools\vcpkg\installed\
 
 artifacts:
-  - path: tfs.exe
-    name: TFS-$(APPVEYOR_BUILD_VERSION)-$(CONFIGURATION)-x64
+  - path: build\**\tfs*.exe
+  - path: build\**\*.dll
+  - path: TFS.zip
 
 test: off
 
 deploy: off
-
