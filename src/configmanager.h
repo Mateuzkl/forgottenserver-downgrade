@@ -150,6 +150,8 @@ enum Integer
 	NEW_PLAYER_TOWN_ID,
 	NEW_PLAYER_LEVEL,
 	NEW_PLAYER_MAGIC_LEVEL,
+	MAX_ALLOWED_ON_A_DUMMY,
+	RATE_EXERCISE_TRAINING_SPEED,
 
 	LAST_INTEGER /* this must be the last one */
 };
@@ -170,8 +172,8 @@ std::string_view getString(String what);
 int64_t getInteger(Integer what);
 float getFloat(float_config_t what);
 float getExperienceStage(uint32_t level);
-	const std::vector<uint16_t>& getFastPotionIds();
-	const std::vector<uint16_t>& getBlockedTeleportIds();
+const std::vector<uint16_t>& getFastPotionIds();
+const std::vector<uint16_t>& getBlockedTeleportIds();
 
 bool setBoolean(Boolean what, bool value);
 bool setString(String what, std::string_view value);

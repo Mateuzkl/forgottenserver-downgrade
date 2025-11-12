@@ -21899,4 +21899,128 @@
 		<attribute key="pickupable" value="0" />
 		<attribute key="moveable" value="0" />
 	</item>
+	<item id="31196" article="a" name="training sword" editorsuffix=" (50 charges)">
+		<attribute key="description"
+			value="You bought this item in the Store or gained it as a daily reward. This item cannot be traded." />
+		<attribute key="charges" value="50" />
+		<attribute key="showcharges" value="1" />
+		<attribute key="weight" value="1000" />
+		<attribute key="moveable" value="0" />
+	</item>
+	<item id="31197" article="a" name="training axe" editorsuffix=" (50 charges)">
+		<attribute key="description"
+			value="You bought this item in the Store or gained it as a daily reward. This item cannot be traded." />
+		<attribute key="charges" value="50" />
+		<attribute key="showcharges" value="1" />
+		<attribute key="weight" value="1000" />
+		<attribute key="moveable" value="0" />
+	</item>
+	<item id="31198" article="a" name="training club" editorsuffix=" (50 charges)">
+		<attribute key="description"
+			value="You bought this item in the Store or gained it as a daily reward. This item cannot be traded." />
+		<attribute key="charges" value="50" />
+		<attribute key="showcharges" value="1" />
+		<attribute key="weight" value="1000" />
+		<attribute key="moveable" value="0" />
+	</item>
+	<item id="31199" article="a" name="training bow" editorsuffix=" (50 charges)">
+		<attribute key="description"
+			value="You bought this item in the Store or gained it as a daily reward. This item cannot be traded." />
+		<attribute key="charges" value="50" />
+		<attribute key="showcharges" value="1" />
+		<attribute key="weight" value="1000" />
+		<attribute key="moveable" value="0" />
+	</item>
+	<item id="31200" article="a" name="training rod" editorsuffix=" (50 charges)">
+		<attribute key="description"
+			value="You bought this item in the Store or gained it as a daily reward. This item cannot be traded." />
+		<attribute key="charges" value="50" />
+		<attribute key="showcharges" value="1" />
+		<attribute key="weight" value="1000" />
+		<attribute key="moveable" value="0" />
+	</item>
+	<item id="31201" article="a" name="training wand" editorsuffix=" (50 charges)">
+		<attribute key="description"
+			value="You bought this item in the Store or gained it as a daily reward. This item cannot be traded." />
+		<attribute key="charges" value="50" />
+		<attribute key="showcharges" value="1" />
+		<attribute key="weight" value="1000" />
+		<attribute key="moveable" value="0" />
+	</item>
+	<item fromid="31202" toid="31207" editorsuffix=" (Blank)" />
+	<item id="31208" article="an" name="exercise sword" editorsuffix=" (500 charges)">
+		<attribute key="charges" value="500" />
+		<attribute key="showcharges" value="1" />
+		<attribute key="weight" value="1000" />
+	</item>
+	<item id="31209" article="an" name="exercise axe" editorsuffix=" (500 charges)">
+		<attribute key="charges" value="500" />
+		<attribute key="showcharges" value="1" />
+		<attribute key="weight" value="1000" />
+		<attribute key="moveable" value="0" />
+	</item>
+	<item id="31210" article="a" name="exercise club" editorsuffix=" (500 charges)">
+		<attribute key="charges" value="500" />
+		<attribute key="showcharges" value="1" />
+		<attribute key="weight" value="1000" />
+	</item>
+	<item id="31211" article="a" name="exercise bow" editorsuffix=" (500 charges)">
+		<attribute key="charges" value="500" />
+		<attribute key="showcharges" value="1" />
+		<attribute key="weight" value="1000" />
+	</item>
+	<item id="31212" article="a" name="exercise rod" editorsuffix=" (500 charges)">
+		<attribute key="charges" value="500" />
+		<attribute key="showcharges" value="1" />
+		<attribute key="weight" value="1000" />
+	</item>
+	<item id="31213" article="an" name="exercise wand" editorsuffix=" (500 charges)">
+		<attribute key="charges" value="500" />
+		<attribute key="showcharges" value="1" />
+		<attribute key="weight" value="1000" />
+	</item>
+	<item id="31214" article="an" name="exercise dummy">
+		<attribute key="description"
+			value="You can train your skills by using training weapons with this exercise dummy." />
+	</item>
+	<item id="31215" article="a" name="ferumbras exercise dummy">
+		<attribute key="description"
+			value="You can train your skills by using training weapons with this exercise dummy." />
+		<attribute key="rotateTo" value="31216" />
+		<attribute key="wrapableTo" value="26054" />
+	</item>
+	<item id="31216" article="a" name="ferumbras exercise dummy">
+		<attribute key="description"
+			value="You can train your skills by using training weapons with this exercise dummy." />
+		<attribute key="rotateTo" value="31215" />
+		<attribute key="wrapableTo" value="26054" />
+	</item>
+	<item id="31217" article="a" name="demon exercise dummy">
+		<attribute key="description"
+			value="You can train your skills by using training weapons with this exercise dummy." />
+		<attribute key="rotateTo" value="31218" />
+		<attribute key="wrapableTo" value="26054" />
+	</item>
+	<item id="31218" article="a" name="demon exercise dummy">
+		<attribute key="description"
+			value="You can train your skills by using training weapons with this exercise dummy." />
+		<attribute key="rotateTo" value="31217" />
+		<attribute key="wrapableTo" value="26054" />
+	</item>
+	<item id="31219" article="a" name="monk exercise dummy">
+		<attribute key="description"
+			value="You can train your skills by using training weapons with this exercise dummy." />
+		<attribute key="rotateTo" value="31220" />
+		<attribute key="wrapableTo" value="26054" />
+	</item>
+	<item id="31220" article="a" name="monk exercise dummy">
+		<attribute key="description"
+			value="You can train your skills by using training weapons with this exercise dummy." />
+		<attribute key="rotateTo" value="31219" />
+		<attribute key="wrapableTo" value="26054" />
+	</item>
+	<item id="31221" article="an" name="exercise dummy">
+		<attribute key="description"
+			value="You can train your skills by using training weapons with this exercise dummy." />
+	</item>
 </items>
