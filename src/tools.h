@@ -26,6 +26,9 @@ bool caseInsensitiveEqual(std::string_view str1, std::string_view str2);
 // checks that str1 starts with str2 ignoring letter case
 bool caseInsensitiveStartsWith(std::string_view str, std::string_view prefix);
 
+void toLowerCaseString(std::string& source);
+std::string asLowerCaseString(std::string source);
+
 using StringVector = std::vector<std::string>;
 using IntegerVector = std::vector<int32_t>;
 

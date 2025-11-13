@@ -226,6 +226,12 @@ Condition* Condition::createCondition(ConditionId_t id, ConditionType_t type, in
 		case CONDITION_ATTRIBUTES:
 			return new ConditionAttributes(id, type, ticks, buff, subId, aggressive);
 
+		case CONDITION_SPELLCOOLDOWN:
+			return new ConditionSpellCooldown(id, type, ticks, buff, subId, aggressive);
+
+		case CONDITION_SPELLGROUPCOOLDOWN:
+			return new ConditionSpellGroupCooldown(id, type, ticks, buff, subId, aggressive);
+
 		case CONDITION_DRUNK:
 			return new ConditionDrunk(id, type, ticks, buff, subId, static_cast<uint8_t>(param), aggressive);
 
@@ -1992,6 +1998,64 @@ void ConditionLight::serialize(PropWriteStream& propWriteStream)
 
 	propWriteStream.write<uint8_t>(CONDITIONATTR_LIGHTINTERVAL);
 	propWriteStream.write<uint32_t>(lightChangeInterval);
+}
+
+void ConditionSpellCooldown::addCondition(Creature* creature, const Condition* condition)
+{
+	if (updateCondition(condition)) {
+		setTicks(condition->getTicks());
+
+		if (subId != 0 && ticks > 0) {
+			Player* player = creature->getPlayer();
+			if (player) {
+				player->sendSpellCooldown(subId, ticks);
+			}
+		}
+	}
+}
+
+bool ConditionSpellCooldown::startCondition(Creature* creature)
+{
+	if (!Condition::startCondition(creature)) {
+		return false;
+	}
+
+	if (subId != 0 && ticks > 0) {
+		Player* player = creature->getPlayer();
+		if (player) {
+			player->sendSpellCooldown(subId, ticks);
+		}
+	}
+	return true;
+}
+
+void ConditionSpellGroupCooldown::addCondition(Creature* creature, const Condition* condition)
+{
+	if (updateCondition(condition)) {
+		setTicks(condition->getTicks());
+
+		if (subId != 0 && ticks > 0) {
+			Player* player = creature->getPlayer();
+			if (player) {
+				player->sendSpellGroupCooldown(static_cast<SpellGroup_t>(subId), ticks);
+			}
+		}
+	}
+}
+
+bool ConditionSpellGroupCooldown::startCondition(Creature* creature)
+{
+	if (!Condition::startCondition(creature)) {
+		return false;
+	}
+
+	if (subId != 0 && ticks > 0) {
+		Player* player = creature->getPlayer();
+		if (player) {
+			player->sendSpellGroupCooldown(static_cast<SpellGroup_t>(subId), ticks);
+		}
+	}
+	return true;
 }
 
 bool ConditionDrunk::startCondition(Creature* creature)

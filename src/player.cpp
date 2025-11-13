@@ -30,9 +30,9 @@ extern Events* g_events;
 namespace {
 void trimString(std::string& str) { boost::algorithm::trim(str); }
 
-std::string asLowerCaseString(const std::string& str) { return boost::algorithm::to_lower_copy<std::string>(str); }
+// std::string asLowerCaseString(const std::string& str) { return boost::algorithm::to_lower_copy<std::string>(str); }
 
-void toLowerCaseString(std::string& str) { boost::algorithm::to_lower(str); }
+// void toLowerCaseString(std::string& str) { boost::algorithm::to_lower(str); }
 } // namespace
 
 MuteCountMap Player::muteCountMap;
