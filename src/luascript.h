@@ -551,47 +551,39 @@ LuaVariant getVariant(lua_State* L, int32_t arg);
 template <typename T>
 inline typename std::enable_if<std::is_enum<T>::value, T>::type getInteger(lua_State* L, int32_t arg)
 {
-	int isNum = 0;
-	lua_Integer integer = lua_tointegerx(L, arg, &isNum);
-	if (isNum == 0) {
-		lua_Number number = lua_tonumber(L, arg);
-		if (number > 0) {
-			reportErrorFunc(
-			    L, fmt::format("Argument {} has out-of-range value for {}: {}", arg, typeid(T).name(), integer));
-			return static_cast<T>(std::numeric_limits<typename std::underlying_type<T>::type>::max());
-		} else if (number < 0) {
-			reportErrorFunc(
-			    L, fmt::format("Argument {} has out-of-range value for {}: {}", arg, typeid(T).name(), integer));
-			return static_cast<T>(std::numeric_limits<typename std::underlying_type<T>::type>::lowest());
-		}
+    int isNum = 0;
+    lua_Integer integer = lua_tointegerx(L, arg, &isNum);
+    if (isNum == 0) {
+        // Se não for inteiro, tenta pegar como número decimal e arredonda
+        lua_Number number = lua_tonumber(L, arg);
+        if (number == 0 && !lua_isnumber(L, arg)) {
+            // Não é um número válido
+            return static_cast<T>(0);
+        }
+        // Arredonda o número decimal para inteiro
+        integer = static_cast<lua_Integer>(std::floor(number));
+    }
 
-		return static_cast<T>(0);
-	}
-
-	return static_cast<T>(static_cast<typename std::underlying_type<T>::type>(integer));
+    return static_cast<T>(static_cast<typename std::underlying_type<T>::type>(integer));
 }
 
 template <typename T>
 inline typename std::enable_if<std::is_integral<T>::value, T>::type getInteger(lua_State* L, int32_t arg)
 {
-	int isNum = 0;
-	lua_Integer integer = lua_tointegerx(L, arg, &isNum);
-	if (isNum == 0) {
-		lua_Number number = lua_tonumber(L, arg);
-		if (number > 0) {
-			reportErrorFunc(
-			    L, fmt::format("Argument {} has out-of-range value for {}: {}", arg, typeid(T).name(), integer));
-			return std::numeric_limits<T>::max();
-		} else if (number < 0) {
-			reportErrorFunc(
-			    L, fmt::format("Argument {} has out-of-range value for {}: {}", arg, typeid(T).name(), integer));
-			return std::numeric_limits<T>::lowest();
-		}
+    int isNum = 0;
+    lua_Integer integer = lua_tointegerx(L, arg, &isNum);
+    if (isNum == 0) {
+        // Se não for inteiro, tenta pegar como número decimal e arredonda
+        lua_Number number = lua_tonumber(L, arg);
+        if (number == 0 && !lua_isnumber(L, arg)) {
+            // Não é um número válido
+            return 0;
+        }
+        // Arredonda o número decimal para inteiro
+        integer = static_cast<lua_Integer>(std::floor(number));
+    }
 
-		return 0;
-	}
-
-	return static_cast<T>(integer);
+    return static_cast<T>(integer);
 }
 
 template <typename T>

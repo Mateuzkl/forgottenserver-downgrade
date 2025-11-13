@@ -154,6 +154,10 @@ vipPremiumLimit = 100
 depotFreeLimit = 2000
 depotPremiumLimit = 10000
 
+-- Max player allowed on a dummy
+maxAllowedOnADummy = 5
+rateExerciseTrainingSpeed = 1.0
+
 -- World Light
 -- NOTE: if defaultWorldLight is set to true the world light algorithm will
 -- be handled in the sources. set it to false to avoid conflicts if you wish

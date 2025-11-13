@@ -131,3 +131,10 @@ function Player:onSpellCheck(spell)
 	if hasEvent.onSpellCheck then return Event.onSpellCheck(self, spell) end
 	return true
 end
+
+function Player:onStepTile(fromPosition, toPosition)
+    if hasEvent.onStepTile then
+        return Event.onStepTile(self, fromPosition, toPosition)
+    end
+    return true
+end

@@ -225,3 +225,7 @@ function getPlayerDatabaseInfo(name_or_guid)
 	result.free(query)
 	return info
 end
+
+if staminaEvents == nil then
+    staminaEvents = {}
+end

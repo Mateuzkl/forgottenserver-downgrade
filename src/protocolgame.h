@@ -194,6 +194,8 @@ private:
 	void sendWorldLight(LightInfo lightInfo);
 
 	void sendCreatureSquare(const Creature* creature, SquareColor_t color);
+	void sendSpellCooldown(uint8_t spellId, uint32_t time);
+	void sendSpellGroupCooldown(SpellGroup_t groupId, uint32_t time);
 
 	// tiles
 	void sendMapDescription(const Position& pos);
@@ -255,7 +257,7 @@ private:
 	// otclient
 	void parseExtendedOpcode(NetworkMessage& msg);
 
-	//OTCv8
+	// OTCv8
 	void sendFeatures();
 
 	friend class Player;

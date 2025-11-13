@@ -296,6 +296,17 @@ std::mt19937& getRandomGenerator()
 	return generator;
 }
 
+void toLowerCaseString(std::string& source)
+{
+	std::transform(source.begin(), source.end(), source.begin(), tolower);
+}
+
+std::string asLowerCaseString(std::string source)
+{
+	toLowerCaseString(source);
+	return source;
+}
+
 int32_t uniform_random(int32_t minNumber, int32_t maxNumber)
 {
 	static std::uniform_int_distribution<int32_t> uniformRand;
