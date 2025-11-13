@@ -396,6 +396,8 @@ enum ConditionType_t
 	CONDITION_EXHAUST_HEAL = 1 << 24,   // unused
 	CONDITION_PACIFIED = 1 << 25,
 	CONDITION_CLIPORT = 1 << 26,
+	CONDITION_SPELLCOOLDOWN = 1 << 27,
+	CONDITION_SPELLGROUPCOOLDOWN = 1 << 28,
 };
 
 enum ConditionId_t : int8_t

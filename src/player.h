@@ -16,9 +16,9 @@
 #include "outfit.h"
 #include "party.h"
 #include "protocolgame.h"
+#include "rewardchest.h"
 #include "town.h"
 #include "vocation.h"
-#include "rewardchest.h"
 
 #include <bitset>
 
@@ -153,22 +153,18 @@ public:
 	// Offline Training
 	bool addOfflineTrainingTries(skills_t skill, uint64_t tries);
 
-	void addOfflineTrainingTime(int32_t addTime) {
+	void addOfflineTrainingTime(int32_t addTime)
+	{
 		offlineTrainingTime = std::min<int32_t>(12 * 3600 * 1000, offlineTrainingTime + addTime);
 	}
-	void removeOfflineTrainingTime(int32_t removeTime) {
+	void removeOfflineTrainingTime(int32_t removeTime)
+	{
 		offlineTrainingTime = std::max<int32_t>(0, offlineTrainingTime - removeTime);
 	}
-	int32_t getOfflineTrainingTime() const {
-		return offlineTrainingTime;
-	}
+	int32_t getOfflineTrainingTime() const { return offlineTrainingTime; }
 
-	int32_t getOfflineTrainingSkill() const {
-		return offlineTrainingSkill;
-	}
-	void setOfflineTrainingSkill(int32_t skill) {
-		offlineTrainingSkill = skill;
-	}
+	int32_t getOfflineTrainingSkill() const { return offlineTrainingSkill; }
+	void setOfflineTrainingSkill(int32_t skill) { offlineTrainingSkill = skill; }
 
 	Guild* getGuild() const { return guild; }
 	void setGuild(Guild* guild);
@@ -430,7 +426,8 @@ public:
 	void setSecureMode(bool mode) { secureMode = mode; }
 
 	void setAttackSpeed(uint32_t speed) { attackSpeed = speed; }
-	uint32_t getAttackSpeed() const {
+	uint32_t getAttackSpeed() const
+	{
 		if (attackSpeed > 0) {
 			return attackSpeed;
 		}
@@ -693,6 +690,19 @@ public:
 	{
 		if (client) {
 			client->sendAnimatedText(message, pos, color);
+		}
+	}
+
+	void sendSpellCooldown(uint8_t spellId, uint32_t time)
+	{
+		if (client) {
+			client->sendSpellCooldown(spellId, time);
+		}
+	}
+	void sendSpellGroupCooldown(SpellGroup_t groupId, uint32_t time)
+	{
+		if (client) {
+			client->sendSpellGroupCooldown(groupId, time);
 		}
 	}
 
@@ -1190,7 +1200,8 @@ private:
 
 	AccountManagerMode accountManager{ACCOUNT_MANAGER_NONE};
 	std::array<bool, 15> managerTalkState{};
-	struct {
+	struct
+	{
 		PlayerSex_t sex{PLAYERSEX_FEMALE};
 		uint32_t accountId{0};
 		uint32_t vocationId{0};
