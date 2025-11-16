@@ -224,14 +224,18 @@ GlobalEvent::GlobalEvent(LuaScriptInterface* interface) : Event(interface) {}
 
 bool GlobalEvent::configureEvent(const pugi::xml_node& node)
 {
-	pugi::xml_attribute nameAttribute = node.attribute("name");
-	if (!nameAttribute) {
-		std::cout << "[Error - GlobalEvent::configureEvent] Missing name for a globalevent" << std::endl;
-		return false;
-	}
+    pugi::xml_attribute nameAttribute = node.attribute("name");
+    if (!nameAttribute) {
+        std::cout << "[Error - GlobalEvent::configureEvent] Missing name for a globalevent" << std::endl;
+        return false;
+    }
 
-	name = nameAttribute.as_string();
-	eventType = GLOBALEVENT_NONE;
+    name = nameAttribute.as_string();
+    // Ignore legacy Lua-based Server Save in favor of internal C++ scheduler
+    if (name == "Server Save") {
+        return false;
+    }
+    eventType = GLOBALEVENT_NONE;
 
 	pugi::xml_attribute attr;
 	if ((attr = node.attribute("time"))) {

@@ -22,6 +22,7 @@
 #include "scheduler.h"
 #include "script.h"
 #include "server.h"
+#include "otserv.h"
 #include "spells.h"
 #include "talkaction.h"
 #include "weapons.h"
@@ -4819,6 +4820,113 @@ void Game::updateWorldTime()
 	time_t osTime = time(nullptr);
 	struct tm timeInfo = fmt::localtime(osTime);
 	worldTime = (timeInfo.tm_sec + (timeInfo.tm_min * 60)) / 2.5f;
+}
+
+static uint32_t computeNextServerSaveDelayMs()
+{
+    auto timeStr = std::string{ConfigManager::getString(ConfigManager::SERVER_SAVE_TIME)};
+
+    int hour = 5;
+    int minute = 0;
+
+    const auto pos = timeStr.find(':');
+    if (pos != std::string::npos) {
+        try {
+            auto hStr = timeStr.substr(0, pos);
+            auto mStr = timeStr.substr(pos + 1);
+            hour = std::stoi(hStr);
+            minute = std::stoi(mStr);
+        } catch (...) {
+            std::cout << "[Warning - ServerSave] Invalid serversave_time format, falling back to 05:00" << std::endl;
+            hour = 5; minute = 0;
+        }
+    } else {
+        std::cout << "[Warning - ServerSave] serversave_time missing colon, falling back to 05:00" << std::endl;
+        hour = 5; minute = 0;
+    }
+
+    if (hour < 0 || hour > 23 || minute < 0 || minute > 59) {
+        std::cout << "[Warning - ServerSave] serversave_time out of range, falling back to 05:00" << std::endl;
+        hour = 5; minute = 0;
+    }
+
+    time_t now = time(nullptr);
+    struct tm timeinfo = fmt::localtime(now);
+    timeinfo.tm_hour = hour;
+    timeinfo.tm_min = minute;
+    timeinfo.tm_sec = 0;
+
+    time_t difference = static_cast<time_t>(difftime(mktime(&timeinfo), now));
+    if (difference < 0) {
+        difference += 86400;
+    }
+    return static_cast<uint32_t>(difference) * 1000u;
+}
+
+static uint32_t parseRestartDelaySeconds()
+{
+    auto delayStr = std::string{ConfigManager::getString(ConfigManager::SERVER_SAVE_RESTART_DELAY)};
+    int hour = 0;
+    int minute = 5;
+    const auto pos = delayStr.find(':');
+    if (pos != std::string::npos) {
+        try {
+            auto hStr = delayStr.substr(0, pos);
+            auto mStr = delayStr.substr(pos + 1);
+            hour = std::stoi(hStr);
+            minute = std::stoi(mStr);
+        } catch (...) {
+            std::cout << "[Warning - ServerSave] Invalid serversave_restart_delay format, falling back to 00:05" << std::endl;
+            hour = 0; minute = 5;
+        }
+    } else {
+        try {
+            minute = std::stoi(delayStr);
+            hour = 0;
+        } catch (...) {
+            std::cout << "[Warning - ServerSave] serversave_restart_delay missing colon, falling back to 00:05" << std::endl;
+            hour = 0; minute = 5;
+        }
+    }
+
+    if (hour < 0 || hour > 23 || minute < 0 || minute > 59) {
+        std::cout << "[Warning - ServerSave] serversave_restart_delay out of range, falling back to 00:05" << std::endl;
+        hour = 0; minute = 5;
+    }
+
+    return static_cast<uint32_t>(hour * 3600 + minute * 60);
+}
+
+void Game::scheduleServerSave()
+{
+    auto delayMs = std::max<uint32_t>(SCHEDULER_MINTICKS, computeNextServerSaveDelayMs());
+
+    for (uint32_t m : {10u, 5u, 3u, 2u, 1u}) {
+        if (delayMs > m * 60000u) {
+            uint32_t warnDelay = delayMs - m * 60000u;
+            g_scheduler.addEvent(createSchedulerTask(warnDelay, [this, m]() {
+                broadcastMessage(std::string("Server is saving game in ") + std::to_string(m) +
+                                     " minute(s). Please logout or move to a safe place.",
+                                 MESSAGE_STATUS_WARNING);
+            }));
+        }
+    }
+
+    g_scheduler.addEvent(createSchedulerTask(delayMs, [this]() {
+        broadcastMessage(SERVERSAVE_ANNOUNCE, MESSAGE_STATUS_WARNING);
+
+        const auto delaySeconds = parseRestartDelaySeconds();
+        const uint32_t delayMs2 = std::max<uint32_t>(SCHEDULER_MINTICKS, delaySeconds * 1000u);
+
+        g_scheduler.addEvent(createSchedulerTask(delayMs2, [this]() {
+            saveGameState();
+            const uint32_t nextMinutes = 24 * 60;
+            broadcastMessage(std::string(SERVERSAVE_COMPLETE_PREFIX) + std::to_string(nextMinutes) + " minutes!",
+                             MESSAGE_STATUS_WARNING);
+            requestServerRestart(0);
+            setGameState(GAME_STATE_SHUTDOWN);
+        }));
+    }));
 }
 
 void Game::shutdown()

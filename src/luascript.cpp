@@ -2153,6 +2153,9 @@ void LuaScriptInterface::registerFunctions()
 	registerEnumIn("configKeys", ConfigManager::REWARD_RATE_HEALING_DONE);
 	registerEnumIn("configKeys", ConfigManager::MAX_ALLOWED_ON_A_DUMMY);
 	registerEnumIn("configKeys", ConfigManager::RATE_EXERCISE_TRAINING_SPEED);
+	// ServerSave (internal)
+	registerEnumIn("configKeys", ConfigManager::SERVER_SAVE_TIME);
+	registerEnumIn("configKeys", ConfigManager::SERVER_SAVE_RESTART_DELAY);
 
 	// os
 	registerMethod("os", "mtime", LuaScriptInterface::luaSystemTime);
