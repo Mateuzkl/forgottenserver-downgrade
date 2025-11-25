@@ -141,6 +141,7 @@ public:
 	bool isOpponent(const Creature* creature) const;
 
 	void addFriend(Creature* creature);
+	bool setType(MonsterType* newType, bool restoreHealth = false);
 	void removeFriend(Creature* creature);
 	void addTarget(Creature* creature, bool pushFront = false);
 	void removeTarget(Creature* creature);

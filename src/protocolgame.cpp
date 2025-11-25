@@ -13,6 +13,7 @@
 #include "outputmessage.h"
 #include "player.h"
 #include "scheduler.h"
+#include <unordered_set>
 
 extern CreatureEvents* g_creatureEvents;
 extern Chat* g_chat;
@@ -131,11 +132,9 @@ void ProtocolGame::release()
 
 void ProtocolGame::login(uint32_t characterId, uint32_t accountId, OperatingSystem_t operatingSystem)
 {
-
 	// OTCv8 features and extended opcodes
 	if (isOTCv8 || operatingSystem >= CLIENTOS_OTCLIENT_LINUX) {
-		if(isOTCv8)
-			sendFeatures();
+		if (isOTCv8) sendFeatures();
 		NetworkMessage opcodeMessage;
 		opcodeMessage.addByte(0x32);
 		opcodeMessage.addByte(0x00);
@@ -143,15 +142,15 @@ void ProtocolGame::login(uint32_t characterId, uint32_t accountId, OperatingSyst
 		writeToOutputBuffer(opcodeMessage);
 	}
 
-    // dispatcher thread
-    Player* foundPlayer = g_game.getPlayerByGUID(characterId);
-    std::string name;
-    if (foundPlayer) {
-        name = foundPlayer->getName();
-    }
-    if (!foundPlayer || name == "Account Manager" || getBoolean(ConfigManager::ALLOW_CLONES)) {
-        player = new Player(getThis());
-        player->setGUID(characterId);
+	// dispatcher thread
+	Player* foundPlayer = g_game.getPlayerByGUID(characterId);
+	std::string name;
+	if (foundPlayer) {
+		name = foundPlayer->getName();
+	}
+	if (!foundPlayer || name == "Account Manager" || getBoolean(ConfigManager::ALLOW_CLONES)) {
+		player = new Player(getThis());
+		player->setGUID(characterId);
 
 		player->incrementReferenceCounter();
 		player->setID();
@@ -162,7 +161,8 @@ void ProtocolGame::login(uint32_t characterId, uint32_t accountId, OperatingSyst
 		}
 
 		name = player->getName();
-		bool isAccountManager = (name == "Account Manager" && ConfigManager::getBoolean(ConfigManager::ACCOUNT_MANAGER));
+		bool isAccountManager =
+		    (name == "Account Manager" && ConfigManager::getBoolean(ConfigManager::ACCOUNT_MANAGER));
 
 		if (isAccountManager && accountId != 1) {
 			player->accountNumber = accountId;
@@ -196,11 +196,11 @@ void ProtocolGame::login(uint32_t characterId, uint32_t accountId, OperatingSyst
 			return;
 		}
 
-        if (getBoolean(ConfigManager::ONE_PLAYER_ON_ACCOUNT) && name != "Account Manager" && player->getAccountType() < ACCOUNT_TYPE_GAMEMASTER &&
-            g_game.getPlayerByAccount(player->getAccount())) {
-            disconnectClient("You may only login with one character\nof your account at the same time.");
-            return;
-        }
+		if (getBoolean(ConfigManager::ONE_PLAYER_ON_ACCOUNT) && name != "Account Manager" &&
+		    player->getAccountType() < ACCOUNT_TYPE_GAMEMASTER && g_game.getPlayerByAccount(player->getAccount())) {
+			disconnectClient("You may only login with one character\nof your account at the same time.");
+			return;
+		}
 
 		if (!player->hasFlag(PlayerFlag_CannotBeBanned)) {
 			BanInfo banInfo;
@@ -257,15 +257,17 @@ void ProtocolGame::login(uint32_t characterId, uint32_t accountId, OperatingSyst
 		    player->getAccountManagerMode() == ACCOUNT_MANAGER_NONE) {
 			if (accountId == 1) {
 				player->setAccountManagerMode(ACCOUNT_MANAGER_NEW);
-				player->sendTextMessage(MESSAGE_STATUS_CONSOLE_ORANGE,
-                    "Account Manager: Welcome! You are now speaking with the Account Manager. To create a new account, type {account}. If you already have one and need to recover it, type {recover}. Type {cancel} anytime to restart this conversation.");
+				player->sendTextMessage(
+				    MESSAGE_STATUS_CONSOLE_ORANGE,
+				    "Account Manager: Welcome! You are now speaking with the Account Manager. To create a new account, type {account}. If you already have one and need to recover it, type {recover}. Type {cancel} anytime to restart this conversation.");
 			} else {
 				player->setAccountManagerMode(ACCOUNT_MANAGER_ACCOUNT);
 				player->setAccountManagerData(accountId);
 				player->resetTalkState(0, 0);
 				player->setManagerTalkState(1, true);
-                player->sendTextMessage(MESSAGE_STATUS_CONSOLE_ORANGE,
-                    "Account Manager: Welcome back. Type {account} to manage your account, {character} to create a new character, or {cancel} to start over.");
+				player->sendTextMessage(
+				    MESSAGE_STATUS_CONSOLE_ORANGE,
+				    "Account Manager: Welcome back. Type {account} to manage your account, {character} to create a new character, or {cancel} to start over.");
 			}
 		}
 		// Block movement for all Account Manager modes
@@ -370,19 +372,18 @@ void ProtocolGame::logout(bool displayEffect, bool forced)
 
 void ProtocolGame::onRecvFirstMessage(NetworkMessage& msg)
 {
-    if (g_game.getGameState() == GAME_STATE_SHUTDOWN) {
-        disconnect();
-        return;
-    }
+	if (g_game.getGameState() == GAME_STATE_SHUTDOWN) {
+		disconnect();
+		return;
+	}
 
 	OperatingSystem_t operatingSystem = static_cast<OperatingSystem_t>(msg.get<uint16_t>());
 	version = msg.get<uint16_t>();
-	
-    if (!Protocol::RSA_decrypt(msg)) {
-        disconnect();
-        return;
-    }
 
+	if (!Protocol::RSA_decrypt(msg)) {
+		disconnect();
+		return;
+	}
 
 	xtea::key key;
 	key[0] = msg.get<uint32_t>();
@@ -394,28 +395,26 @@ void ProtocolGame::onRecvFirstMessage(NetworkMessage& msg)
 
 	msg.skipBytes(1); // gamemaster flag
 
-    auto accountName = msg.getString();
-    auto characterName = msg.getString();
-    auto password = msg.getString();
+	auto accountName = msg.getString();
+	auto characterName = msg.getString();
+	auto password = msg.getString();
 
-
-    if (accountName.empty()) {
-        disconnectClient("You must enter your account name.");
-        return;
-    }
+	if (accountName.empty()) {
+		disconnectClient("You must enter your account name.");
+		return;
+	}
 
 	uint32_t timeStamp = msg.get<uint32_t>();
 	uint8_t randNumber = msg.getByte();
-	
-    if (challengeTimestamp != timeStamp || challengeRandom != randNumber) {
-        disconnect();
-        return;
-    }
 
+	if (challengeTimestamp != timeStamp || challengeRandom != randNumber) {
+		disconnect();
+		return;
+	}
 
 	// OTCv8 version detection
 	uint16_t otcV8StringLength = msg.get<uint16_t>();
-	if(otcV8StringLength == 5 && msg.getString(5) == "OTCv8") {
+	if (otcV8StringLength == 5 && msg.getString(5) == "OTCv8") {
 		isOTCv8 = msg.get<uint16_t>(); // 253, 260, 261, ...
 	}
 
@@ -429,37 +428,37 @@ void ProtocolGame::onRecvFirstMessage(NetworkMessage& msg)
 		return;
 	}
 
-    if (g_game.getGameState() == GAME_STATE_MAINTAIN) {
-        disconnectClient("Gameworld is under maintenance. Please re-connect in a while.");
-        return;
-    }
+	if (g_game.getGameState() == GAME_STATE_MAINTAIN) {
+		disconnectClient("Gameworld is under maintenance. Please re-connect in a while.");
+		return;
+	}
 
-    // Authenticate and resolve account/character IDs
-    auto authPair = IOLoginData::gameworldAuthentication(accountName, password, characterName);
-    uint32_t accountId = authPair.first;
-    uint32_t characterId = authPair.second;
-    
-    if (accountId == 0 || characterId == 0) {
-        // auth failed, will disconnect below
-    }
+	// Authenticate and resolve account/character IDs
+	auto authPair = IOLoginData::gameworldAuthentication(accountName, password, characterName);
+	uint32_t accountId = authPair.first;
+	uint32_t characterId = authPair.second;
 
-    BanInfo banInfo;
-    if (IOBan::isIpBanned(getIP(), banInfo)) {
-        if (banInfo.reason.empty()) {
-            banInfo.reason = "(none)";
-        }
+	if (accountId == 0 || characterId == 0) {
+		// auth failed, will disconnect below
+	}
+
+	BanInfo banInfo;
+	if (IOBan::isIpBanned(getIP(), banInfo)) {
+		if (banInfo.reason.empty()) {
+			banInfo.reason = "(none)";
+		}
 
 		disconnectClient(fmt::format("Your IP has been banned until {:s} by {:s}.\n\nReason specified:\n{:s}",
 		                             formatDateShort(banInfo.expiresAt), banInfo.bannedBy, banInfo.reason));
 		return;
 	}
 
-    if (accountId == 0) {
-        disconnectClient("Account name or password is not correct.");
-        return;
-    }
+	if (accountId == 0) {
+		disconnectClient("Account name or password is not correct.");
+		return;
+	}
 
-    g_dispatcher.addTask([=, thisPtr = getThis()]() { thisPtr->login(characterId, accountId, operatingSystem); });
+	g_dispatcher.addTask([=, thisPtr = getThis()]() { thisPtr->login(characterId, accountId, operatingSystem); });
 }
 
 void ProtocolGame::onConnect()
@@ -1806,15 +1805,15 @@ void ProtocolGame::sendCreatureSay(const Creature* creature, SpeakClasses type, 
 	msg.addString(creature->getName());
 
 	// Add level only for players
-    if (const Player* speaker = creature->getPlayer()) {
-        if (!speaker->isAccessPlayer()) {
-            msg.add<uint16_t>(static_cast<uint16_t>(speaker->getLevel()));
-        } else {
-            msg.add<uint16_t>(0x00);
-        }
-    } else {
-        msg.add<uint16_t>(0x00);
-    }
+	if (const Player* speaker = creature->getPlayer()) {
+		if (!speaker->isAccessPlayer()) {
+			msg.add<uint16_t>(static_cast<uint16_t>(speaker->getLevel()));
+		} else {
+			msg.add<uint16_t>(0x00);
+		}
+	} else {
+		msg.add<uint16_t>(0x00);
+	}
 
 	msg.addByte(type);
 	if (pos) {
@@ -1837,22 +1836,22 @@ void ProtocolGame::sendToChannel(const Creature* creature, SpeakClasses type, st
 	msg.addByte(0xAA);
 	msg.add<uint32_t>(0x00);
 
-    if (type == TALKTYPE_CHANNEL_R2) {
-        msg.addString("");
-        type = TALKTYPE_CHANNEL_R1;
-    } else {
-        msg.addString(creature->getName());
-        // Add level only for players
-        if (const Player* speaker = creature->getPlayer()) {
-            if (!speaker->isAccessPlayer()) {
-                msg.add<uint16_t>(static_cast<uint16_t>(speaker->getLevel()));
-            } else {
-                msg.add<uint16_t>(0x00);
-            }
-        } else {
-            msg.add<uint16_t>(0x00);
-        }
-    }
+	if (type == TALKTYPE_CHANNEL_R2) {
+		msg.addString("");
+		type = TALKTYPE_CHANNEL_R1;
+	} else {
+		msg.addString(creature->getName());
+		// Add level only for players
+		if (const Player* speaker = creature->getPlayer()) {
+			if (!speaker->isAccessPlayer()) {
+				msg.add<uint16_t>(static_cast<uint16_t>(speaker->getLevel()));
+			} else {
+				msg.add<uint16_t>(0x00);
+			}
+		} else {
+			msg.add<uint16_t>(0x00);
+		}
+	}
 
 	msg.addByte(type);
 	msg.add<uint16_t>(channelId);
@@ -1866,16 +1865,16 @@ void ProtocolGame::sendPrivateMessage(const Player* speaker, SpeakClasses type, 
 	msg.addByte(0xAA);
 	static uint32_t statementId = 0;
 	msg.add<uint32_t>(++statementId);
-    if (speaker) {
-        msg.addString(speaker->getName());
-        if (!speaker->isAccessPlayer()) {
-            msg.add<uint16_t>(static_cast<uint16_t>(speaker->getLevel()));
-        } else {
-            msg.add<uint32_t>(0x00);
-        }
-    } else {
-        msg.add<uint32_t>(0x00);
-    }
+	if (speaker) {
+		msg.addString(speaker->getName());
+		if (!speaker->isAccessPlayer()) {
+			msg.add<uint16_t>(static_cast<uint16_t>(speaker->getLevel()));
+		} else {
+			msg.add<uint32_t>(0x00);
+		}
+	} else {
+		msg.add<uint32_t>(0x00);
+	}
 	msg.addByte(type);
 	msg.addString(text);
 	writeToOutputBuffer(msg);
@@ -2018,17 +2017,34 @@ void ProtocolGame::sendRemoveTileThing(const Position& pos, uint32_t stackpos)
 
 void ProtocolGame::sendUpdateTileCreature(const Position& pos, uint32_t stackpos, const Creature* creature)
 {
-	if (stackpos >= MAX_STACKPOS_THINGS || !canSee(pos)) {
+	// Adapted from Canary's reloadCreature
+	if (!creature || !canSee(pos)) {
+		return;
+	}
+
+	auto tile = creature->getTile();
+	if (!tile) {
+		return;
+	}
+
+	if (stackpos >= 10) {
 		return;
 	}
 
 	NetworkMessage msg;
-	msg.addByte(0x6B);
-	msg.addPosition(pos);
-	msg.addByte(static_cast<uint8_t>(stackpos));
+	uint32_t creatureId = creature->getID();
+	auto it = std::find(knownCreatureSet.begin(), knownCreatureSet.end(), creatureId);
 
-	auto [known, removedKnown] = isKnownCreature(creature->getID());
-	AddCreature(msg, creature, false, removedKnown);
+	if (it != knownCreatureSet.end()) {
+		// Known creature - send reload with 0x6B
+		msg.addByte(0x6B);
+		msg.addPosition(creature->getPosition());
+		msg.addByte(static_cast<uint8_t>(stackpos));
+		AddCreature(msg, creature, false, 0);
+	} else {
+		// Unknown creature - send as new
+		sendAddCreature(creature, creature->getPosition(), stackpos, CONST_ME_NONE);
+	}
 
 	writeToOutputBuffer(msg);
 }
@@ -2451,7 +2467,7 @@ void ProtocolGame::sendSpellCooldown(uint8_t spellId, uint32_t time)
 	NetworkMessage msg;
 	msg.addByte(0xA4);
 	msg.addByte(spellId);
-	//msg.add<uint16_t>(static_cast<uint16_t>(spellId));
+	// msg.add<uint16_t>(static_cast<uint16_t>(spellId));
 	msg.add<uint32_t>(time);
 	writeToOutputBuffer(msg);
 }
@@ -2765,12 +2781,10 @@ void ProtocolGame::parseExtendedOpcode(NetworkMessage& msg)
 	});
 }
 
-
 // OTCv8
 void ProtocolGame::sendFeatures()
 {
-	if(!isOTCv8) 
-		return;
+	if (!isOTCv8) return;
 
 	std::map<GameFeature, bool> features;
 	// place for non-standard OTCv8 features
@@ -2783,13 +2797,12 @@ void ProtocolGame::sendFeatures()
 	features[GameBaseSkillU16] = true;
 	features[GameAdditionalSkills] = true;
 
-	if(features.empty())
-		return;
+	if (features.empty()) return;
 
 	NetworkMessage msg;
 	msg.addByte(0x43);
 	msg.add<uint16_t>(features.size());
-	for(auto& feature : features) {
+	for (auto& feature : features) {
 		msg.addByte((uint8_t)feature.first);
 		msg.addByte(feature.second ? 1 : 0);
 	}
