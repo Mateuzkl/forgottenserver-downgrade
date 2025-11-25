@@ -574,8 +574,14 @@ public:
 	void sendUpdateTileCreature(const Creature* creature)
 	{
 		if (client) {
-			client->sendUpdateTileCreature(creature->getPosition(),
-			                               creature->getTile()->getClientIndexOfCreature(this, creature), creature);
+			auto tile = creature->getTile();
+			if (!tile) {
+				return;
+			}
+			uint32_t stackpos = tile->getClientIndexOfCreature(this, creature);
+			if (stackpos < 10) {
+				client->sendUpdateTileCreature(creature->getPosition(), stackpos, creature);
+			}
 		}
 	}
 	void sendUpdateTile(const Tile* tile, const Position& pos)

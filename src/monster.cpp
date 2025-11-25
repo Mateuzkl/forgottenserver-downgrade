@@ -6,9 +6,9 @@
 #include "monster.h"
 
 #include "configmanager.h"
-#include "iologindata.h"
 #include "events.h"
 #include "game.h"
+#include "iologindata.h"
 #include "spells.h"
 
 extern Game g_game;
@@ -311,6 +311,62 @@ void Monster::addFriend(Creature* creature)
 	if (result.second) {
 		creature->incrementReferenceCounter();
 	}
+}
+
+bool Monster::setType(MonsterType* newType, bool restoreHealth)
+{
+	// Adapted from Canary's luaMonsterSetType
+	if (!newType) {
+		return false;
+	}
+
+	// Unregister creature events (current MonsterType)
+	for (const std::string& scriptName : mType->info.scripts) {
+		if (!unregisterCreatureEvent(scriptName)) {
+			std::cout << "[Warning - Monster::setType] Unknown event name: " << scriptName << std::endl;
+		}
+	}
+
+	// Assign new MonsterType
+	mType = newType;
+	nameDescription = asLowerCaseString(newType->nameDescription);
+	defaultOutfit = newType->info.outfit;
+	currentOutfit = newType->info.outfit;
+	skull = newType->info.skull;
+
+	// Update stats (adapted from Canary)
+	float multiplier = 1.0f;
+	healthMax = newType->info.healthMax * multiplier;
+	baseSpeed = newType->info.baseSpeed;
+	internalLight = newType->info.light;
+	hiddenHealth = newType->info.hiddenHealth;
+
+	// Handle health based on restoreHealth parameter
+	if (restoreHealth) {
+		// Reset health to new type's max health
+		health = newType->info.health * multiplier;
+	} else {
+		// Preserve current health, capping at new max
+		health = std::min(health, healthMax);
+	}
+
+	// Register creature events (new MonsterType)
+	for (const std::string& scriptName : newType->info.scripts) {
+		if (!registerCreatureEvent(scriptName)) {
+			std::cout << "[Warning - Monster::setType] Unknown event name: " << scriptName << std::endl;
+		}
+	}
+
+	// Reload creature on spectators
+	SpectatorVec spectators;
+	g_game.map.getSpectators(spectators, getPosition(), true, true);
+	for (Creature* spectator : spectators) {
+		if (Player* player = spectator->getPlayer()) {
+			player->sendUpdateTileCreature(this);
+		}
+	}
+
+	return true;
 }
 
 void Monster::removeFriend(Creature* creature)
@@ -1834,12 +1890,13 @@ void Monster::death(Creature*)
 		uint32_t mostScoreContributor = 0;
 		int32_t highestScore = 0;
 		int32_t totalScore = 0;
-		int32_t contributors = 0; 
+		int32_t contributors = 0;
 		int32_t totalDamageDone = 0;
 		int32_t totalDamageTaken = 0;
 		int32_t totalHealingDone = 0;
 		for (const auto& [playerId, playerScoreInfo] : scoreInfo.playerScoreTable) {
-			int32_t playerScore = playerScoreInfo.damageDone + playerScoreInfo.damageTaken + playerScoreInfo.healingDone; 
+			int32_t playerScore =
+			    playerScoreInfo.damageDone + playerScoreInfo.damageTaken + playerScoreInfo.healingDone;
 			totalScore += playerScore;
 			totalDamageDone += playerScoreInfo.damageDone;
 			totalDamageTaken += playerScoreInfo.damageTaken;
@@ -1867,7 +1924,8 @@ void Monster::death(Creature*)
 			if (healingDone > 0) {
 				contrubutionScore += healingDone;
 			}
-			double expectedScore = ((contrubutionScore / totalScore) * ConfigManager::getFloat(ConfigManager::REWARD_BASE_RATE));
+			double expectedScore =
+			    ((contrubutionScore / totalScore) * ConfigManager::getFloat(ConfigManager::REWARD_BASE_RATE));
 			double lootRate = std::min(expectedScore, 1.0);
 			Player* player = g_game.getPlayerByGUID(playerId);
 			auto rewardItem = Item::CreateItem(ITEM_REWARD_CONTAINER);
@@ -1883,7 +1941,8 @@ void Monster::death(Creature*)
 			rewardContainer->setIntAttr(ITEM_ATTRIBUTE_REWARDID, getMonster()->getID());
 			bool hasLoot = false;
 			for (const auto& lootBlock : creatureLoot) {
-				float adjustedChance = (lootBlock.chance * lootRate) * ConfigManager::getInteger(ConfigManager::RATE_LOOT);
+				float adjustedChance =
+				    (lootBlock.chance * lootRate) * ConfigManager::getInteger(ConfigManager::RATE_LOOT);
 				if (lootBlock.unique && mostScoreContributor == playerId) {
 					// Ensure that the mostScoreContributor can receive multiple unique items
 					auto lootItem = Item::CreateItem(lootBlock.id, uniform_random(1, lootBlock.countmax));
@@ -1894,8 +1953,7 @@ void Monster::death(Creature*)
 					}
 					rewardContainer->internalAddThing(lootItem);
 					hasLoot = true;
-				}
-				else if (!lootBlock.unique) {
+				} else if (!lootBlock.unique) {
 					// Normal loot distribution for non-unique items
 					if (uniform_random(1, MAX_LOOTCHANCE) <= adjustedChance) {
 						auto lootItem = Item::CreateItem(lootBlock.id, uniform_random(1, lootBlock.countmax));
@@ -1912,10 +1970,13 @@ void Monster::death(Creature*)
 			if (hasLoot) {
 				if (player) {
 					player->getRewardChest().internalAddThing(rewardContainer);
-					player->sendTextMessage(MESSAGE_STATUS_DEFAULT, "The following items dropped by " + getMonster()->getName() + " are available in your reward chest: " + rewardContainer->getNameDescription() + ".");
-				}
-				else {
-					DBInsert rewardQuery("INSERT INTO `player_rewarditems` (`player_id`, `pid`, `sid`, `itemtype`, `count`, `attributes`) VALUES ");
+					player->sendTextMessage(
+					    MESSAGE_STATUS_DEFAULT,
+					    "The following items dropped by " + getMonster()->getName() +
+					        " are available in your reward chest: " + rewardContainer->getNameDescription() + ".");
+				} else {
+					DBInsert rewardQuery(
+					    "INSERT INTO `player_rewarditems` (`player_id`, `pid`, `sid`, `itemtype`, `count`, `attributes`) VALUES ");
 					PropWriteStream propWriteStream;
 					ItemBlockList itemList;
 					int32_t currentPid = 1;
@@ -1924,8 +1985,7 @@ void Monster::death(Creature*)
 					}
 					IOLoginData::addRewardItems(playerId, itemList, rewardQuery, propWriteStream);
 				}
-			}
-			else if (player) {
+			} else if (player) {
 				player->sendTextMessage(MESSAGE_STATUS_DEFAULT, "You did not receive any loot.");
 			}
 		}
@@ -2019,8 +2079,7 @@ void Monster::dropLoot(Container* corpse, Creature*)
 		rewardContainer->setIntAttr(ITEM_ATTRIBUTE_DATE, currentTime);
 		rewardContainer->setIntAttr(ITEM_ATTRIBUTE_REWARDID, getMonster()->getID());
 		corpse->internalAddThing(rewardContainer);
-	}
-	else if (corpse && lootDrop) {
+	} else if (corpse && lootDrop) {
 		g_events->eventMonsterOnDropLoot(this, corpse);
 	}
 }
