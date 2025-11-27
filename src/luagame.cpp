@@ -661,18 +661,25 @@ int luaGameGetThingFromClientPos(lua_State* L)
 	return 1;
 }
 
-int luaGameGetGlobalStorageValue(lua_State* L)
+int luaGameGetGameStorageValue(lua_State* L)
 {
-	// Game.getStorageValue(key[, defaultValue])
+	// Game.getStorageValue(key)
 	uint32_t key = getInteger<uint32_t>(L, 1);
-	const auto defaultValue = getNumber<int64_t>(L, 2, -1);
-	lua_pushnumber(L, g_game.getStorageValue(key, defaultValue));
+
+	const auto& value = g_game.getStorageValue(key);
+	if (value) {
+		lua_pushinteger(L, value.value());
+	} else if (isInteger(L, 3)) {
+		lua_pushinteger(L, getInteger<int64_t>(L, 3));
+	} else {
+		lua_pushnil(L);
+	}
 	return 1;
 }
 
-int luaGameSetGlobalStorageValue(lua_State* L)
+int luaGameSetGameStorageValue(lua_State* L)
 {
-	// Game.setStorageValue(key, value)
+	// Game.setGameStorageValue(key, value)
 	if (!isInteger(L, 1)) {
 		reportErrorFunc(L, "Invalid storage key.");
 		lua_pushnil(L);
@@ -680,16 +687,21 @@ int luaGameSetGlobalStorageValue(lua_State* L)
 	}
 
 	uint32_t key = getInteger<uint32_t>(L, 1);
-	int64_t value = getInteger<int64_t>(L, 2);
-	g_game.setStorageValue(key, value);
+	if (isInteger(L, 2)) {
+		int64_t value = getInteger<int64_t>(L, 2);
+		g_game.setStorageValue(key, value);
+	} else {
+		g_game.setStorageValue(key, std::nullopt);
+	}
+
 	pushBoolean(L, true);
 	return 1;
 }
 
-int luaGameSaveGlobalStorageValues(lua_State* L)
+int luaGameSaveGameStorageValues(lua_State* L)
 {
 	// Game.saveStorageValues()
-	pushBoolean(L, g_game.saveGlobalStorages());
+	pushBoolean(L, g_game.saveGameStorageValues());
 
 	return 1;
 }
@@ -751,7 +763,7 @@ void LuaScriptInterface::registerGame()
 	registerMethod("Game", "getWaypoints", luaGameGetWaypoints);
 	registerMethod("Game", "getThingFromClientPos", luaGameGetThingFromClientPos);
 
-	registerMethod("Game", "getStorageValue", luaGameGetGlobalStorageValue);
-	registerMethod("Game", "setStorageValue", luaGameSetGlobalStorageValue);
-	registerMethod("Game", "saveStorageValues", luaGameSaveGlobalStorageValues);
+	registerMethod("Game", "getStorageValue", luaGameGetGameStorageValue);
+	registerMethod("Game", "setStorageValue", luaGameSetGameStorageValue);
+	registerMethod("Game", "saveStorageValues", luaGameSaveGameStorageValues);
 }
