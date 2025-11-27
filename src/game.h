@@ -429,9 +429,6 @@ public:
 	void setGameState(GameState_t newState);
 	void saveGameState();
 
-	// ServerSave scheduling
-	void scheduleServerSave();
-
 	// Events
 	void checkCreatureWalk(uint32_t creatureId);
 	void updateCreatureWalk(uint32_t creatureId);
@@ -579,9 +576,6 @@ private:
 	uint8_t lightLevel = LIGHT_DAY;
 	uint8_t lightColor = 215;
 	int16_t worldTime = 0;
-
-	static constexpr const char* SERVERSAVE_ANNOUNCE = "[Server Save] Starting save and restart procedure.";
-	static constexpr const char* SERVERSAVE_COMPLETE_PREFIX = "Server save complete. Next save in ";
 
 	GameState_t gameState = GAME_STATE_NORMAL;
 	WorldType_t worldType = WORLD_TYPE_PVP;

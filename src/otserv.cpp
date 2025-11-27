@@ -21,13 +21,8 @@
 #include <fmt/format.h>
 #include <fmt/color.h>
 #include <fstream>
-#include <thread>
-#include <chrono>
 #if __has_include("gitmetadata.h")
 #include "gitmetadata.h"
-#endif
-#ifndef _WIN32
-#include <unistd.h>
 #endif
 
 DatabaseTasks g_databaseTasks;
@@ -42,12 +37,6 @@ extern Scripts* g_scripts;
 std::mutex g_loaderLock;
 std::condition_variable g_loaderSignal;
 std::unique_lock<std::mutex> g_loaderUniqueLock(g_loaderLock);
-
-// Restart control
-static std::atomic<bool> g_restartRequested{false};
-static uint32_t g_restartDelaySeconds = 0;
-static std::vector<std::string> g_execArgs;
-static std::string g_executablePath;
 
 namespace {
 
@@ -263,8 +252,6 @@ void mainLoader(ServiceManager* services)
 	g_game.start(services);
 	g_game.setGameState(GAME_STATE_NORMAL);
 
-	// Schedule internal ServerSave based on config
-	g_game.scheduleServerSave();
 	g_loaderSignal.notify_all();
 }
 
@@ -306,13 +293,6 @@ void startServer()
 	g_databaseTasks.join();
 	g_dispatcher.join();
 
-	// Handle internal restart after clean shutdown
-	if (isServerRestartRequested()) {
-		if (g_restartDelaySeconds > 0) {
-			std::this_thread::sleep_for(std::chrono::seconds(g_restartDelaySeconds));
-		}
-		restart();
-	}
 }
 
 void printServerVersion()
@@ -358,104 +338,4 @@ void printServerVersion()
 	std::cout << "Repository: " << fmt::format(fg(fmt::color::floral_white), "{}", STATUS_SERVER_REPOSITORY)
 	          << std::endl;
 	std::cout << std::endl;
-}
-
-// Restart API implementation
-void setProcessArgs(int argc, const char** argv)
-{
-    g_execArgs.clear();
-    g_execArgs.reserve(static_cast<size_t>(argc));
-    for (int i = 0; i < argc; ++i) {
-        g_execArgs.emplace_back(argv[i]);
-    }
-#ifdef _WIN32
-    char pathBuf[MAX_PATH] = {0};
-    DWORD len = GetModuleFileNameA(nullptr, pathBuf, MAX_PATH);
-    if (len > 0) {
-        g_executablePath.assign(pathBuf, len);
-        if (!g_execArgs.empty()) {
-            g_execArgs[0] = g_executablePath;
-        }
-    }
-#else
-    // Try to resolve absolute executable path via /proc/self/exe if available
-    char exeBuf[4096] = {0};
-    ssize_t rlen = ::readlink("/proc/self/exe", exeBuf, sizeof(exeBuf) - 1);
-    if (rlen > 0) {
-        g_executablePath.assign(exeBuf, static_cast<size_t>(rlen));
-        if (!g_execArgs.empty()) {
-            g_execArgs[0] = g_executablePath;
-        }
-    } else if (!g_execArgs.empty()) {
-        g_executablePath = g_execArgs[0];
-    }
-#endif
-}
-
-void requestServerRestart(uint32_t delaySeconds)
-{
-    g_restartDelaySeconds = delaySeconds;
-    g_restartRequested.store(true, std::memory_order_relaxed);
-}
-
-bool isServerRestartRequested() { return g_restartRequested.load(std::memory_order_relaxed); }
-
-void restart()
-{
-#ifndef _WIN32
-    // Build argv array for execvp
-    std::vector<char*> argvPtrs;
-    argvPtrs.reserve(g_execArgs.size() + 1);
-    for (auto& s : g_execArgs) {
-        argvPtrs.push_back(const_cast<char*>(s.c_str()));
-    }
-    argvPtrs.push_back(nullptr);
-
-    ::execvp(g_execArgs.empty() ? "" : g_execArgs[0].c_str(), argvPtrs.data());
-    // If execvp returns, it failed; exit immediately
-    _exit(1);
-#else
-    // Compose command line: quoted executable plus original args
-    std::string cmd;
-    if (!g_executablePath.empty()) {
-        cmd.push_back('"');
-        cmd += g_executablePath;
-        cmd.push_back('"');
-    } else if (!g_execArgs.empty()) {
-        cmd.push_back('"');
-        cmd += g_execArgs[0];
-        cmd.push_back('"');
-    }
-    for (size_t i = 1; i < g_execArgs.size(); ++i) {
-        cmd.push_back(' ');
-        cmd += g_execArgs[i];
-    }
-
-    STARTUPINFOA si;
-    PROCESS_INFORMATION pi;
-    ZeroMemory(&si, sizeof(si));
-    ZeroMemory(&pi, sizeof(pi));
-    si.cb = sizeof(si);
-
-    BOOL ok = CreateProcessA(
-        nullptr,
-        cmd.empty() ? nullptr : cmd.data(),
-        nullptr,
-        nullptr,
-        FALSE,
-        0,
-        nullptr,
-        nullptr,
-        &si,
-        &pi
-    );
-
-    if (ok) {
-        CloseHandle(pi.hThread);
-        CloseHandle(pi.hProcess);
-        _exit(0);
-    } else {
-        _exit(1);
-    }
-#endif
 }

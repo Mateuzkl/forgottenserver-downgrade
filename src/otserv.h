@@ -7,10 +7,4 @@
 void printServerVersion();
 void startServer();
 
-// Internal restart API
-void setProcessArgs(int argc, const char** argv);
-void requestServerRestart(uint32_t delaySeconds);
-bool isServerRestartRequested();
-void restart();
-
 #endif

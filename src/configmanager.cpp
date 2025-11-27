@@ -381,10 +381,6 @@ bool ConfigManager::load()
 	integers[Integer::MAX_ALLOWED_ON_A_DUMMY] = getGlobalInteger(L, "maxAllowedOnADummy", 5);
 	integers[Integer::RATE_EXERCISE_TRAINING_SPEED] = getGlobalInteger(L, "rateExerciseTrainingSpeed", 1.0);
 
-	// Internal ServerSave configuration (string time in format "HH:MM")
-strings[String::SERVER_SAVE_TIME] = getGlobalString(L, "serversave_time", "05:00");
-strings[String::SERVER_SAVE_RESTART_DELAY] = getGlobalString(L, "serversave_restart_delay", "00:05");
-
 	expStages = loadXMLStages();
 	if (expStages.empty()) {
 		expStages = loadLuaStages(L);

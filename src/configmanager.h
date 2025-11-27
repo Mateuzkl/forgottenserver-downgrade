@@ -79,10 +79,6 @@ enum String
 	MAP_AUTHOR,
 	CONFIG_FILE,
 
-	// Server Save (internal scheduler)
-	SERVER_SAVE_TIME,
-	SERVER_SAVE_RESTART_DELAY,
-
 	LAST_STRING /* this must be the last one */
 };
 

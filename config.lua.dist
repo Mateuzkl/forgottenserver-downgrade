@@ -172,12 +172,6 @@ serverSaveCleanMap = false
 serverSaveClose = false
 serverSaveShutdown = true
 
--- serversave_time: daily execution time in 24h format "HH:MM" (local time)
--- serversave_restart_delay: delay before restarting after server save, as duration "HH:MM"
--- examples: serversave_time = "05:00" (5 AM), serversave_restart_delay = "00:05" (5 minutes)
-serversave_time = "05:00"
-serversave_restart_delay = "00:05"
-
 -- Experience stages
 -- NOTE: to use a flat experience multiplier, set experienceStages to nil
 -- minlevel and multiplier are MANDATORY
