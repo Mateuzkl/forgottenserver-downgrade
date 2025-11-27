@@ -97,7 +97,6 @@
 		<item name="golden armor" chance="8333" />
 		<item name="magic plate armor" chance="8333" />
 		<item name="demon shield" chance="12500" />
-		<item id="2646" chance="8333" /><!-- golden boots -->
 		<item name="demon horn" countmax="2" chance="33333" />
 		<item id="6300" name="death ring" chance="25000" />
 		<item name="demonic essence" chance="100000" />

@@ -82,7 +82,6 @@
 		<item name="violet gem" chance="1100" />
 		<item name="orb" chance="300" />
 		<item name="twin axe" chance="200" />
-		<item id="2184" chance="150" /><!-- crystal wand -->
 		<item name="mini mummy" chance="150" />
 	</loot>
 </monster>

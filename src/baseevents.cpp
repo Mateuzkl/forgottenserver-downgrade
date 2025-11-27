@@ -42,7 +42,17 @@ bool BaseEvents::loadFromXml()
 		}
 
 		if (!event->configureEvent(node)) {
-			std::cout << "[Warning - BaseEvents::loadFromXml] Failed to configure event" << std::endl;
+			std::cout << "[Warning - BaseEvents::loadFromXml] Failed to configure event: " << node.name();
+			if (node.attribute("name")) {
+				std::cout << " (name: " << node.attribute("name").as_string() << ")";
+			}
+			if (node.attribute("class")) {
+				std::cout << " (class: " << node.attribute("class").as_string() << ")";
+			}
+			if (node.attribute("method")) {
+				std::cout << " (method: " << node.attribute("method").as_string() << ")";
+			}
+			std::cout << std::endl;
 			continue;
 		}
 

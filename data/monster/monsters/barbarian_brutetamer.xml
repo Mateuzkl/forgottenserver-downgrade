@@ -56,7 +56,6 @@
 		<item id="2401" chance="6500" /><!-- staff -->
 		<item name="chain armor" chance="8900" />
 		<item name="corncob" countmax="2" chance="11000" />
-		<item id="3965" chance="5250" /><!-- hunting spear -->
 		<item name="fur bag" chance="7540" />
 		<item name="brutetamer's staff" chance="380" />
 		<item name="fur boots" chance="160" />

@@ -21987,37 +21987,31 @@
 		<attribute key="description"
 			value="You can train your skills by using training weapons with this exercise dummy." />
 		<attribute key="rotateTo" value="31216" />
-		<attribute key="wrapableTo" value="26054" />
 	</item>
 	<item id="31216" article="a" name="ferumbras exercise dummy">
 		<attribute key="description"
 			value="You can train your skills by using training weapons with this exercise dummy." />
 		<attribute key="rotateTo" value="31215" />
-		<attribute key="wrapableTo" value="26054" />
 	</item>
 	<item id="31217" article="a" name="demon exercise dummy">
 		<attribute key="description"
 			value="You can train your skills by using training weapons with this exercise dummy." />
 		<attribute key="rotateTo" value="31218" />
-		<attribute key="wrapableTo" value="26054" />
 	</item>
 	<item id="31218" article="a" name="demon exercise dummy">
 		<attribute key="description"
 			value="You can train your skills by using training weapons with this exercise dummy." />
 		<attribute key="rotateTo" value="31217" />
-		<attribute key="wrapableTo" value="26054" />
 	</item>
 	<item id="31219" article="a" name="monk exercise dummy">
 		<attribute key="description"
 			value="You can train your skills by using training weapons with this exercise dummy." />
 		<attribute key="rotateTo" value="31220" />
-		<attribute key="wrapableTo" value="26054" />
 	</item>
 	<item id="31220" article="a" name="monk exercise dummy">
 		<attribute key="description"
 			value="You can train your skills by using training weapons with this exercise dummy." />
 		<attribute key="rotateTo" value="31219" />
-		<attribute key="wrapableTo" value="26054" />
 	</item>
 	<item id="31221" article="an" name="exercise dummy">
 		<attribute key="description"

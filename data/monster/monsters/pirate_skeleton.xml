@@ -37,6 +37,5 @@
 		<item id="2376" chance="550" /><!-- sword -->
 		<item name="short sword" chance="1003" />
 		<item name="bone club" chance="960" />
-		<item id="10558" chance="4730" /><!-- spooky blue eye -->
 	</loot>
 </monster>
