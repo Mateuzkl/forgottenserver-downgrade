@@ -148,6 +148,12 @@ CREATE TABLE IF NOT EXISTS `game_storage` (
   PRIMARY KEY (`key`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
+CREATE TABLE IF NOT EXISTS `global_storage` (
+  `key` int UNSIGNED NOT NULL,
+  `value` bigint NOT NULL DEFAULT '0',
+  PRIMARY KEY (`key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
 CREATE TABLE IF NOT EXISTS `guilds` (
   `id` int NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,

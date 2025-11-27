@@ -504,6 +504,11 @@ public:
 
 	bool reload(ReloadTypes_t reloadType);
 
+	void loadGlobalStorages();
+	bool saveGlobalStorages() const;
+	int64_t getStorageValue(uint32_t key, int64_t defaultValue = -1) const;
+	void setStorageValue(uint32_t key, int64_t value);
+
 	Groups groups;
 	Map map;
 	Raids raids;
@@ -516,17 +521,9 @@ public:
 	void removeTileToClean(Tile* tile) { tilesToClean.erase(tile); }
 	void clearTilesToClean() { tilesToClean.clear(); }
 
-	void loadGameStorageValues();
-	bool saveGameStorageValues() const;
-
-	void setStorageValue(uint32_t key, std::optional<int64_t> value);
-	std::optional<int64_t> getStorageValue(uint32_t key) const;
-	decltype(auto) getStorageMap() const { return storageMap; }
-
 	void sendOfflineTrainingDialog(Player* player);
 
 private:
-	std::map<uint32_t, int64_t> storageMap;
 
 	bool playerSaySpell(Player* player, SpeakClasses type, std::string_view text);
 	void playerWhisper(Player* player, std::string_view text);
@@ -553,6 +550,8 @@ private:
 
 	std::map<uint32_t, Npc*> npcs;
 	std::map<uint32_t, Monster*> monsters;
+
+	std::map<uint32_t, int64_t> globalStorageMap;
 
 	// list of items that are in trading state, mapped to the player
 	std::map<Item*, uint32_t> tradeItems;

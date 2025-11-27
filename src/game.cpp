@@ -98,7 +98,7 @@ void Game::setGameState(GameState_t newState)
 
 			loadMotdNum();
 			loadPlayersRecord();
-			loadGameStorageValues();
+			loadGlobalStorages();
 			loadAccountStorageValues();
 
 			g_globalEvents->startup();
@@ -155,8 +155,8 @@ void Game::saveGameState()
 
 	std::cout << "Saving server..." << std::endl;
 
-	if (!saveGameStorageValues()) {
-		std::cout << "[Error - Game::saveGameState] Failed to save game storage values." << std::endl;
+	if (!saveGlobalStorages()) {
+		std::cout << "[Error - Game::saveGameState] Failed to save global storage values." << std::endl;
 	}
 
 	if (!saveAccountStorageValues()) {
@@ -169,6 +169,10 @@ void Game::saveGameState()
 	}
 
 	Map::save();
+
+	if (!saveGlobalStorages()) {
+		std::cout << "[Error - Game::saveGameState] Failed to save global storage values." << std::endl;
+	}
 
 	g_databaseTasks.flush();
 
@@ -5578,59 +5582,57 @@ bool Game::reload(ReloadTypes_t reloadType)
 	return true;
 }
 
-void Game::loadGameStorageValues()
+void Game::loadGlobalStorages()
 {
 	Database& db = Database::getInstance();
-
-	DBResult_ptr result;
-	if ((result = db.storeQuery("SELECT `key`, `value` FROM `game_storage`"))) {
+	DBResult_ptr result = db.storeQuery("SELECT `key`, `value` FROM `global_storage`");
+	if (result) {
 		do {
-			g_game.setStorageValue(result->getNumber<uint32_t>("key"), result->getNumber<int32_t>("value"));
+			globalStorageMap[result->getNumber<uint32_t>("key")] = result->getNumber<int64_t>("value");
 		} while (result->next());
 	}
 }
 
-bool Game::saveGameStorageValues() const
+bool Game::saveGlobalStorages() const
 {
-	DBTransaction transaction;
 	Database& db = Database::getInstance();
 
-	if (!transaction.begin()) {
+	if (!db.executeQuery("DELETE FROM `global_storage`")) {
 		return false;
 	}
 
-	if (!db.executeQuery("DELETE FROM `game_storage`")) {
-		return false;
-	}
+	DBInsert storageQuery("INSERT INTO `global_storage` (`key`, `value`) VALUES ");
 
-	for (const auto& [key, value] : g_game.storageMap) {
-		DBInsert gameStorageQuery("INSERT INTO `game_storage` (`key`, `value`) VALUES");
-		if (!gameStorageQuery.addRow(fmt::format("{:d}, {:d}", key, value))) {
-			return false;
-		}
-
-		if (!gameStorageQuery.execute()) {
+	for (const auto& it : globalStorageMap) {
+		if (!storageQuery.addRow(fmt::format("{:d}, {:d}", it.first, it.second))) {
 			return false;
 		}
 	}
 
-	return transaction.commit();
+	if (!storageQuery.execute()) {
+		return false;
+	}
+
+	return true;
 }
 
-void Game::setStorageValue(uint32_t key, std::optional<int64_t> value)
+int64_t Game::getStorageValue(const uint32_t key, const int64_t defaultValue /*= -1*/) const
 {
-	if (value) {
-		storageMap.insert_or_assign(key, value.value());
-	} else {
-		storageMap.erase(key);
+	const auto it = globalStorageMap.find(key);
+	if(it == globalStorageMap.end())
+	{
+		return defaultValue;
 	}
+
+	return it->second;
 }
 
-std::optional<int64_t> Game::getStorageValue(uint32_t key) const
+void Game::setStorageValue(const uint32_t key, const int64_t value)
 {
-	auto it = storageMap.find(key);
-	if (it == storageMap.end()) {
-		return std::nullopt;
+	if (value == -1) {
+		globalStorageMap.erase(key);
+		return;
 	}
-	return std::make_optional(it->second);
+
+	globalStorageMap[key] = value;
 }
