@@ -255,11 +255,8 @@ local function AbilityTableToSpell(ability)
 			end
 			if ability.effect then spell:setCombatEffect(ability.effect) end
 			if ability.shootEffect then spell:setCombatShootEffect(ability.shootEffect) end
-			if ability.name == "drunk" then
-				spell:setConditionType(CONDITION_DRUNK)
-				if ability.drunkenness then
-					spell:setConditionDrunkenness(ability.drunkenness)
-				end
+			if ability.drunkenness then
+				spell:setConditionDrunkenness(ability.drunkenness)
 			end
 		end
 		if ability.condition then
