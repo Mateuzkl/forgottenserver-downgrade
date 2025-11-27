@@ -7,9 +7,9 @@
 #include "const.h"
 #include "creature.h"
 #include "luascript.h"
+#include "networkmessage.h"
 
 class ItemType;
-class NetworkMessage;
 class Party;
 class Spell;
 class Tile;
@@ -118,7 +118,7 @@ public:
 	void eventPlayerOnGainExperience(Player* player, Creature* source, uint64_t& exp, uint64_t rawExp);
 	void eventPlayerOnLoseExperience(Player* player, uint64_t& exp);
 	void eventPlayerOnGainSkillTries(Player* player, skills_t skill, uint64_t& tries, bool artificial);
-	void eventPlayerOnNetworkMessage(Player* player, uint8_t recvByte, NetworkMessage* msg);
+	void eventPlayerOnNetworkMessage(Player* player, uint8_t recvByte, NetworkMessage_ptr& msg);
 	void eventPlayerOnUpdateInventory(Player* player, Item* item, const slots_t slot, const bool equip);
 	void eventPlayerOnRotateItem(Player* player, Item* item);
 	bool eventPlayerOnSpellCheck(Player* player, const Spell* spell);

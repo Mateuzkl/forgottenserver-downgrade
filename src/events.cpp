@@ -1127,7 +1127,7 @@ void Events::eventPlayerOnGainSkillTries(Player* player, skills_t skill, uint64_
 	scriptInterface.resetScriptEnv();
 }
 
-void Events::eventPlayerOnNetworkMessage(Player* player, uint8_t recvByte, NetworkMessage* msg)
+void Events::eventPlayerOnNetworkMessage(Player* player, uint8_t recvByte, NetworkMessage_ptr& msg)
 {
 	// Player:onNetworkMessage(recvByte, msg)
 	if (info.playerOnNetworkMessage == -1) {
@@ -1150,7 +1150,7 @@ void Events::eventPlayerOnNetworkMessage(Player* player, uint8_t recvByte, Netwo
 
 	lua_pushinteger(L, recvByte);
 
-	Lua::pushUserdata<NetworkMessage>(L, msg);
+	Lua::pushUserdata<NetworkMessage>(L, msg.release());
 	Lua::setMetatable(L, -1, "NetworkMessage");
 
 	scriptInterface.callVoidFunction(3);
