@@ -79,6 +79,13 @@ void Weapons::loadDefaults()
 				break;
 			}
 
+			case WEAPON_WAND: {
+				WeaponWand* weapon = new WeaponWand(&scriptInterface);
+				weapon->configureWeapon(it);
+				weapons[i] = weapon;
+				break;
+			}
+
 			default:
 				break;
 		}
@@ -905,8 +912,13 @@ void WeaponWand::configureWeapon(const ItemType& it)
 int32_t WeaponWand::getWeaponDamage(const Player* player, const Creature*, const Item* item,
                                     bool maxDamage /*= false*/) const
 {
+
+	
 	int32_t maxValue = maxChange;
 	int32_t attackValue = std::max<int32_t>(0, item->getAttack());
+	
+
+	
 	if (attackValue != 0) {
 		int32_t magicLevel = player->getMagicLevel();
 		float attackFactor = player->getAttackFactor();
@@ -916,8 +928,8 @@ int32_t WeaponWand::getWeaponDamage(const Player* player, const Creature*, const
 		    player->getVocation()->wandDamageMultiplier);
 	}
 
-	if (maxDamage) {
-		return -maxValue;
-	}
-	return -normal_random(minChange, maxValue);
+	int32_t damage = maxDamage ? -maxValue : -normal_random(minChange, maxValue);
+
+	
+	return damage;
 }
