@@ -10,7 +10,7 @@ function onGetFormulaValues(player, level, magicLevel)
 	return -min, -max
 end
 
-combat:setCallback(CALLBACK_PARAM_LEVELMAGICVALUE, "onGetFormulaValues")
+combat:setCallback(CallBackParam.LEVELMAGICVALUE, onGetFormulaValues)
 
 local spell = Spell(SPELL_INSTANT)
 
@@ -27,5 +27,5 @@ spell:mana(170)
 spell:needDirection(true)
 spell:cooldown(8000)
 spell:groupCooldown(2000)
-spell:vocation("sorcerer;true", "master sorcerer;true")
+spell:vocation("sorcerer", "master sorcerer")
 spell:register()

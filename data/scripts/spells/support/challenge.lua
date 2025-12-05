@@ -6,7 +6,7 @@ function onTargetCreature(creature, target)
 	return doChallengeCreature(creature, target)
 end
 
-combat:setCallback(CALLBACK_PARAM_TARGETCREATURE, "onTargetCreature")
+combat:setCallback(CallBackParam.TARGETCREATURE, "onTargetCreature")
 
 local spell = Spell(SPELL_INSTANT)
 
@@ -23,5 +23,5 @@ spell:mana(40)
 spell:isAggressive(false)
 spell:cooldown(2000)
 spell:groupCooldown(2000)
-spell:vocation("elite knight;true")
+spell:vocation("elite knight")
 spell:register()

@@ -11,7 +11,7 @@ function onGetFormulaValues(player, skill, attack, factor)
 	return -min, -max
 end
 
-combat:setCallback(CALLBACK_PARAM_SKILLVALUE, "onGetFormulaValues")
+combat:setCallback(CallBackParam.SKILLVALUE, onGetFormulaValues)
 
 local spell = Spell(SPELL_INSTANT)
 
@@ -30,5 +30,5 @@ spell:needTarget(true)
 spell:cooldown(2000)
 spell:groupCooldown(2000)
 spell:blockWalls(true)
-spell:vocation("paladin;true", "royal paladin;true")
+spell:vocation("paladin", "royal paladin")
 spell:register()

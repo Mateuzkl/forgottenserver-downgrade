@@ -9,7 +9,7 @@ function onGetFormulaValues(player, level, magicLevel)
 	return -min, -max
 end
 
-combat:setCallback(CALLBACK_PARAM_LEVELMAGICVALUE, "onGetFormulaValues")
+combat:setCallback(CallBackParam.LEVELMAGICVALUE, onGetFormulaValues)
 
 local spell = Spell(SPELL_INSTANT)
 
@@ -26,5 +26,5 @@ spell:mana(700)
 spell:isSelfTarget(true)
 spell:cooldown(40000)
 spell:groupCooldown(4000)
-spell:vocation("druid;true", "elder druid;true")
+spell:vocation("druid", "elder druid")
 spell:register()

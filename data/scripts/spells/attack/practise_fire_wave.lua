@@ -7,7 +7,7 @@ function onGetFormulaValues(player, level, magicLevel)
 	return -11, -14
 end
 
-combat:setCallback(CALLBACK_PARAM_LEVELMAGICVALUE, "onGetFormulaValues")
+combat:setCallback(CallBackParam.LEVELMAGICVALUE, onGetFormulaValues)
 
 local spell = Spell(SPELL_INSTANT)
 
