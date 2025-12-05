@@ -195,6 +195,7 @@ int luaCombatClearConditions(lua_State* L)
 int luaCombatSetCallback(lua_State* L)
 {
 	// combat:setCallback(key, callback)
+	// callback can be either a function or a string with the function name
 	if (!isType<Combat>(L, 1)) {
 		reportErrorFunc(L, LuaScriptInterface::getErrorDesc(LuaErrorCode::COMBAT_NOT_FOUND));
 		lua_pushnil(L);
@@ -208,7 +209,42 @@ int luaCombatSetCallback(lua_State* L)
 	}
 
 	auto key = getInteger<CallBackParam>(L, 2);
-	if (!combat->loadCallBack(key, LuaScriptInterface::getScriptEnv()->getScriptInterface())) {
+	
+	if (!combat->setCallback(key)) {
+		reportErrorFunc(L, "Invalid callback parameter");
+		pushBoolean(L, false);
+		return 1;
+	}
+	
+	auto callback = combat->getCallback(key);
+	if (!callback) {
+		reportErrorFunc(L, "Failed to get callback");
+		pushBoolean(L, false);
+		return 1;
+	}
+	
+	auto* scriptInterface = LuaScriptInterface::getScriptEnv()->getScriptInterface();
+	if (!scriptInterface) {
+		reportErrorFunc(L, "Script interface not found");
+		pushBoolean(L, false);
+		return 1;
+	}
+	
+	bool success = false;
+	
+	if (isFunction(L, 3)) {
+		lua_pushvalue(L, 3);
+		success = callback->loadCallBack(scriptInterface);
+	} else if (isString(L, 3)) {
+		std::string functionName = getString(L, 3);
+		success = callback->loadCallBack(scriptInterface, functionName);
+	} else {
+		reportErrorFunc(L, "Callback must be a function or function name");
+		pushBoolean(L, false);
+		return 1;
+	}
+	
+	if (!success) {
 		reportErrorFunc(L, LuaScriptInterface::getErrorDesc(LuaErrorCode::CALLBACK_NOT_FOUND));
 		pushBoolean(L, false);
 		return 1;
@@ -217,6 +253,7 @@ int luaCombatSetCallback(lua_State* L)
 	pushBoolean(L, true);
 	return 1;
 }
+
 
 int luaCombatSetOrigin(lua_State* L)
 {

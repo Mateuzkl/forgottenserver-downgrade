@@ -5,13 +5,13 @@ combat:setParameter(COMBAT_PARAM_DISPEL, CONDITION_PARALYZE)
 combat:setParameter(COMBAT_PARAM_TARGETCASTERORTOPMOST, true)
 combat:setParameter(COMBAT_PARAM_AGGRESSIVE, false)
 
-local function callback(player, level, magicLevel)
+function onGetFormulaValues(player, level, magicLevel)
 	local min = (level / 5) + (magicLevel * 3.2) + 20
 	local max = (level / 5) + (magicLevel * 5.4) + 40
 	return min, max
 end
 
-combat:setCallback(CallBackParam.LEVELMAGICVALUE, callback)
+combat:setCallback(CALLBACK_PARAM_LEVELMAGICVALUE, "onGetFormulaValues")
 
 local spell = Spell(SPELL_RUNE)
 
