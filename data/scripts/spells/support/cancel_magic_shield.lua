@@ -21,6 +21,6 @@ if configManager.getBoolean(configKeys.MANASHIELD_BREAKABLE) then
 	cancelMagicShield:cooldown(2000)
 	cancelMagicShield:groupCooldown(2000)
 	cancelMagicShield:needLearn(false)
-	cancelMagicShield:vocation("druid;true", "elder druid;true", "sorcerer;true", "master sorcerer;true")
+	cancelMagicShield:vocation("druid", "elder druid", "sorcerer", "master sorcerer")
 	cancelMagicShield:register()
 end

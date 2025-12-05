@@ -10,7 +10,7 @@ function onGetFormulaValues(player, level, magicLevel)
 	return min, max
 end
 
-combat:setCallback(CALLBACK_PARAM_LEVELMAGICVALUE, "onGetFormulaValues")
+combat:setCallback(CallBackParam.LEVELMAGICVALUE, onGetFormulaValues)
 
 local spell = Spell(SPELL_INSTANT)
 
@@ -29,5 +29,5 @@ spell:isSelfTarget(true)
 spell:isAggressive(false)
 spell:cooldown(1000)
 spell:groupCooldown(1000)
-spell:vocation("paladin;true", "royal paladin;true")
+spell:vocation("paladin", "royal paladin")
 spell:register()

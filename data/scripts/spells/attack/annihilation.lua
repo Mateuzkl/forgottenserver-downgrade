@@ -11,7 +11,7 @@ function onGetFormulaValues(player, skill, attack, factor)
 	return -min, -max
 end
 
-combat:setCallback(CALLBACK_PARAM_SKILLVALUE, "onGetFormulaValues")
+combat:setCallback(CallBackParam.SKILLVALUE, onGetFormulaValues)
 
 local spell = Spell(SPELL_INSTANT)
 
@@ -30,5 +30,5 @@ spell:needTarget(true)
 spell:needWeapon(true)
 spell:cooldown(30000)
 spell:groupCooldown(4000)
-spell:vocation("knight;true", "elite knight;true")
+spell:vocation("knight", "elite knight")
 spell:register()
