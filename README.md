@@ -16,7 +16,7 @@
 ### Step-by-Step Guide:
 
 1. **Visit the AppVeyor builds page**: 
-   - Go to: https://ci.appveyor.com/project/Mateuzkl/forgottenserver-downgrade/builds
+   - Go to: https://ci.appveyor.com/project/Mateuzkl/forgottenserver-downgrade
    
 2. **Select the latest successful build**:
    - Click on the most recent build with a ✅ green checkmark
