@@ -1,4 +1,4 @@
-local mType = Game.createMonsterType("Crazed Beggar")
+﻿local mType = Game.createMonsterType("Crazed Beggar")
 local monster = {}
 monster.description = "a crazed beggar"
 monster.experience = 35
@@ -93,7 +93,7 @@ monster.loot = {
 	chance = 376
 },
 {
-	id = "heavily rusted armor",
+	id = "plate armor",
 	chance = 289
 },
 {

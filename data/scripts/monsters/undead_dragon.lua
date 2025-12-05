@@ -1,4 +1,4 @@
-local mType = Game.createMonsterType("Undead Dragon")
+﻿local mType = Game.createMonsterType("Undead Dragon")
 local monster = {}
 monster.description = "an undead dragon"
 monster.experience = 7200
@@ -99,7 +99,7 @@ monster.loot = {
 	chance = 4138
 },
 {
-	id = "death ring",
+	id = "stealth ring",
 	chance = 1822
 },
 {

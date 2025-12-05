@@ -1,4 +1,4 @@
-local mType = Game.createMonsterType("Ghazbaran")
+﻿local mType = Game.createMonsterType("Ghazbaran")
 local monster = {}
 monster.description = "Ghazbaran"
 monster.experience = 15000
@@ -163,7 +163,7 @@ monster.loot = {
 	maxCount = 2
 },
 {
-	id = "death ring",
+	id = "stealth ring",
 	chance = 25000
 },
 {

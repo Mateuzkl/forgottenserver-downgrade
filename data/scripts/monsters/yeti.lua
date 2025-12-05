@@ -1,4 +1,4 @@
-local mType = Game.createMonsterType("Yeti")
+﻿local mType = Game.createMonsterType("Yeti")
 local monster = {}
 monster.description = "a yeti"
 monster.experience = 460
@@ -52,7 +52,7 @@ monster.loot = {
 	chance = 39080
 },
 {
-	id = "bunnyslippers",
+	id = "fur boots",
 	chance = 1149
 },
 {

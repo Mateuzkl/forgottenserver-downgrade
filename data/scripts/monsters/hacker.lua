@@ -1,4 +1,4 @@
-local mType = Game.createMonsterType("Hacker")
+﻿local mType = Game.createMonsterType("Hacker")
 local monster = {}
 monster.description = "a hacker"
 monster.experience = 45
@@ -71,11 +71,11 @@ monster.loot = {
 	chance = 50000
 },
 {
-	id = "blue surprise bag",
+	id = "present",
 	chance = 5538
 },
 {
-	id = "red surprise bag",
+	id = "present",
 	chance = 1538
 }
 }

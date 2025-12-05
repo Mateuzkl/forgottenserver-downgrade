@@ -1,4 +1,4 @@
-local mType = Game.createMonsterType("Dworc Venomsniper")
+﻿local mType = Game.createMonsterType("Dworc Venomsniper")
 local monster = {}
 monster.description = "a dworc venomsniper"
 monster.experience = 35
@@ -62,7 +62,7 @@ monster.loot = {
 	chance = 1500
 },
 {
-	id = "skull (item)",
+	id = "skull",
 	chance = 983,
 	maxCount = 2
 },

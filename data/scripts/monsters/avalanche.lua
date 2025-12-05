@@ -39,13 +39,14 @@ monster.attacks = {
 	effect = CONST_ME_DRAWBLOOD
 },
 {
-	name = "drown",
+	name = "combat",
 	interval = 1 * 1000,
 	chance = 100,
 	minDamage = -10,
 	maxDamage = -50,
 	length = 5,
 	spread = 6,
+	type = COMBAT_ENERGYDAMAGE,
 	effect = CONST_ME_ENERGYAREA
 },
 {

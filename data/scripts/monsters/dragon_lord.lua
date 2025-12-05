@@ -1,4 +1,4 @@
-local mType = Game.createMonsterType("Dragon Lord")
+﻿local mType = Game.createMonsterType("Dragon Lord")
 local monster = {}
 monster.description = "a dragon lord"
 monster.experience = 2100
@@ -52,7 +52,7 @@ monster.loot = {
 	maxCount = 3
 },
 {
-	id = "book (gemmed)",
+	id = "book",
 	chance = 9090
 },
 {

@@ -1,4 +1,4 @@
-local mType = Game.createMonsterType("Dark Torturer")
+﻿local mType = Game.createMonsterType("Dark Torturer")
 local monster = {}
 monster.description = "a dark torturer"
 monster.experience = 4650
@@ -95,7 +95,7 @@ monster.loot = {
 	chance = 2061
 },
 {
-	id = "death ring",
+	id = "stealth ring",
 	chance = 1958
 },
 {

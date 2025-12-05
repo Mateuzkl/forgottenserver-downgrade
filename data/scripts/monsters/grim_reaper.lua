@@ -1,4 +1,4 @@
-local mType = Game.createMonsterType("Grim Reaper")
+﻿local mType = Game.createMonsterType("Grim Reaper")
 local monster = {}
 monster.description = "a grim reaper"
 monster.experience = 5500
@@ -79,7 +79,7 @@ monster.loot = {
 	chance = 2830
 },
 {
-	id = "slightly rusted armor",
+	id = "plate armor",
 	chance = 2509
 },
 {
@@ -104,7 +104,7 @@ monster.loot = {
 	chance = 257
 },
 {
-	id = "death ring",
+	id = "stealth ring",
 	chance = 225
 }
 }

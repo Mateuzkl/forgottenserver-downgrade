@@ -77,13 +77,14 @@ monster.attacks = {
 	effect = CONST_ME_DRAWBLOOD
 },
 {
-	name = "drown",
+	name = "combat",
 	interval = 4 * 1000,
 	chance = 30,
 	minDamage = -70,
 	maxDamage = -90,
 	range = 7,
 	target = true,
+	type = COMBAT_ICEDAMAGE,
 	effect = CONST_ME_BLUEBUBBLE,
 	shootEffect = CONST_ANI_SUDDENDEATH
 },

@@ -101,7 +101,7 @@ monster.attacks = {
 	effect = CONST_ME_DRAWBLOOD
 },
 {
-	name = "drown",
+	name = "combat",
 	interval = 2 * 1000,
 	chance = 15,
 	minDamage = -20,
@@ -109,6 +109,7 @@ monster.attacks = {
 	range = 7,
 	radius = 3,
 	target = true,
+	type = COMBAT_EARTHDAMAGE,
 	shootEffect = CONST_ANI_SMALLEARTH,
 	effect = CONST_ME_POFF
 },

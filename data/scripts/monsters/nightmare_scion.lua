@@ -1,4 +1,4 @@
-local mType = Game.createMonsterType("Nightmare Scion")
+﻿local mType = Game.createMonsterType("Nightmare Scion")
 local monster = {}
 monster.description = "a nightmare scion"
 monster.experience = 1350
@@ -71,7 +71,7 @@ monster.loot = {
 	chance = 330
 },
 {
-	id = "death ring",
+	id = "stealth ring",
 	chance = 284
 },
 {

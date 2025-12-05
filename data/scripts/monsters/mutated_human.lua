@@ -1,4 +1,4 @@
-local mType = Game.createMonsterType("Mutated Human")
+﻿local mType = Game.createMonsterType("Mutated Human")
 local monster = {}
 monster.description = "a mutated human"
 monster.experience = 150
@@ -74,7 +74,7 @@ monster.loot = {
 	chance = 4946
 },
 {
-	id = "heavily rusted armor",
+	id = "plate armor",
 	chance = 2007
 },
 {

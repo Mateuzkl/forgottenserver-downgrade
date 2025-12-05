@@ -9,7 +9,38 @@
 
 ## 🛠 It is currently under development. ⚙
 
-## How to compile
+## 📥 Quick Start - Download Pre-compiled Binaries
+
+**Don't want to compile? No problem!** You can download the latest pre-compiled binaries from AppVeyor:
+
+### Step-by-Step Guide:
+
+1. **Visit the AppVeyor builds page**: 
+   - Go to: https://ci.appveyor.com/project/Mateuzkl/forgottenserver-downgrade/builds
+   
+2. **Select the latest successful build**:
+   - Click on the most recent build with a ✅ green checkmark
+   - Example: https://ci.appveyor.com/project/Mateuzkl/forgottenserver-downgrade/builds/53194264
+
+3. **Download the artifacts**:
+   - Click on the **"Artifacts"** tab at the top
+   - Scroll down to find the **"zips"** folder
+   - Click on **"tfs.zip"** to download
+
+4. **Extract and replace**:
+   - Extract the downloaded `tfs.zip` file
+   - Copy all `.dll` files and `theforgottenserver-x64.exe` from the zip
+   - Paste them into your server folder (replace existing files)
+
+5. **Run the server**:
+   - Double-click `theforgottenserver-x64.exe` to start your server
+   - Done! 🎉
+
+**Note**: This method is perfect for quick testing or if you don't have a compiler installed.
+
+---
+
+## 🔨 How to Compile (Advanced Users)
 
 [Compiling on Ubuntu](https://github.com/MillhioreBT/forgottenserver-downgrade/wiki/Compiling-on-Ubuntu)
 

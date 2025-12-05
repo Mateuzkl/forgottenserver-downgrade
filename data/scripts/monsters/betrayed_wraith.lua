@@ -1,4 +1,4 @@
-local mType = Game.createMonsterType("Betrayed Wraith")
+﻿local mType = Game.createMonsterType("Betrayed Wraith")
 local monster = {}
 monster.description = "a betrayed wraith"
 monster.experience = 3500
@@ -94,7 +94,7 @@ monster.loot = {
 	chance = 1503
 },
 {
-	id = "death ring",
+	id = "stealth ring",
 	chance = 404
 },
 {

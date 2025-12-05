@@ -1,4 +1,4 @@
-local mType = Game.createMonsterType("Elf Arcanist")
+﻿local mType = Game.createMonsterType("Elf Arcanist")
 local monster = {}
 monster.description = "an elf arcanist"
 monster.experience = 175
@@ -94,7 +94,7 @@ monster.loot = {
 	chance = 2192
 },
 {
-	id = "elven amulet",
+	id = "elven brooch",
 	chance = 2047
 },
 {

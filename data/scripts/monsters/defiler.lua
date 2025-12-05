@@ -1,4 +1,4 @@
-local mType = Game.createMonsterType("Defiler")
+﻿local mType = Game.createMonsterType("Defiler")
 local monster = {}
 monster.description = "a defiler"
 monster.experience = 3700
@@ -76,7 +76,7 @@ monster.loot = {
 	maxCount = 2
 },
 {
-	id = "death ring",
+	id = "stealth ring",
 	chance = 2831
 },
 {

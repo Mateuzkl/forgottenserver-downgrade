@@ -1,4 +1,4 @@
-local mType = Game.createMonsterType("Diabolic Imp")
+﻿local mType = Game.createMonsterType("Diabolic Imp")
 local monster = {}
 monster.description = "a diabolic imp"
 monster.experience = 2900
@@ -103,7 +103,7 @@ monster.loot = {
 	chance = 355
 },
 {
-	id = "death ring",
+	id = "stealth ring",
 	chance = 99
 }
 }

@@ -1,4 +1,4 @@
-local mType = Game.createMonsterType("Barbarian Headsplitter")
+﻿local mType = Game.createMonsterType("Barbarian Headsplitter")
 local monster = {}
 monster.description = "a barbarian headsplitter"
 monster.experience = 85
@@ -61,7 +61,7 @@ monster.loot = {
 	chance = 4046
 },
 {
-	id = "skull (item)",
+	id = "skull",
 	chance = 3194
 },
 {

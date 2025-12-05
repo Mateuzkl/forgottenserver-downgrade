@@ -1,4 +1,4 @@
-local mType = Game.createMonsterType("Hellspawn")
+﻿local mType = Game.createMonsterType("Hellspawn")
 local monster = {}
 monster.description = "a hellspawn"
 monster.experience = 2550
@@ -82,7 +82,7 @@ monster.loot = {
 	maxCount = 3
 },
 {
-	id = "rusted armor",
+	id = "plate armor",
 	chance = 2226
 },
 {
@@ -102,11 +102,11 @@ monster.loot = {
 	chance = 497
 },
 {
-	id = "black skull (item)",
+	id = "skull",
 	chance = 213
 },
 {
-	id = "slightly rusted armor",
+	id = "plate armor",
 	chance = 189
 },
 {

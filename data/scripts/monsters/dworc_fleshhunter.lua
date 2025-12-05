@@ -1,4 +1,4 @@
-local mType = Game.createMonsterType("Dworc Fleshhunter")
+﻿local mType = Game.createMonsterType("Dworc Fleshhunter")
 local monster = {}
 monster.description = "a dworc fleshhunter"
 monster.experience = 40
@@ -52,7 +52,7 @@ monster.loot = {
 	chance = 5553
 },
 {
-	id = "skull (item)",
+	id = "skull",
 	chance = 3027,
 	maxCount = 3
 },
@@ -61,7 +61,7 @@ monster.loot = {
 	chance = 2061
 },
 {
-	id = "hunting spear",
+	id = "spear",
 	chance = 1950
 },
 {

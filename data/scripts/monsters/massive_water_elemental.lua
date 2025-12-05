@@ -87,7 +87,7 @@ monster.attacks = {
 	effect = CONST_ME_DRAWBLOOD
 },
 {
-	name = "drown",
+	name = "combat",
 	interval = 2 * 1000,
 	chance = 15,
 	minDamage = -330,
@@ -95,6 +95,7 @@ monster.attacks = {
 	range = 7,
 	radius = 2,
 	target = true,
+	type = COMBAT_ICEDAMAGE,
 	effect = CONST_ME_BLUEBUBBLE
 },
 {

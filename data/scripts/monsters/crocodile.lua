@@ -1,4 +1,4 @@
-local mType = Game.createMonsterType("Crocodile")
+﻿local mType = Game.createMonsterType("Crocodile")
 local monster = {}
 monster.description = "a crocodile"
 monster.experience = 40
@@ -41,7 +41,7 @@ monster.loot = {
 	chance = 20032
 },
 {
-	id = "crocodile boots",
+	id = "leather boots",
 	chance = 86
 }
 }

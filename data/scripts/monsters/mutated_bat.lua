@@ -1,4 +1,4 @@
-local mType = Game.createMonsterType("Mutated Bat")
+﻿local mType = Game.createMonsterType("Mutated Bat")
 local monster = {}
 monster.description = "a mutated bat"
 monster.experience = 615
@@ -40,7 +40,7 @@ monster.loot = {
 	maxCount = 130
 },
 {
-	id = "heavily rusted armor",
+	id = "plate armor",
 	chance = 12568
 },
 {
@@ -74,7 +74,7 @@ monster.loot = {
 	maxCount = 3
 },
 {
-	id = "rusted armor",
+	id = "plate armor",
 	chance = 726
 },
 {
@@ -115,13 +115,14 @@ monster.attacks = {
 	shootEffect = CONST_ANI_POISON
 },
 {
-	name = "drown",
+	name = "combat",
 	interval = 2 * 1000,
 	chance = 15,
 	minDamage = -30,
 	maxDamage = -90,
 	radius = 6,
 	target = false,
+	type = COMBAT_PHYSICALDAMAGE,
 	effect = CONST_ME_WHITENOTE
 },
 {

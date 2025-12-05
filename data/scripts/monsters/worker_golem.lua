@@ -1,4 +1,4 @@
-local mType = Game.createMonsterType("Worker Golem")
+﻿local mType = Game.createMonsterType("Worker Golem")
 local monster = {}
 monster.description = "a worker golem"
 monster.experience = 1250
@@ -61,7 +61,7 @@ monster.loot = {
 	chance = 1574
 },
 {
-	id = "rusted armor",
+	id = "plate armor",
 	chance = 1559
 },
 {
@@ -82,7 +82,7 @@ monster.loot = {
 	maxCount = 2
 },
 {
-	id = "rusted legs",
+	id = "plate legs",
 	chance = 928
 },
 {

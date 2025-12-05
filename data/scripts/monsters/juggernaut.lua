@@ -1,4 +1,4 @@
-local mType = Game.createMonsterType("Juggernaut")
+﻿local mType = Game.createMonsterType("Juggernaut")
 local monster = {}
 monster.description = "a juggernaut"
 monster.experience = 11200
@@ -111,7 +111,7 @@ monster.loot = {
 	chance = 9381
 },
 {
-	id = "giant shimmering pearl (green)",
+	id = "giant shimmering pearl",
 	chance = 6918
 },
 {

@@ -1,4 +1,4 @@
-local mType = Game.createMonsterType("Annihilon")
+﻿local mType = Game.createMonsterType("Annihilon")
 local monster = {}
 monster.description = "Annihilon"
 monster.experience = 15000
@@ -41,7 +41,7 @@ monster.loot = {
 	maxCount = 100
 },
 {
-	id = "slightly rusted armor",
+	id = "plate armor",
 	chance = 62097
 },
 {

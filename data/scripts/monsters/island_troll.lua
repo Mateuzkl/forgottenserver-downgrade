@@ -1,4 +1,4 @@
-local mType = Game.createMonsterType("Island Troll")
+﻿local mType = Game.createMonsterType("Island Troll")
 local monster = {}
 monster.description = "an island troll"
 monster.experience = 20
@@ -75,7 +75,7 @@ monster.loot = {
 	chance = 5182
 },
 {
-	id = "mango",
+	id = "melon",
 	chance = 5102
 },
 {

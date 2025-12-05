@@ -1,4 +1,4 @@
-local mType = Game.createMonsterType("Orc Shaman")
+﻿local mType = Game.createMonsterType("Orc Shaman")
 local monster = {}
 monster.description = "an orc shaman"
 monster.experience = 110
@@ -84,7 +84,7 @@ monster.loot = {
 	chance = 966
 },
 {
-	id = "book (grey)",
+	id = "book",
 	chance = 465
 }
 }

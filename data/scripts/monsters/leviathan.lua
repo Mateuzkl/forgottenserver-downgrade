@@ -86,13 +86,14 @@ monster.attacks = {
 	effect = CONST_ME_ICEAREA
 },
 {
-	name = "drown",
+	name = "combat",
 	interval = 1 * 1000,
 	chance = 11,
 	minDamage = -15,
 	maxDamage = -20,
 	radius = 4,
 	target = true,
+	type = COMBAT_ICEDAMAGE,
 	effect = CONST_ME_BLUEBUBBLE
 }
 }

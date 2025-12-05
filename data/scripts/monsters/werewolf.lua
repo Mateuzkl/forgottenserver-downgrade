@@ -1,4 +1,4 @@
-local mType = Game.createMonsterType("Werewolf")
+﻿local mType = Game.createMonsterType("Werewolf")
 local monster = {}
 monster.description = "a werewolf"
 monster.experience = 1900
@@ -58,7 +58,7 @@ monster.loot = {
 	maxCount = 2
 },
 {
-	id = "rusted armor",
+	id = "plate armor",
 	chance = 7958
 },
 {

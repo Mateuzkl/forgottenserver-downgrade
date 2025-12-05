@@ -1,4 +1,4 @@
-local mType = Game.createMonsterType("Crystal Spider")
+﻿local mType = Game.createMonsterType("Crystal Spider")
 local monster = {}
 monster.description = "a crystal spider"
 monster.experience = 900
@@ -87,7 +87,7 @@ monster.loot = {
 	chance = 717
 },
 {
-	id = "glacier mask",
+	id = "glacier amulet",
 	chance = 664
 },
 {

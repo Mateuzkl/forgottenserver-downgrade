@@ -1,4 +1,4 @@
-local mType = Game.createMonsterType("Hellgorak")
+﻿local mType = Game.createMonsterType("Hellgorak")
 local monster = {}
 monster.description = "Hellgorak"
 monster.experience = 10000
@@ -48,7 +48,7 @@ monster.loot = {
 	maxCount = 198
 },
 {
-	id = "slightly rusted legs",
+	id = "plate legs",
 	chance = 51393
 },
 {
@@ -57,7 +57,7 @@ monster.loot = {
 	maxCount = 2
 },
 {
-	id = "slightly rusted armor",
+	id = "plate armor",
 	chance = 32476
 },
 {
@@ -223,7 +223,7 @@ monster.loot = {
 	chance = 375
 },
 {
-	id = "demonwing axe",
+	id = "ruthless axe",
 	chance = 322
 },
 {

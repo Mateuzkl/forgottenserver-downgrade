@@ -1,4 +1,4 @@
-local mType = Game.createMonsterType("Ghoul")
+﻿local mType = Game.createMonsterType("Ghoul")
 local monster = {}
 monster.description = "a ghoul"
 monster.experience = 85
@@ -66,7 +66,7 @@ monster.loot = {
 	chance = 1001
 },
 {
-	id = "skull (item)",
+	id = "skull",
 	chance = 320
 },
 {

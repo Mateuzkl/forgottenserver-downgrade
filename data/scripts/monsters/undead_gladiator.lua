@@ -1,4 +1,4 @@
-local mType = Game.createMonsterType("Undead Gladiator")
+﻿local mType = Game.createMonsterType("Undead Gladiator")
 local monster = {}
 monster.description = "an undead gladiator"
 monster.experience = 800
@@ -69,7 +69,7 @@ monster.loot = {
 	chance = 4820
 },
 {
-	id = "hunting spear",
+	id = "spear",
 	chance = 4519
 },
 {

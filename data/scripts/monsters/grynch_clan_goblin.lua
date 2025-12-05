@@ -1,4 +1,4 @@
-local mType = Game.createMonsterType("Grynch Clan Goblin")
+﻿local mType = Game.createMonsterType("Grynch Clan Goblin")
 local monster = {}
 monster.description = "Grynch Clan Goblin"
 monster.experience = 4
@@ -163,7 +163,7 @@ monster.loot = {
 	chance = 117
 },
 {
-	id = "picture (landscape)",
+	id = "picture",
 	chance = 112
 },
 {

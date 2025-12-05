@@ -1,4 +1,4 @@
-local mType = Game.createMonsterType("Hand Of Cursed Fate")
+﻿local mType = Game.createMonsterType("Hand Of Cursed Fate")
 local monster = {}
 monster.description = "a hand of cursed fate"
 monster.experience = 5000
@@ -105,7 +105,7 @@ monster.loot = {
 	chance = 1690
 },
 {
-	id = "death ring",
+	id = "stealth ring",
 	chance = 1312
 },
 {
@@ -121,7 +121,7 @@ monster.loot = {
 	chance = 933
 },
 {
-	id = "book (orange)",
+	id = "book",
 	chance = 879
 },
 {
@@ -141,7 +141,7 @@ monster.loot = {
 	chance = 108
 },
 {
-	id = "abyss hammer",
+	id = "hammer of wrath",
 	chance = 68
 }
 }

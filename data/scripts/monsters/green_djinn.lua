@@ -1,4 +1,4 @@
-local mType = Game.createMonsterType("Green Djinn")
+﻿local mType = Game.createMonsterType("Green Djinn")
 local monster = {}
 monster.description = "a green djinn"
 monster.experience = 215
@@ -59,7 +59,7 @@ monster.loot = {
 	maxCount = 4
 },
 {
-	id = "book (green)",
+	id = "book",
 	chance = 2295
 },
 {

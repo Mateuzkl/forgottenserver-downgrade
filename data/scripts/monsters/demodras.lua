@@ -1,4 +1,4 @@
-local mType = Game.createMonsterType("Demodras")
+﻿local mType = Game.createMonsterType("Demodras")
 local monster = {}
 monster.description = "Demodras"
 monster.experience = 6000
@@ -75,7 +75,7 @@ monster.loot = {
 	chance = 11966
 },
 {
-	id = "book (gemmed)",
+	id = "book",
 	chance = 10256
 },
 {

@@ -1,4 +1,4 @@
-local mType = Game.createMonsterType("Mutated Rat")
+﻿local mType = Game.createMonsterType("Mutated Rat")
 local monster = {}
 monster.description = "a mutated rat"
 monster.experience = 450
@@ -41,7 +41,7 @@ monster.loot = {
 	maxCount = 130
 },
 {
-	id = "skull (item)",
+	id = "skull",
 	chance = 20298
 },
 {

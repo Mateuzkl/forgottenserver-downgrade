@@ -166,18 +166,8 @@ void mainLoader(ServiceManager* services)
 		return;
 	}
 
-	// std::cout << ">> Loading monsters" << std::endl;
-	// if (!g_monsters.loadFromXml()) {
-	// 	startupErrorMessage("Unable to load monsters!");
-	// 	return;
-	// }
-
-	// std::cout << ">> Loading lua monsters" << std::endl;
-	// if (!g_scripts->loadScripts("data/monsters", false, false)) {
-	// 	startupErrorMessage("Failed to load lua monsters");
-	// 	return;
-	// }
-
+	std::cout << ">> Loading monsters... count: { " << g_monsters.monsters.size() << " }" << std::endl;
+	
 	std::cout << ">> Loading outfits" << std::endl;
 	if (!Outfits::getInstance().loadFromXml()) {
 		startupErrorMessage("Unable to load outfits!");
@@ -333,9 +323,5 @@ void printServerVersion()
 	std::cout << fmt::format(fg(fmt::color::yellow), "Further developed by Mateuzkl (Custom Modified Version)") << std::endl;
 	std::cout << fmt::format(fg(fmt::color::yellow), "Repository ORIGINAL: https://github.com/MillhioreBT/forgottenserver-downgrade") << std::endl;
 	std::cout << fmt::format(fg(fmt::color::yellow), "Repository CUSTOM: https://github.com/Mateuzkl/forgottenserver-downgrade") << std::endl;
-	std::cout << std::endl;
-
-	std::cout << "Repository: " << fmt::format(fg(fmt::color::floral_white), "{}", STATUS_SERVER_REPOSITORY)
-	          << std::endl;
 	std::cout << std::endl;
 }

@@ -1,4 +1,4 @@
-local mType = Game.createMonsterType("Quara Mantassin Scout")
+﻿local mType = Game.createMonsterType("Quara Mantassin Scout")
 local monster = {}
 monster.description = "a quara mantassin scout"
 monster.experience = 100
@@ -53,7 +53,7 @@ monster.loot = {
 	chance = 996
 },
 {
-	id = "skull (item)",
+	id = "skull",
 	chance = 979
 },
 {

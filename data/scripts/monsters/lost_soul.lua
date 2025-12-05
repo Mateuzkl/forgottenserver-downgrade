@@ -1,4 +1,4 @@
-local mType = Game.createMonsterType("Lost Soul")
+﻿local mType = Game.createMonsterType("Lost Soul")
 local monster = {}
 monster.description = "a lost soul"
 monster.experience = 4000
@@ -87,7 +87,7 @@ monster.loot = {
 	chance = 3860
 },
 {
-	id = "slightly rusted armor",
+	id = "plate armor",
 	chance = 3158
 },
 {
@@ -95,7 +95,7 @@ monster.loot = {
 	chance = 2807
 },
 {
-	id = "death ring",
+	id = "stealth ring",
 	chance = 2456
 },
 {

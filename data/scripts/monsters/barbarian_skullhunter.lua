@@ -1,4 +1,4 @@
-local mType = Game.createMonsterType("Barbarian Skullhunter")
+﻿local mType = Game.createMonsterType("Barbarian Skullhunter")
 local monster = {}
 monster.description = "a barbarian skullhunter"
 monster.experience = 85
@@ -60,7 +60,7 @@ monster.loot = {
 	chance = 4024
 },
 {
-	id = "skull (item)",
+	id = "skull",
 	chance = 3002
 },
 {

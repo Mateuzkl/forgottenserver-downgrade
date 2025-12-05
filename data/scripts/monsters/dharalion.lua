@@ -1,4 +1,4 @@
-local mType = Game.createMonsterType("Dharalion")
+﻿local mType = Game.createMonsterType("Dharalion")
 local monster = {}
 monster.description = "Dharalion"
 monster.experience = 570
@@ -76,7 +76,7 @@ monster.loot = {
 	chance = 23288
 },
 {
-	id = "elven amulet",
+	id = "elven brooch",
 	chance = 16438
 },
 {

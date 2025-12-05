@@ -1,4 +1,4 @@
-local mType = Game.createMonsterType("Fluffy")
+﻿local mType = Game.createMonsterType("Fluffy")
 local monster = {}
 monster.description = "Fluffy"
 monster.experience = 3550
@@ -73,12 +73,12 @@ monster.loot = {
 	chance = 8888
 },
 {
-	id = "blue surprise bag",
+	id = "present",
 	chance = 5538,
 	maxCount = 4
 },
 {
-	id = "red surprise bag",
+	id = "present",
 	chance = 1538
 }
 }

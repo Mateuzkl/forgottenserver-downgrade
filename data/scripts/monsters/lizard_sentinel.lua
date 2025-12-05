@@ -1,4 +1,4 @@
-local mType = Game.createMonsterType("Lizard Sentinel")
+﻿local mType = Game.createMonsterType("Lizard Sentinel")
 local monster = {}
 monster.description = "a lizard sentinel"
 monster.experience = 110
@@ -53,7 +53,7 @@ monster.loot = {
 	chance = 8069
 },
 {
-	id = "hunting spear",
+	id = "spear",
 	chance = 4424
 },
 {

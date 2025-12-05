@@ -1,4 +1,4 @@
-local mType = Game.createMonsterType("Priestess")
+﻿local mType = Game.createMonsterType("Priestess")
 local monster = {}
 monster.description = "a priestess"
 monster.experience = 420
@@ -96,7 +96,7 @@ monster.loot = {
 	chance = 1069
 },
 {
-	id = "book (orange)",
+	id = "book",
 	chance = 932
 },
 {

@@ -1,4 +1,4 @@
-local mType = Game.createMonsterType("Frost Dragon")
+﻿local mType = Game.createMonsterType("Frost Dragon")
 local monster = {}
 monster.description = "a frost dragon"
 monster.experience = 2100
@@ -50,7 +50,7 @@ monster.loot = {
 	chance = 12151
 },
 {
-	id = "book (gemmed)",
+	id = "book",
 	chance = 8835
 },
 {

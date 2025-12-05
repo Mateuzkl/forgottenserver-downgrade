@@ -1,4 +1,4 @@
-local mType = Game.createMonsterType("Madareth")
+﻿local mType = Game.createMonsterType("Madareth")
 local monster = {}
 monster.description = "Madareth"
 monster.experience = 10000
@@ -42,11 +42,11 @@ monster.loot = {
 	maxCount = 100
 },
 {
-	id = "slightly rusted legs",
+	id = "plate legs",
 	chance = 59259
 },
 {
-	id = "slightly rusted armor",
+	id = "plate armor",
 	chance = 40741
 },
 {
@@ -74,7 +74,7 @@ monster.loot = {
 	chance = 22222
 },
 {
-	id = "death ring",
+	id = "stealth ring",
 	chance = 20370
 },
 {

@@ -1,4 +1,4 @@
-local mType = Game.createMonsterType("Ushuriel")
+﻿local mType = Game.createMonsterType("Ushuriel")
 local monster = {}
 monster.description = "Ushuriel"
 monster.experience = 10000
@@ -121,7 +121,7 @@ monster.loot = {
 	chance = 17647
 },
 {
-	id = "slightly rusted armor",
+	id = "plate armor",
 	chance = 16471
 },
 {

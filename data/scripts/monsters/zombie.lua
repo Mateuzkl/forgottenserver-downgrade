@@ -1,4 +1,4 @@
-local mType = Game.createMonsterType("Zombie")
+﻿local mType = Game.createMonsterType("Zombie")
 local monster = {}
 monster.description = "a zombie"
 monster.experience = 280
@@ -54,7 +54,7 @@ monster.loot = {
 	chance = 6856
 },
 {
-	id = "heavily rusted armor",
+	id = "plate armor",
 	chance = 5790
 },
 {
