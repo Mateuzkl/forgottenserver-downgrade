@@ -10,8 +10,11 @@ newPlayerSpawnPosX = 0
 newPlayerSpawnPosY = 0
 newPlayerSpawnPosZ = 0
 newPlayerTownId = 1
-newPlayerLevel = 1
+newPlayerLevel = 8
 newPlayerMagicLevel = 0
+newPlayerHealth = 185
+newPlayerMana = 90
+newPlayerCap = 470
 generateAccountNumber = false
 
 -- Combat settings

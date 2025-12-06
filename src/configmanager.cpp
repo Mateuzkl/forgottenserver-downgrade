@@ -378,6 +378,9 @@ bool ConfigManager::load()
 	integers[Integer::NEW_PLAYER_TOWN_ID] = getGlobalInteger(L, "newPlayerTownId", 1);
 	integers[Integer::NEW_PLAYER_LEVEL] = getGlobalInteger(L, "newPlayerLevel", 1);
 	integers[Integer::NEW_PLAYER_MAGIC_LEVEL] = getGlobalInteger(L, "newPlayerMagicLevel", 0);
+	integers[Integer::NEW_PLAYER_HEALTH] = getGlobalInteger(L, "newPlayerHealth", 150);
+	integers[Integer::NEW_PLAYER_MANA] = getGlobalInteger(L, "newPlayerMana", 60);
+	integers[Integer::NEW_PLAYER_CAP] = getGlobalInteger(L, "newPlayerCap", 400);
 	integers[Integer::MAX_ALLOWED_ON_A_DUMMY] = getGlobalInteger(L, "maxAllowedOnADummy", 5);
 	integers[Integer::RATE_EXERCISE_TRAINING_SPEED] = getGlobalInteger(L, "rateExerciseTrainingSpeed", 1.0);
 

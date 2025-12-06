@@ -7,8 +7,11 @@
 
 #include "configmanager.h"
 #include "game.h"
+#include "player.h"
+#include "vocation.h"
 
 extern Game g_game;
+extern Vocations g_vocations;
 
 Account IOLoginData::loadAccount(uint32_t accno)
 {
@@ -1298,8 +1301,12 @@ bool IOLoginData::createPlayer(uint32_t accountId, const std::string& name, uint
 	int32_t posY = static_cast<int32_t>(ConfigManager::getInteger(ConfigManager::NEW_PLAYER_SPAWN_POS_Y));
 	int32_t posZ = static_cast<int32_t>(ConfigManager::getInteger(ConfigManager::NEW_PLAYER_SPAWN_POS_Z));
 
-	uint32_t health = 150;
-	uint32_t mana = 0;
+	uint64_t experience = Player::getExpForLevel(level);
+	
+	uint32_t health = static_cast<uint32_t>(ConfigManager::getInteger(ConfigManager::NEW_PLAYER_HEALTH));
+	uint32_t mana = static_cast<uint32_t>(ConfigManager::getInteger(ConfigManager::NEW_PLAYER_MANA));
+	uint32_t cap = static_cast<uint32_t>(ConfigManager::getInteger(ConfigManager::NEW_PLAYER_CAP));
+
 	uint16_t lookType = (sex == PLAYERSEX_FEMALE) ? 136 : 128;
 
 	std::ostringstream query;
@@ -1312,9 +1319,9 @@ bool IOLoginData::createPlayer(uint32_t accountId, const std::string& name, uint
 		  << "`skill_fishing`, `skill_fishing_tries`) VALUES (";
 
 	query << db.escapeString(name) << ", 1, " << accountId << ", " << level << ", " << vocationId << ", "
-		  << health << ", " << health << ", 0, 0, 0, 0, 0, " << lookType << ", 0, 2, " << magicLevel << ", "
+		  << health << ", " << health << ", " << experience << ", 0, 0, 0, 0, " << lookType << ", 0, 2, " << magicLevel << ", "
 		  << mana << ", " << mana << ", 0, 0, " << townId << ", " << posX << ", " << posY << ", " << posZ
-		  << ", 400, " << static_cast<uint16_t>(sex) << ", 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 43200, -1, 2520, "
+		  << ", " << cap << ", " << static_cast<uint16_t>(sex) << ", 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 43200, -1, 2520, "
 		  << "10, 0, 10, 0, 10, 0, 10, 0, 10, 0, 10, 0, 10, 0)";
 
 	return db.executeQuery(query.str());
