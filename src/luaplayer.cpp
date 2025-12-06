@@ -798,14 +798,13 @@ int luaPlayerGetGuild(lua_State* L)
 		return 1;
 	}
 
-	Guild* guild = player->getGuild();
-	if (!guild) {
+	if (const auto& guild = player->getGuild()) {
+		pushSharedPtr(L, guild);
+		setMetatable(L, -1, "Guild");
+	} else {
 		lua_pushnil(L);
-		return 1;
 	}
 
-	pushUserdata<Guild>(L, guild);
-	setMetatable(L, -1, "Guild");
 	return 1;
 }
 
@@ -818,7 +817,7 @@ int luaPlayerSetGuild(lua_State* L)
 		return 1;
 	}
 
-	player->setGuild(getUserdata<Guild>(L, 2));
+	player->setGuild(getSharedPtr<Guild>(L, 2));
 	pushBoolean(L, true);
 	return 1;
 }
@@ -839,18 +838,23 @@ int luaPlayerSetGuildLevel(lua_State* L)
 {
 	// player:setGuildLevel(level)
 	Player* player = getUserdata<Player>(L, 1);
-	if (!player || !player->getGuild()) {
+	if (!player) {
 		lua_pushnil(L);
 		return 1;
 	}
 
-	uint8_t level = getInteger<uint8_t>(L, 2);
-	GuildRank_ptr rank = player->getGuild()->getRankByLevel(level);
-	if (!rank) {
-		pushBoolean(L, false);
-	} else {
+	const auto& guild = player->getGuild();
+	if (!guild) {
+		lua_pushnil(L);
+		return 1;
+	}
+
+	uint8_t level = getNumber<uint8_t>(L, 2);
+	if (auto rank = guild->getRankByLevel(level)) {
 		player->setGuildRank(rank);
 		pushBoolean(L, true);
+		} else {
+		lua_pushnil(L);
 	}
 
 	return 1;

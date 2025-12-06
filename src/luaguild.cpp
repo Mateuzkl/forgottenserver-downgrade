@@ -18,9 +18,8 @@ int luaGuildCreate(lua_State* L)
 	// Guild(id)
 	uint32_t id = getInteger<uint32_t>(L, 2);
 
-	Guild* guild = g_game.getGuild(id);
-	if (guild) {
-		pushUserdata<Guild>(L, guild);
+	if (const auto& guild = g_game.getGuild(id)) {
+		pushSharedPtr(L, guild);
 		setMetatable(L, -1, "Guild");
 	} else {
 		lua_pushnil(L);
@@ -31,7 +30,7 @@ int luaGuildCreate(lua_State* L)
 int luaGuildGetId(lua_State* L)
 {
 	// guild:getId()
-	const Guild* guild = getUserdata<const Guild>(L, 1);
+	const auto& guild = getSharedPtr<const Guild>(L, 1);
 	if (guild) {
 		lua_pushinteger(L, guild->getId());
 	} else {
@@ -43,7 +42,7 @@ int luaGuildGetId(lua_State* L)
 int luaGuildGetName(lua_State* L)
 {
 	// guild:getName()
-	const Guild* guild = getUserdata<const Guild>(L, 1);
+	const auto& guild = getSharedPtr<const Guild>(L, 1);
 	if (guild) {
 		pushString(L, guild->getName());
 	} else {
@@ -55,7 +54,7 @@ int luaGuildGetName(lua_State* L)
 int luaGuildGetMembersOnline(lua_State* L)
 {
 	// guild:getMembersOnline()
-	const Guild* guild = getUserdata<const Guild>(L, 1);
+	const auto& guild = getSharedPtr<const Guild>(L, 1);
 	if (!guild) {
 		lua_pushnil(L);
 		return 1;
@@ -76,8 +75,7 @@ int luaGuildGetMembersOnline(lua_State* L)
 int luaGuildAddRank(lua_State* L)
 {
 	// guild:addRank(id, name, level)
-	Guild* guild = getUserdata<Guild>(L, 1);
-	if (guild) {
+	if (const auto& guild = getSharedPtr<Guild>(L, 1)) {
 		uint32_t id = getInteger<uint32_t>(L, 2);
 		const std::string& name = getString(L, 3);
 		uint8_t level = getInteger<uint8_t>(L, 4);
@@ -92,15 +90,14 @@ int luaGuildAddRank(lua_State* L)
 int luaGuildGetRankById(lua_State* L)
 {
 	// guild:getRankById(id)
-	const Guild* guild = getUserdata<const Guild>(L, 1);
+	const auto& guild = getSharedPtr<const Guild>(L, 1);
 	if (!guild) {
 		lua_pushnil(L);
 		return 1;
 	}
 
 	uint32_t id = getInteger<uint32_t>(L, 2);
-	GuildRank_ptr rank = guild->getRankById(id);
-	if (rank) {
+	if (auto rank = guild->getRankById(id)) {
 		lua_createtable(L, 0, 3);
 		setField(L, "id", rank->id);
 		setField(L, "name", rank->name);
@@ -114,15 +111,14 @@ int luaGuildGetRankById(lua_State* L)
 int luaGuildGetRankByLevel(lua_State* L)
 {
 	// guild:getRankByLevel(level)
-	const Guild* guild = getUserdata<const Guild>(L, 1);
+	const auto& guild = getSharedPtr<const Guild>(L, 1);
 	if (!guild) {
 		lua_pushnil(L);
 		return 1;
 	}
 
 	uint8_t level = getInteger<uint8_t>(L, 2);
-	GuildRank_ptr rank = guild->getRankByLevel(level);
-	if (rank) {
+	if (auto rank = guild->getRankByLevel(level)) {
 		lua_createtable(L, 0, 3);
 		setField(L, "id", rank->id);
 		setField(L, "name", rank->name);
@@ -136,7 +132,7 @@ int luaGuildGetRankByLevel(lua_State* L)
 int luaGuildGetMotd(lua_State* L)
 {
 	// guild:getMotd()
-	const Guild* guild = getUserdata<const Guild>(L, 1);
+	const auto& guild = getSharedPtr<const Guild>(L, 1);
 	if (guild) {
 		pushString(L, guild->getMotd());
 	} else {
@@ -148,9 +144,9 @@ int luaGuildGetMotd(lua_State* L)
 int luaGuildSetMotd(lua_State* L)
 {
 	// guild:setMotd(motd)
-	Guild* guild = getUserdata<Guild>(L, 1);
-	if (guild) {
-		guild->setMotd(getString(L, 2));
+	if (const auto& guild = getSharedPtr<Guild>(L, 1)) {
+		const std::string& motd = getString(L, 2);
+		guild->setMotd(motd);
 		pushBoolean(L, true);
 	} else {
 		lua_pushnil(L);
@@ -161,7 +157,7 @@ int luaGuildSetMotd(lua_State* L)
 int luaGuildGetBankBalance(lua_State* L)
 {
 	// guild:getBankBalance()
-	const Guild* guild = getUserdata<const Guild>(L, 1);
+	const auto& guild = getSharedPtr<const Guild>(L, 1);
 	if (guild) {
 		lua_pushinteger(L, guild->getBankBalance());
 	} else {
@@ -173,8 +169,7 @@ int luaGuildGetBankBalance(lua_State* L)
 int luaGuildSetBankBalance(lua_State* L)
 {
 	// guild:setBankBalance(balance)
-	Guild* guild = getUserdata<Guild>(L, 1);
-	if (guild) {
+	if (const auto& guild = getSharedPtr<Guild>(L, 1)) {
 		uint64_t balance = getInteger<uint64_t>(L, 2);
 		guild->setBankBalance(balance);
 		pushBoolean(L, true);
@@ -187,7 +182,7 @@ int luaGuildSetBankBalance(lua_State* L)
 int luaGuildGetOwnerGUID(lua_State* L)
 {
 	// guild:getOwnerGUID()
-	const Guild* guild = getUserdata<const Guild>(L, 1);
+	const auto& guild = getSharedPtr<const Guild>(L, 1);
 	if (guild) {
 		lua_pushinteger(L, guild->getOwnerGUID());
 	} else {
@@ -199,7 +194,7 @@ int luaGuildGetOwnerGUID(lua_State* L)
 int luaGuildGetHouseId(lua_State* L)
 {
 	// guild:getHouseId()
-	const Guild* guild = getUserdata<const Guild>(L, 1);
+	const auto& guild = getSharedPtr<const Guild>(L, 1);
 	if (guild) {
 		lua_pushinteger(L, guild->getHouseId());
 	} else {

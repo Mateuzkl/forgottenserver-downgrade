@@ -166,8 +166,8 @@ public:
 	int32_t getOfflineTrainingSkill() const { return offlineTrainingSkill; }
 	void setOfflineTrainingSkill(int32_t skill) { offlineTrainingSkill = skill; }
 
-	Guild* getGuild() const { return guild; }
-	void setGuild(Guild* guild);
+	Guild_ptr getGuild() const { return guild; }
+	void setGuild(Guild_ptr guild);
 
 	GuildRank_ptr getGuildRank() const { return guildRank; }
 	void setGuildRank(GuildRank_ptr newGuildRank) { guildRank = newGuildRank; }
@@ -1129,7 +1129,7 @@ private:
 
 	uint32_t lastIP = 0;
 	BedItem* bedItem = nullptr;
-	Guild* guild = nullptr;
+	Guild_ptr guild = nullptr;
 	GuildRank_ptr guildRank = nullptr;
 	Group* group = nullptr;
 	Item* tradeItem = nullptr;

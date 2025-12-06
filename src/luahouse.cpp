@@ -313,13 +313,13 @@ int luaHouseStartTrade(lua_State* L)
 	}
 
 	// HOUSE_TYPE_GUILDHALL
-	Guild* guild = player->getGuild();
+	const auto& guild = player->getGuild();
 	if (!guild || house->getOwner() != guild->getId()) {
 		lua_pushinteger(L, RETURNVALUE_YOUDONTOWNTHISHOUSE);
 		return 1;
 	}
 
-	Guild* tradeGuild = tradePartner->getGuild();
+	const auto& tradeGuild = tradePartner->getGuild();
 	if (!tradeGuild) {
 		lua_pushinteger(L, RETURNVALUE_TRADEPLAYERNOTINAGUILD);
 		return 1;

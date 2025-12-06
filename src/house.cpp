@@ -190,7 +190,7 @@ AccessHouseLevel_t House::getHouseAccessLevel(const Player* player) const
 			return HOUSE_OWNER;
 		}
     } else { // HOUSE_TYPE_GUILDHALL
-        Guild* guild = player->getGuild();
+        const auto& guild = player->getGuild();
         uint32_t guid = player->getGUID();
         if (guild && guild->getId() == owner) {
             if (guild->getOwnerGUID() == guid) {
@@ -286,7 +286,7 @@ bool House::transferToDepot() const
 			IOLoginData::savePlayer(&tmpPlayer);
 		}
 	} else { // HOUSE_TYPE_GUILDHALL
-		Guild* guild = g_game.getGuild(owner);
+		auto guild = g_game.getGuild(owner);
 		if (!guild) {
 			guild = IOGuild::loadGuild(owner);
 			if (!guild) {
@@ -473,7 +473,7 @@ bool House::executeTransfer(HouseTransferItem* item, Player* newOwner)
 	if (type == HOUSE_TYPE_NORMAL) {
 		setOwner(newOwner->getGUID());
 	} else {
-		Guild* newOwnerGuild = newOwner->getGuild();
+		const auto& newOwnerGuild = newOwner->getGuild();
 		if (newOwnerGuild) {
 			setOwner(newOwnerGuild->getId());
 		}
@@ -542,15 +542,14 @@ void AccessList::addPlayer(std::string_view name)
 
 namespace {
 
-const Guild* getGuildByName(std::string_view name)
+const Guild_ptr getGuildByName(std::string_view name)
 {
 	uint32_t guildId = IOGuild::getGuildIdByName(name);
 	if (guildId == 0) {
 		return nullptr;
 	}
 
-	const Guild* guild = g_game.getGuild(guildId);
-	if (guild) {
+	if (const auto& guild = g_game.getGuild(guildId)) {
 		return guild;
 	}
 
@@ -561,9 +560,8 @@ const Guild* getGuildByName(std::string_view name)
 
 void AccessList::addGuild(std::string_view name)
 {
-	const Guild* guild = getGuildByName(name);
-	if (guild) {
-		for (GuildRank_ptr rank : guild->getRanks()) {
+	if (const auto& guild = getGuildByName(name)) {
+		for (const auto& rank : guild->getRanks()) {
 			guildRankList.insert(rank->id);
 		}
 	}
@@ -571,10 +569,8 @@ void AccessList::addGuild(std::string_view name)
 
 void AccessList::addGuildRank(std::string_view name, std::string_view rankName)
 {
-	const Guild* guild = getGuildByName(name);
-	if (guild) {
-		GuildRank_ptr rank = guild->getRankByName(rankName);
-		if (rank) {
+	if (const auto& guild = getGuildByName(name)) {
+		if (const auto& rank = guild->getRankByName(rankName)) {
 			guildRankList.insert(rank->id);
 		}
 	}
@@ -591,7 +587,7 @@ bool AccessList::isInList(const Player* player) const
 		return true;
 	}
 
-	GuildRank_ptr rank = player->getGuildRank();
+	const auto& rank = player->getGuildRank();
 	return rank && guildRankList.find(rank->id) != guildRankList.end();
 }
 
@@ -832,7 +828,7 @@ void Houses::payHouses(RentPeriod_t rentPeriod) const
 
 			IOLoginData::savePlayer(&player);
 		} else { // HOUSE_TYPE_GUILDHALL
-			Guild* guild = g_game.getGuild(ownerId);
+			auto guild = g_game.getGuild(ownerId);
 			if (!guild) {
 				guild = IOGuild::loadGuild(ownerId);
 				if (!guild) {
