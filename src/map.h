@@ -59,14 +59,14 @@ inline constexpr int32_t FLOOR_MASK = (FLOOR_SIZE - 1);
 
 struct Floor
 {
-	constexpr Floor() = default;
-	~Floor();
+	Floor() = default;
+	~Floor() = default;
 
 	// non-copyable
 	Floor(const Floor&) = delete;
 	Floor& operator=(const Floor&) = delete;
 
-	Tile* tiles[FLOOR_SIZE][FLOOR_SIZE] = {};
+	std::unique_ptr<Tile> tiles[FLOOR_SIZE][FLOOR_SIZE];
 };
 
 class FrozenPathingConditionCall;
@@ -75,8 +75,8 @@ class QTreeLeafNode;
 class QTreeNode
 {
 public:
-	constexpr QTreeNode() = default;
-	virtual ~QTreeNode();
+	QTreeNode() = default;
+	virtual ~QTreeNode() = default;
 
 	// non-copyable
 	QTreeNode(const QTreeNode&) = delete;
@@ -90,7 +90,7 @@ public:
 	static Leaf getLeafStatic(Node node, uint32_t x, uint32_t y)
 	{
 		do {
-			node = node->child[((x & 0x8000) >> 15) | ((y & 0x8000) >> 14)];
+			node = node->child[((x & 0x8000) >> 15) | ((y & 0x8000) >> 14)].get();
 			if (!node) {
 				return nullptr;
 			}
@@ -107,7 +107,7 @@ protected:
 	bool leaf = false;
 
 private:
-	QTreeNode* child[4] = {};
+	std::unique_ptr<QTreeNode> child[4];
 
 	friend class Map;
 };
@@ -120,14 +120,14 @@ public:
 		leaf = true;
 		newLeaf = true;
 	}
-	~QTreeLeafNode();
+	~QTreeLeafNode() = default;
 
 	// non-copyable
 	QTreeLeafNode(const QTreeLeafNode&) = delete;
 	QTreeLeafNode& operator=(const QTreeLeafNode&) = delete;
 
 	Floor* createFloor(uint32_t z);
-	Floor* getFloor(uint8_t z) const { return array[z]; }
+	Floor* getFloor(uint8_t z) const { return array[z].get(); }
 
 	void addCreature(Creature* c);
 	void removeCreature(Creature* c);
@@ -136,7 +136,7 @@ private:
 	static bool newLeaf;
 	QTreeLeafNode* leafS = nullptr;
 	QTreeLeafNode* leafE = nullptr;
-	Floor* array[MAP_MAX_LAYERS] = {};
+	std::unique_ptr<Floor> array[MAP_MAX_LAYERS];
 	CreatureVector creature_list;
 	CreatureVector player_list;
 
@@ -181,8 +181,12 @@ public:
 	/**
 	 * Set a single tile.
 	 */
-	void setTile(uint16_t x, uint16_t y, uint8_t z, Tile* newTile);
-	void setTile(const Position& pos, Tile* newTile) { setTile(pos.x, pos.y, pos.z, newTile); }
+	void setTile(uint16_t x, uint16_t y, uint8_t z, std::unique_ptr<Tile> newTile);
+	void setTile(const Position& pos, std::unique_ptr<Tile> newTile) { setTile(pos.x, pos.y, pos.z, std::move(newTile)); }
+	
+	// Backward compatibility wrapper - takes ownership of raw pointer
+	void setTile(uint16_t x, uint16_t y, uint8_t z, Tile* newTile) { setTile(x, y, z, std::unique_ptr<Tile>(newTile)); }
+	void setTile(const Position& pos, Tile* newTile) { setTile(pos.x, pos.y, pos.z, std::unique_ptr<Tile>(newTile)); }
 
 	/**
 	 * Removes a single tile.

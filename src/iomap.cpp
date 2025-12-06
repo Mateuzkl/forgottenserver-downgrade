@@ -31,17 +31,18 @@
     |--- OTBM_ITEM_DEF (not implemented)
 */
 
-Tile* IOMap::createTile(Item*& ground, Item* item, uint16_t x, uint16_t y, uint8_t z)
+std::unique_ptr<Tile> IOMap::createTile(Item*& ground, Item* item, uint16_t x, uint16_t y, uint8_t z)
 {
+	std::unique_ptr<Tile> tile;
+	
 	if (!ground) {
-		return new StaticTile(x, y, z);
+		return std::make_unique<StaticTile>(x, y, z);
 	}
 
-	Tile* tile;
 	if ((item && item->isBlocking()) || ground->isBlocking()) {
-		tile = new StaticTile(x, y, z);
+		tile = std::make_unique<StaticTile>(x, y, z);
 	} else {
-		tile = new DynamicTile(x, y, z);
+		tile = std::make_unique<DynamicTile>(x, y, z);
 	}
 
 	tile->internalAddThing(ground);
@@ -237,6 +238,7 @@ bool IOMap::parseTileArea(OTB::Loader& loader, const OTB::Node& tileAreaNode, Ma
 
 		bool isHouseTile = false;
 		House* house = nullptr;
+		std::unique_ptr<Tile> tilePtr;
 		Tile* tile = nullptr;
 		Item* ground_item = nullptr;
 		uint32_t tileflags = TILESTATE_NONE;
@@ -255,7 +257,8 @@ bool IOMap::parseTileArea(OTB::Loader& loader, const OTB::Node& tileAreaNode, Ma
 				return false;
 			}
 
-			tile = new HouseTile(x, y, z, house);
+			tilePtr = std::make_unique<HouseTile>(x, y, z, house);
+			tile = tilePtr.get();
 			house->addTile(static_cast<HouseTile*>(tile));
 			isHouseTile = true;
 		}
@@ -310,7 +313,8 @@ bool IOMap::parseTileArea(OTB::Loader& loader, const OTB::Node& tileAreaNode, Ma
 							delete ground_item;
 							ground_item = item;
 						} else {
-							tile = createTile(ground_item, item, x, y, z);
+							tilePtr = createTile(ground_item, item, x, y, z);
+							tile = tilePtr.get();
 							tile->internalAddThing(item);
 							item->startDecaying();
 							item->setLoadedFromMap(true);
@@ -368,7 +372,8 @@ bool IOMap::parseTileArea(OTB::Loader& loader, const OTB::Node& tileAreaNode, Ma
 					delete ground_item;
 					ground_item = item;
 				} else {
-					tile = createTile(ground_item, item, x, y, z);
+					tilePtr = createTile(ground_item, item, x, y, z);
+					tile = tilePtr.get();
 					tile->internalAddThing(item);
 					item->startDecaying();
 					item->setLoadedFromMap(true);
@@ -376,13 +381,14 @@ bool IOMap::parseTileArea(OTB::Loader& loader, const OTB::Node& tileAreaNode, Ma
 			}
 		}
 
-		if (!tile) {
-			tile = createTile(ground_item, nullptr, x, y, z);
+		if (!tilePtr) {
+			tilePtr = createTile(ground_item, nullptr, x, y, z);
+			tile = tilePtr.get();
 		}
 
 		tile->setFlag(static_cast<tileflags_t>(tileflags));
 
-		map.setTile(x, y, z, tile);
+		map.setTile(x, y, z, std::move(tilePtr));
 	}
 	return true;
 }

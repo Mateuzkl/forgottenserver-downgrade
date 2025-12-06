@@ -473,13 +473,14 @@ int luaGameCreateTile(lua_State* L)
 
 	Tile* tile = g_game.map.getTile(position);
 	if (!tile) {
+		std::unique_ptr<Tile> newTile;
 		if (isDynamic) {
-			tile = new DynamicTile(position.x, position.y, position.z);
+			newTile = std::make_unique<DynamicTile>(position.x, position.y, position.z);
 		} else {
-			tile = new StaticTile(position.x, position.y, position.z);
+			newTile = std::make_unique<StaticTile>(position.x, position.y, position.z);
 		}
-
-		g_game.map.setTile(position, tile);
+		tile = newTile.get();
+		g_game.map.setTile(position, std::move(newTile));
 	}
 
 	pushUserdata(L, tile);

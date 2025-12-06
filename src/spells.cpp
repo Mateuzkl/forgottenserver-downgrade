@@ -637,8 +637,9 @@ bool Spell::playerInstantSpellCheck(Player* player, const Position& toPos)
 
 	Tile* tile = g_game.map.getTile(toPos);
 	if (!tile) {
-		tile = new StaticTile(toPos.x, toPos.y, toPos.z);
-		g_game.map.setTile(toPos, tile);
+		auto newTile = std::make_unique<StaticTile>(toPos.x, toPos.y, toPos.z);
+		tile = newTile.get();
+		g_game.map.setTile(toPos, std::move(newTile));
 	}
 
 	if (blockingCreature && tile->getBottomVisibleCreature(player) != nullptr) {

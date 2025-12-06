@@ -77,10 +77,10 @@ Tile* Map::getTile(uint16_t x, uint16_t y, uint8_t z) const
 	if (!floor) {
 		return nullptr;
 	}
-	return floor->tiles[x & FLOOR_MASK][y & FLOOR_MASK];
+	return floor->tiles[x & FLOOR_MASK][y & FLOOR_MASK].get();
 }
 
-void Map::setTile(uint16_t x, uint16_t y, uint8_t z, Tile* newTile)
+void Map::setTile(uint16_t x, uint16_t y, uint8_t z, std::unique_ptr<Tile> newTile)
 {
 	if (z >= MAP_MAX_LAYERS) {
 		std::cout << "ERROR: Attempt to set tile on invalid coordinate " << Position(x, y, z) << "!" << std::endl;
@@ -120,7 +120,7 @@ void Map::setTile(uint16_t x, uint16_t y, uint8_t z, Tile* newTile)
 	uint32_t offsetX = x & FLOOR_MASK;
 	uint32_t offsetY = y & FLOOR_MASK;
 
-	Tile*& tile = floor->tiles[offsetX][offsetY];
+	auto& tile = floor->tiles[offsetX][offsetY];
 	if (tile) {
 		TileItemVector* items = newTile->getItemList();
 		if (items) {
@@ -135,9 +135,9 @@ void Map::setTile(uint16_t x, uint16_t y, uint8_t z, Tile* newTile)
 			tile->addThing(ground);
 			newTile->setGround(nullptr);
 		}
-		delete newTile;
+		// newTile is automatically deleted when unique_ptr goes out of scope
 	} else {
-		tile = newTile;
+		tile = std::move(newTile);
 	}
 }
 
@@ -152,12 +152,12 @@ void Map::removeTile(uint16_t x, uint16_t y, uint8_t z)
 		return;
 	}
 
-	const Floor* floor = leaf->getFloor(z);
+	Floor* floor = const_cast<Floor*>(leaf->getFloor(z));
 	if (!floor) {
 		return;
 	}
 
-	Tile* tile = floor->tiles[x & FLOOR_MASK][y & FLOOR_MASK];
+	auto& tile = floor->tiles[x & FLOOR_MASK][y & FLOOR_MASK];
 	if (tile) {
 		if (const CreatureVector* creatures = tile->getCreatures()) {
 			for (int32_t i = creatures->size(); --i >= 0;) {
@@ -180,6 +180,9 @@ void Map::removeTile(uint16_t x, uint16_t y, uint8_t z)
 			g_game.internalRemoveItem(ground);
 			tile->setGround(nullptr);
 		}
+		
+		// Reset unique_ptr to delete the tile
+		tile.reset();
 	}
 }
 
@@ -938,23 +941,9 @@ int_fast32_t AStarNodes::getTileWalkCost(const Creature& creature, const Tile* t
 	return cost;
 }
 
-// Floor
-Floor::~Floor()
-{
-	for (auto& row : tiles) {
-		for (auto tile : row) {
-			delete tile;
-		}
-	}
-}
+// Floor destructor removed - unique_ptr handles cleanup automatically
 
-// QTreeNode
-QTreeNode::~QTreeNode()
-{
-	for (auto* ptr : child) {
-		delete ptr;
-	}
-}
+// QTreeNode destructor removed - unique_ptr handles cleanup automatically
 
 QTreeLeafNode* QTreeNode::getLeaf(uint32_t x, uint32_t y)
 {
@@ -962,7 +951,7 @@ QTreeLeafNode* QTreeNode::getLeaf(uint32_t x, uint32_t y)
 		return static_cast<QTreeLeafNode*>(this);
 	}
 
-	QTreeNode* node = child[((x & 0x8000) >> 15) | ((y & 0x8000) >> 14)];
+	QTreeNode* node = child[((x & 0x8000) >> 15) | ((y & 0x8000) >> 14)].get();
 	if (!node) {
 		return nullptr;
 	}
@@ -975,9 +964,9 @@ QTreeLeafNode* QTreeNode::createLeaf(uint32_t x, uint32_t y, uint32_t level)
 		uint32_t index = ((x & 0x8000) >> 15) | ((y & 0x8000) >> 14);
 		if (!child[index]) {
 			if (level != FLOOR_BITS) {
-				child[index] = new QTreeNode();
+				child[index] = std::make_unique<QTreeNode>();
 			} else {
-				child[index] = new QTreeLeafNode();
+				child[index] = std::make_unique<QTreeLeafNode>();
 				QTreeLeafNode::newLeaf = true;
 			}
 		}
@@ -989,19 +978,14 @@ QTreeLeafNode* QTreeNode::createLeaf(uint32_t x, uint32_t y, uint32_t level)
 // QTreeLeafNode
 bool QTreeLeafNode::newLeaf = false;
 
-QTreeLeafNode::~QTreeLeafNode()
-{
-	for (auto* ptr : array) {
-		delete ptr;
-	}
-}
+// QTreeLeafNode destructor removed - unique_ptr handles cleanup automatically
 
 Floor* QTreeLeafNode::createFloor(uint32_t z)
 {
 	if (!array[z]) {
-		array[z] = new Floor();
+		array[z] = std::make_unique<Floor>();
 	}
-	return array[z];
+	return array[z].get();
 }
 
 void QTreeLeafNode::addCreature(Creature* c)

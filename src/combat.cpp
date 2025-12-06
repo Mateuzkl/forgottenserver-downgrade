@@ -30,8 +30,9 @@ std::vector<Tile*> getList(const MatrixArea& area, const Position& targetPos, co
 				if (g_game.isSightClear(casterPos, tmpPos, true)) {
 					Tile* tile = g_game.map.getTile(tmpPos);
 					if (!tile) {
-						tile = new StaticTile(tmpPos.x, tmpPos.y, tmpPos.z);
-						g_game.map.setTile(tmpPos, tile);
+						auto newTile = std::make_unique<StaticTile>(tmpPos.x, tmpPos.y, tmpPos.z);
+						tile = newTile.get();
+						g_game.map.setTile(tmpPos, std::move(newTile));
 					}
 					vec.push_back(tile);
 				}
@@ -54,8 +55,9 @@ std::vector<Tile*> getCombatArea(const Position& centerPos, const Position& targ
 
 	Tile* tile = g_game.map.getTile(targetPos);
 	if (!tile) {
-		tile = new StaticTile(targetPos.x, targetPos.y, targetPos.z);
-		g_game.map.setTile(targetPos, tile);
+		auto newTile = std::make_unique<StaticTile>(targetPos.x, targetPos.y, targetPos.z);
+		tile = newTile.get();
+		g_game.map.setTile(targetPos, std::move(newTile));
 	}
 	return {tile};
 }
