@@ -133,7 +133,7 @@ std::pair<uint32_t, uint32_t> IOLoginData::gameworldAuthentication(std::string_v
                 return {};
             }
             uint32_t accountManagerId = accMgrRes->getNumber<uint32_t>("id");
-			return std::make_pair(fallbackAccountId, accountManagerId);
+			return {fallbackAccountId, accountManagerId};
         }
 
         // Pick the first character from this account if specific character was not found/matched
@@ -146,7 +146,7 @@ std::pair<uint32_t, uint32_t> IOLoginData::gameworldAuthentication(std::string_v
 
         uint32_t fallbackCharacterId = firstCharRes->getNumber<uint32_t>("id");
         std::string fallbackCharacterName = std::string{firstCharRes->getString("name")};
-        return std::make_pair(fallbackAccountId, fallbackCharacterId);
+        return {fallbackAccountId, fallbackCharacterId};
     }
 
     std::string storedPassword = std::string{result->getString("password")};
@@ -167,10 +167,10 @@ std::pair<uint32_t, uint32_t> IOLoginData::gameworldAuthentication(std::string_v
         }
         uint32_t accountManagerId = result->getNumber<uint32_t>("id");
         // Return the user's authenticated account id with the Account Manager character id
-        return std::make_pair(accountId, accountManagerId);
+        return {accountId, accountManagerId};
     }
 
-	return std::make_pair(accountId, characterId);
+	return {accountId, characterId};
 }
 
 uint32_t IOLoginData::getAccountIdByPlayerName(std::string_view playerName)

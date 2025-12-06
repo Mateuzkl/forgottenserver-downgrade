@@ -309,8 +309,7 @@ ChatChannel* Chat::createChannel(const Player& player, uint16_t channelId)
 	switch (channelId) {
 		case CHANNEL_GUILD: {
 			if (const auto& guild = player.getGuild()) {
-				auto ret =
-				    guildChannels.emplace(std::make_pair(guild->getId(), ChatChannel(channelId, guild->getName())));
+				auto ret = guildChannels.emplace(guild->getId(), ChatChannel(channelId, guild->getName()));
 				return &ret.first->second;
 			}
 			break;
@@ -319,7 +318,7 @@ ChatChannel* Chat::createChannel(const Player& player, uint16_t channelId)
 		case CHANNEL_PARTY: {
 			Party* party = player.getParty();
 			if (party) {
-				auto ret = partyChannels.emplace(std::make_pair(party, ChatChannel(channelId, "Party")));
+				auto ret = partyChannels.emplace(party, ChatChannel(channelId, "Party"));
 				return &ret.first->second;
 			}
 			break;
@@ -333,8 +332,7 @@ ChatChannel* Chat::createChannel(const Player& player, uint16_t channelId)
 
 			// find a free private channel slot
 			for (uint16_t i = 100; i < 10000; ++i) {
-				auto ret =
-				    privateChannels.emplace(std::make_pair(i, PrivateChatChannel(i, player.getName() + "'s Channel")));
+				auto ret = privateChannels.emplace(i, PrivateChatChannel(i, player.getName() + "'s Channel"));
 				if (ret.second) { // second is a bool that indicates that a new channel has been placed in the map
 					auto& newChannel = (*ret.first).second;
 					newChannel.setOwner(player.getGUID());

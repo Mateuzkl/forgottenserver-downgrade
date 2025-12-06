@@ -865,7 +865,7 @@ std::pair<bool, uint32_t> ProtocolGame::isKnownCreature(uint32_t id)
 {
 	auto result = knownCreatureSet.insert(id);
 	if (!result.second) {
-		return std::make_pair(true, 0);
+		return {true, 0};
 	}
 
 	if (knownCreatureSet.size() > 250) {
@@ -874,7 +874,7 @@ std::pair<bool, uint32_t> ProtocolGame::isKnownCreature(uint32_t id)
 			Creature* creature = g_game.getCreatureByID(creatureId);
 			if (!canSee(creature)) {
 				knownCreatureSet.erase(creatureId);
-				return std::make_pair(false, creatureId);
+				return {false, creatureId};
 			}
 		}
 
@@ -885,7 +885,7 @@ std::pair<bool, uint32_t> ProtocolGame::isKnownCreature(uint32_t id)
 		}
 
 		knownCreatureSet.erase(creatureId);
-		return std::make_pair(false, *creatureId);
+		return {false, *creatureId};
 	}
 	return {};
 }
