@@ -1225,8 +1225,9 @@ bool Creature::addCondition(Condition* condition, bool force /* = false*/)
 		int64_t walkDelay = getWalkDelay();
 		if (walkDelay > 0) {
 			Condition* clonedCondition = condition->clone();
+			uint32_t id = getID();
 			g_scheduler.addEvent(
-			    createSchedulerTask(walkDelay, [=, id = getID(), clonedCondition]() { g_game.forceAddCondition(id, clonedCondition); }));
+			    createSchedulerTask(walkDelay, [id, clonedCondition]() { g_game.forceAddCondition(id, clonedCondition); }));
 			delete condition;
 			return false;
 		}
