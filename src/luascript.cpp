@@ -25,6 +25,7 @@
 #include "spectators.h"
 #include "spells.h"
 #include "teleport.h"
+#include "logger.h"
 
 #include <boost/range/adaptor/reversed.hpp>
 
@@ -1169,6 +1170,15 @@ void LuaScriptInterface::registerFunctions()
 	// debugPrint(text)
 	lua_register(luaState, "debugPrint", LuaScriptInterface::luaDebugPrint);
 
+	// logInfo(text)
+	lua_register(luaState, "logInfo", LuaScriptInterface::luaLogInfo);
+
+	// logWarning(text)
+	lua_register(luaState, "logWarning", LuaScriptInterface::luaLogWarning);
+
+	// logError(text)
+	lua_register(luaState, "logError", LuaScriptInterface::luaLogError);
+
 	// isInWar(cid, target)
 	lua_register(luaState, "isInWar", LuaScriptInterface::luaIsInWar);
 
@@ -1218,8 +1228,10 @@ void LuaScriptInterface::registerFunctions()
 
 	registerGlobalVariable("ACCOUNT_MANAGER_NONE", static_cast<uint8_t>(AccountManagerMode::ACCOUNT_MANAGER_NONE));
 	registerGlobalVariable("ACCOUNT_MANAGER_NEW", static_cast<uint8_t>(AccountManagerMode::ACCOUNT_MANAGER_NEW));
-	registerGlobalVariable("ACCOUNT_MANAGER_ACCOUNT", static_cast<uint8_t>(AccountManagerMode::ACCOUNT_MANAGER_ACCOUNT));
-	registerGlobalVariable("ACCOUNT_MANAGER_NAMELOCK", static_cast<uint8_t>(AccountManagerMode::ACCOUNT_MANAGER_NAMELOCK));
+	registerGlobalVariable("ACCOUNT_MANAGER_ACCOUNT",
+	                       static_cast<uint8_t>(AccountManagerMode::ACCOUNT_MANAGER_ACCOUNT));
+	registerGlobalVariable("ACCOUNT_MANAGER_NAMELOCK",
+	                       static_cast<uint8_t>(AccountManagerMode::ACCOUNT_MANAGER_NAMELOCK));
 
 	registerEnum(AMMO_NONE);
 	registerEnum(AMMO_BOLT);
@@ -1905,7 +1917,6 @@ void LuaScriptInterface::registerFunctions()
 	registerEnum(GUILDLEVEL_VICE);
 	registerEnum(GUILDLEVEL_LEADER);
 
-
 	// Use with player:addMapMark
 	registerEnum(MAPMARK_TICK);
 	registerEnum(MAPMARK_QUESTION);
@@ -2455,6 +2466,24 @@ int LuaScriptInterface::luaDebugPrint(lua_State* L)
 {
 	// debugPrint(text)
 	reportErrorFunc(L, Lua::getString(L, 1));
+	return 0;
+}
+
+int LuaScriptInterface::luaLogInfo(lua_State* L)
+{
+	g_logger().info(Lua::getString(L, 1));
+	return 0;
+}
+
+int LuaScriptInterface::luaLogWarning(lua_State* L)
+{
+	g_logger().warn(Lua::getString(L, 1));
+	return 0;
+}
+
+int LuaScriptInterface::luaLogError(lua_State* L)
+{
+	g_logger().error(Lua::getString(L, 1));
 	return 0;
 }
 

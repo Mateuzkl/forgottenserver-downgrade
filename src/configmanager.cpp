@@ -10,6 +10,7 @@
 #include "lua.hpp"
 #include "monster.h"
 #include "pugicast.h"
+#include "logger.h"
 
 #if LUA_VERSION_NUM >= 502
 #undef lua_strlen
@@ -216,7 +217,7 @@ bool ConfigManager::load()
 
 	strings[CONFIG_FILE] = "config.lua";
 	if (luaL_dofile(L, getString(String::CONFIG_FILE).data())) {
-		std::cout << "[Error - ConfigManager::load] " << lua_tostring(L, -1) << std::endl;
+		g_logger().error("{}", lua_tostring(L, -1));
 		lua_close(L);
 		return false;
 	}
