@@ -7,6 +7,7 @@
 
 #include "bed.h"
 #include "game.h"
+#include "logger.h"
 #include "tools.h"
 
 extern Game g_game;
@@ -45,7 +46,7 @@ void IOMapSerialize::loadHouseItems(Map* map)
 			loadItem(propStream, tile);
 		}
 	} while (result->next());
-	std::cout << "> Loaded house items in: " << (OTSYS_TIME() - start) / (1000.) << " s" << std::endl;
+	g_logger().info("Loaded house items in: {:.2f} s", (OTSYS_TIME() - start) / (1000.));
 }
 
 bool IOMapSerialize::saveHouseItems()

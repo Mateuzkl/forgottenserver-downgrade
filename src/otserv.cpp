@@ -285,6 +285,14 @@ void startServer()
 	g_loaderSignal.wait(g_loaderUniqueLock);
 
 	if (serviceManager.is_running()) {
+		std::cout << std::endl;
+		g_logger().info(">> Version TFS: {} | Protocol: {} | Ports: {} / {} | IP: {}", 
+			fmt::format(fg(fmt::color::lime_green), "{}", STATUS_SERVER_VERSION),
+			fmt::format(fg(fmt::color::lime_green), "{}", CLIENT_VERSION_STR),
+			fmt::format(fg(fmt::color::lime_green), "{}", getInteger(ConfigManager::LOGIN_PORT)),
+			fmt::format(fg(fmt::color::lime_green), "{}", getInteger(ConfigManager::GAME_PORT)),
+			fmt::format(fg(fmt::color::lime_green), "{}", getString(ConfigManager::IP)));
+		std::cout << std::endl;
 		g_logger().info("{}  Server Online!", getString(ConfigManager::SERVER_NAME));
 		serviceManager.run();
 	} else {
@@ -333,7 +341,14 @@ void printServerVersion()
 	g_logger().info("Downgraded and further developed by Nekiro / MillhioreBT");
 	g_logger().info("Visit our forum for updates, support, and resources: http://otland.net/.");
 
-	g_logger().warn("Further developed by Mateuzkl (Custom Modified Version)");
-	g_logger().warn("Repository ORIGINAL: https://github.com/MillhioreBT/forgottenserver-downgrade");
-	g_logger().warn("Repository CUSTOM: https://github.com/Mateuzkl/forgottenserver-downgrade");
+	printCustomInfo();
+}
+
+void printCustomInfo()
+{
+	std::cout << std::endl;
+	g_logger().info("Further developed by Mateuzkl (Custom Modified Version)");
+	g_logger().info("Repository ORIGINAL: https://github.com/MillhioreBT/forgottenserver-downgrade");
+	g_logger().info("Repository CUSTOM: https://github.com/Mateuzkl/forgottenserver-downgrade");
+	std::cout << std::endl;
 }
