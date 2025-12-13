@@ -1,3 +1,5 @@
+-- gerado por Spell Converter
+-- script original
 local combat = Combat()
 combat:setParameter(COMBAT_PARAM_EFFECT, CONST_ME_MAGIC_GREEN)
 combat:setParameter(COMBAT_PARAM_AGGRESSIVE, false)
@@ -9,21 +11,21 @@ condition:setParameter(CONDITION_PARAM_DISABLE_DEFENSE, true)
 condition:setParameter(CONDITION_PARAM_BUFF_SPELL, true)
 combat:addCondition(condition)
 
-local spell = Spell(SPELL_INSTANT)
+local spell = Spell("instant")
 
-function spell.onCastSpell(creature, variant)
-	return combat:execute(creature, variant)
-end
+function spell.onCastSpell(creature, variant) return combat:execute(creature, variant) end
 
 spell:group("support")
-spell:id(133)
+spell:id(129)
 spell:name("Blood Rage")
 spell:words("utito tempo")
 spell:level(60)
 spell:mana(290)
-spell:isAggressive(false)
+spell:isPremium(true)
 spell:isSelfTarget(true)
-spell:cooldown(2000)
-spell:groupCooldown(2000)
+spell:cooldown(2 * 1000)
+spell:groupCooldown(2 * 1000)
+spell:needLearn(false)
+spell:isAggressive(false)
 spell:vocation("knight", "elite knight")
 spell:register()

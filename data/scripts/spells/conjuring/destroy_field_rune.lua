@@ -1,17 +1,21 @@
-local spell = Spell(SPELL_INSTANT)
+-- gerado por Spell Converter
+-- script original
 
-function spell.onCastSpell(creature, variant)
-	return creature:conjureItem(2260, 2261, 3)
-end
+
+local spell = Spell("instant")
+
+function spell.onCastSpell(creature, variant) return combat:execute(creature, variant) end
 
 spell:group("support")
+spell:id(167)
 spell:name("Destroy Field Rune")
 spell:words("adito grav")
 spell:level(17)
 spell:mana(120)
 spell:soul(2)
+spell:cooldown(2 * 1000)
+spell:groupCooldown(2 * 1000)
+spell:needLearn(false)
 spell:isAggressive(false)
-spell:cooldown(2000)
-spell:groupCooldown(2000)
-spell:vocation("sorcerer", "druid", "paladin", "master sorcerer", "elder druid", "royal paladin")
+spell:vocation("sorcerer", "master sorcerer", "druid", "elder druid", "paladin", "royal paladin")
 spell:register()

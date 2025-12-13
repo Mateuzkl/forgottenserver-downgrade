@@ -1,3 +1,5 @@
+-- gerado por Spell Converter
+-- script original
 local combat = Combat()
 combat:setParameter(COMBAT_PARAM_AGGRESSIVE, false)
 combat:setArea(createCombatArea(AREA_CIRCLE3X3))
@@ -7,21 +9,20 @@ condition:setParameter(CONDITION_PARAM_TICKS, 2 * 60 * 1000)
 condition:setParameter(CONDITION_PARAM_SKILL_SHIELD, 3)
 condition:setParameter(CONDITION_PARAM_BUFF_SPELL, true)
 
-local spell = Spell(SPELL_INSTANT)
+local spell = Spell("instant")
 
-function spell.onCastSpell(creature, variant)
-	return creature:addPartyCondition(combat, variant, condition, 90)
-end
+function spell.onCastSpell(creature, variant) return combat:execute(creature, variant) end
 
 spell:group("support")
-spell:id(127)
+spell:id(151)
 spell:name("Protect Party")
 spell:words("utamo mas sio")
 spell:level(32)
-spell:mana(0)
-spell:isAggressive(false)
+spell:isPremium(true)
 spell:isSelfTarget(true)
-spell:cooldown(2000)
-spell:groupCooldown(2000)
+spell:cooldown(2 * 1000)
+spell:groupCooldown(2 * 1000)
+spell:needLearn(false)
+spell:isAggressive(false)
 spell:vocation("paladin", "royal paladin")
 spell:register()

@@ -1,0 +1,25 @@
+-- gerado por Spell Converter
+-- script original
+local combat = Combat()
+combat:setParameter(COMBAT_PARAM_EFFECT, CONST_ME_MAGIC_RED)
+
+local condition = Condition(CONDITION_PARALYZE)
+condition:setParameter(CONDITION_PARAM_TICKS, 20000)
+condition:setFormula(-1, 80, -1, 80)
+combat:addCondition(condition)
+
+local spell = Spell("rune")
+
+function spell.onCastSpell(creature, variant) return combat:execute(creature, variant) end
+
+spell:group("support")
+spell:id(2278)
+spell:runeId(2278)
+spell:name("Paralyze Rune")
+spell:level(54)
+spell:mana(1400)
+spell:cooldown(2 * 1000)
+spell:groupCooldown(2 * 1000)
+spell:needLearn(false)
+spell:vocation("druid", "elder druid")
+spell:register()

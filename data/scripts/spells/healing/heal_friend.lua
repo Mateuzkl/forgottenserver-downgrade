@@ -1,41 +1,34 @@
+-- gerado por Spell Converter
+-- script original
 local combat = Combat()
 combat:setParameter(COMBAT_PARAM_TYPE, COMBAT_HEALING)
 combat:setParameter(COMBAT_PARAM_EFFECT, CONST_ME_MAGIC_GREEN)
 combat:setParameter(COMBAT_PARAM_DISPEL, CONDITION_PARALYZE)
 combat:setParameter(COMBAT_PARAM_AGGRESSIVE, false)
 
-function onGetFormulaValues(player, level, magicLevel)
+local function callback(player, level, magicLevel)
 	local min = (level / 5) + (magicLevel * 6.3) + 45
 	local max = (level / 5) + (magicLevel * 14.4) + 90
 	return min, max
 end
 
-combat:setCallback(CallBackParam.LEVELMAGICVALUE, onGetFormulaValues)
+combat:setCallback(CallBackParam.LEVELMAGICVALUE, callback)
 
-local spell = Spell(SPELL_INSTANT)
+local spell = Spell("instant")
 
-function spell.onCastSpell(creature, variant)
-	if creature:isPlayer() and variant:getNumber() == creature:getId() then
-		creature:sendCancelMessage("You can't cast this spell on yourself.")
-		creature:getPosition():sendMagicEffect(CONST_ME_POFF)
-		return false
-	end
-	creature:getPosition():sendMagicEffect(CONST_ME_MAGIC_BLUE)
-	return combat:execute(creature, variant)
-end
+function spell.onCastSpell(creature, variant) return combat:execute(creature, variant) end
 
 spell:group("healing")
-spell:id(84)
+spell:id(124)
 spell:name("Heal Friend")
 spell:words("exura sio")
 spell:level(18)
-spell:mana(120)
-spell:isAggressive(false)
+spell:mana(140)
+spell:isPremium(true)
 spell:blockWalls(true)
-spell:needTarget(true)
-spell:hasPlayerNameParam(true)
-spell:hasParams(true)
-spell:cooldown(1000)
-spell:groupCooldown(1000)
+spell:cooldown(1 * 1000)
+spell:groupCooldown(2 * 1000)
+spell:needLearn(false)
+spell:isAggressive(false)
 spell:vocation("druid", "elder druid")
 spell:register()

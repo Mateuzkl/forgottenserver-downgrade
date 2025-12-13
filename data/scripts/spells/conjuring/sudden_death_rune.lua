@@ -1,17 +1,21 @@
-local spell = Spell(SPELL_INSTANT)
+-- gerado por Spell Converter
+-- script original
 
-function spell.onCastSpell(creature, variant)
-	return creature:conjureItem(2260, 2268, 3)
-end
+
+local spell = Spell("instant")
+
+function spell.onCastSpell(creature, variant) return combat:execute(creature, variant) end
 
 spell:group("support")
+spell:id(193)
 spell:name("Sudden Death Rune")
 spell:words("adori gran mort")
 spell:level(45)
 spell:mana(985)
 spell:soul(5)
+spell:cooldown(2 * 1000)
+spell:groupCooldown(2 * 1000)
+spell:needLearn(false)
 spell:isAggressive(false)
-spell:cooldown(2000)
-spell:groupCooldown(2000)
 spell:vocation("sorcerer", "master sorcerer")
 spell:register()

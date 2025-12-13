@@ -1,0 +1,28 @@
+-- gerado por Spell Converter
+-- script original
+local combat = Combat()
+combat:setParameter(COMBAT_PARAM_TYPE, COMBAT_EARTHDAMAGE)
+combat:setParameter(COMBAT_PARAM_EFFECT, CONST_ME_STONES)
+combat:setParameter(COMBAT_PARAM_DISTANCEEFFECT, CONST_ANI_EARTH)
+
+local function callback(player, level, magicLevel)
+	local min = (level / 5) + (magicLevel * 0.8) + 5
+	local max = (level / 5) + (magicLevel * 1.6) + 10
+	return -min, -max
+end
+
+combat:setCallback(CallBackParam.LEVELMAGICVALUE, callback)
+
+local spell = Spell("rune")
+
+function spell.onCastSpell(creature, variant) return combat:execute(creature, variant) end
+
+spell:group("attack")
+spell:id(2292)
+spell:runeId(2292)
+spell:name("Stalagmite Rune")
+spell:level(24)
+spell:cooldown(2 * 1000)
+spell:groupCooldown(2 * 1000)
+spell:needLearn(false)
+spell:register()

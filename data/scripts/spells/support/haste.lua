@@ -1,3 +1,5 @@
+-- gerado por Spell Converter
+-- script original
 local combat = Combat()
 combat:setParameter(COMBAT_PARAM_EFFECT, CONST_ME_MAGIC_GREEN)
 combat:setParameter(COMBAT_PARAM_AGGRESSIVE, false)
@@ -7,21 +9,21 @@ condition:setParameter(CONDITION_PARAM_TICKS, 33000)
 condition:setFormula(0.3, -24, 0.3, -24)
 combat:addCondition(condition)
 
-local spell = Spell(SPELL_INSTANT)
+local spell = Spell("instant")
 
-function spell.onCastSpell(creature, variant)
-	return combat:execute(creature, variant)
-end
+function spell.onCastSpell(creature, variant) return combat:execute(creature, variant) end
 
 spell:group("support")
-spell:id(6)
+spell:id(137)
 spell:name("Haste")
 spell:words("utani hur")
 spell:level(14)
 spell:mana(60)
-spell:isAggressive(false)
+spell:isPremium(true)
 spell:isSelfTarget(true)
-spell:cooldown(2000)
-spell:groupCooldown(2000)
-spell:vocation("sorcerer", "druid", "paladin", "knight", "master sorcerer", "elder druid", "royal paladin", "elite knight")
+spell:cooldown(2 * 1000)
+spell:groupCooldown(2 * 1000)
+spell:needLearn(false)
+spell:isAggressive(false)
+spell:vocation("sorcerer", "master sorcerer", "druid", "elder druid", "paladin", "royal paladin", "knight", "elite knight")
 spell:register()

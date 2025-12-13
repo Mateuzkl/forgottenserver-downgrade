@@ -1,20 +1,22 @@
-local spell = Spell(SPELL_INSTANT)
+-- gerado por Spell Converter
+-- script original
 
-function spell.onCastSpell(creature, variant)
-	return creature:conjureItem(0, 23839, 3, CONST_ME_MAGIC_BLUE)
-end
+
+local spell = Spell("instant")
+
+function spell.onCastSpell(creature, variant) return combat:execute(creature, variant) end
 
 spell:group("support")
-spell:id(176)
+spell:id(154)
 spell:name("Arrow Call")
 spell:words("exevo infir con")
 spell:level(1)
 spell:mana(10)
 spell:soul(1)
-spell:isPremium(true)
-spell:isAggressive(false)
 spell:isSelfTarget(true)
-spell:cooldown(2000)
-spell:groupCooldown(2000)
+spell:cooldown(2 * 1000)
+spell:groupCooldown(2 * 1000)
+spell:needLearn(false)
+spell:isAggressive(false)
 spell:vocation("paladin", "royal paladin")
 spell:register()

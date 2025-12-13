@@ -1,17 +1,22 @@
-local spell = Spell(SPELL_INSTANT)
+-- gerado por Spell Converter
+-- script original
 
-function spell.onCastSpell(creature, variant)
-	return creature:conjureItem(2260, 2288, 4)
-end
+
+local spell = Spell("instant")
+
+function spell.onCastSpell(creature, variant) return combat:execute(creature, variant) end
 
 spell:group("support")
+spell:id(192)
 spell:name("Stone Shower Rune")
 spell:words("adori mas tera")
 spell:level(28)
 spell:mana(430)
 spell:soul(3)
+spell:isPremium(true)
+spell:cooldown(2 * 1000)
+spell:groupCooldown(2 * 1000)
+spell:needLearn(false)
 spell:isAggressive(false)
-spell:cooldown(2000)
-spell:groupCooldown(2000)
 spell:vocation("druid", "elder druid")
 spell:register()

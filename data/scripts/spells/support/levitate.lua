@@ -1,18 +1,27 @@
+-- gerado por Spell Converter
+-- script original
 local function levitate(creature, parameter)
 	local fromPosition = creature:getPosition()
 	parameter = parameter:trim():lower()
 
-	if parameter == "up" and fromPosition.z ~= 8 or parameter == "down" and fromPosition.z ~= 7 then
+	if parameter == "up" and fromPosition.z ~= 8 or parameter == "down" and
+		fromPosition.z ~= 7 then
 		local toPosition = creature:getPosition()
 		toPosition:getNextPosition(creature:getDirection())
 
-		local tile = Tile(parameter == "up" and Position(fromPosition.x, fromPosition.y, fromPosition.z - 1) or toPosition)
-		if not tile or not tile:getGround() and not tile:hasFlag(TILESTATE_IMMOVABLEBLOCKSOLID) then
-			tile = Tile(toPosition.x, toPosition.y, toPosition.z + (parameter == "up" and -1 or 1))
+		local tile = Tile(parameter == "up" and
+			                  Position(fromPosition.x, fromPosition.y, fromPosition.z - 1) or
+			                  toPosition)
+		if not tile or not tile:getGround() and
+			not tile:hasFlag(TILESTATE_IMMOVABLEBLOCKSOLID) then
+			tile = Tile(toPosition.x, toPosition.y,
+			            toPosition.z + (parameter == "up" and -1 or 1))
 
-			if tile and tile:getGround() and not tile:hasFlag(TILESTATE_IMMOVABLEBLOCKSOLID) then
+			if tile and tile:getGround() and
+				not tile:hasFlag(TILESTATE_IMMOVABLEBLOCKSOLID) then
 				local fromPos = creature:getPosition()
-				local moved = creature:move(tile, bit.bor(FLAG_IGNOREBLOCKITEM, FLAG_IGNOREBLOCKCREATURE))
+				local moved = creature:move(tile, (FLAG_IGNOREBLOCKITEM |
+					                            FLAG_IGNOREBLOCKCREATURE))
 
 				if moved == RETURNVALUE_NOERROR then
 					fromPos:sendMagicEffect(CONST_ME_TELEPORT)
@@ -25,28 +34,20 @@ local function levitate(creature, parameter)
 	return RETURNVALUE_NOTPOSSIBLE
 end
 
-local spell = Spell(SPELL_INSTANT)
+local spell = Spell("instant")
 
-function spell.onCastSpell(creature, variant)
-	local returnValue = levitate(creature, variant:getString())
-	if returnValue ~= RETURNVALUE_NOERROR then
-		creature:sendCancelMessage(returnValue)
-		creature:getPosition():sendMagicEffect(CONST_ME_POFF)
-		return false
-	end
-
-	return true
-end
+function spell.onCastSpell(creature, variant) return combat:execute(creature, variant) end
 
 spell:group("support")
-spell:id(81)
+spell:id(139)
 spell:name("Levitate")
 spell:words("exani hur")
 spell:level(12)
 spell:mana(50)
+spell:isPremium(true)
+spell:cooldown(2 * 1000)
+spell:groupCooldown(2 * 1000)
+spell:needLearn(false)
 spell:isAggressive(false)
-spell:cooldown(2000)
-spell:groupCooldown(2000)
-spell:hasParams(true)
-spell:vocation("sorcerer", "druid", "paladin", "knight", "master sorcerer", "elder druid", "royal paladin", "elite knight")
+spell:vocation("sorcerer", "master sorcerer", "druid", "elder druid", "paladin", "royal paladin", "knight", "elite knight")
 spell:register()

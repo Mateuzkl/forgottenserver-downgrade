@@ -1,19 +1,23 @@
-local spell = Spell(SPELL_INSTANT)
+-- gerado por Spell Converter
+-- script original
 
-function spell.onCastSpell(creature, variant)
-	return creature:conjureItem(0, 2547, 10, CONST_ME_MAGIC_BLUE)
-end
+
+local spell = Spell("instant")
+
+function spell.onCastSpell(creature, variant) return combat:execute(creature, variant) end
 
 spell:group("support")
-spell:id(95)
+spell:id(163)
 spell:name("Conjure Power Bolt")
 spell:words("exevo con vis")
 spell:level(59)
 spell:mana(700)
 spell:soul(4)
-spell:isAggressive(false)
+spell:isPremium(true)
 spell:isSelfTarget(true)
-spell:cooldown(2000)
-spell:groupCooldown(2000)
+spell:cooldown(2 * 1000)
+spell:groupCooldown(2 * 1000)
+spell:needLearn(false)
+spell:isAggressive(false)
 spell:vocation("royal paladin")
 spell:register()

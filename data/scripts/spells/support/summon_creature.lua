@@ -1,64 +1,18 @@
-local spell = Spell(SPELL_INSTANT)
+-- gerado por Spell Converter
+-- script original
 
-function spell.onCastSpell(creature, variant)
-	if creature:getSkull() == SKULL_BLACK then
-		creature:sendCancelMessage(RETURNVALUE_NOTPOSSIBLE)
-		return false
-	end
 
-	local monsterName = variant:getString()
-	local monsterType = MonsterType(monsterName)
+local spell = Spell("instant")
 
-	if not monsterType then
-		creature:sendCancelMessage(RETURNVALUE_NOTPOSSIBLE)
-		creature:getPosition():sendMagicEffect(CONST_ME_POFF)
-		return false
-	end
-
-	if not creature:hasFlag(PlayerFlag_CanSummonAll) then
-		if not monsterType:isSummonable() then
-			creature:sendCancelMessage(RETURNVALUE_NOTPOSSIBLE)
-			creature:getPosition():sendMagicEffect(CONST_ME_POFF)
-			return false
-		end
-
-		if #creature:getSummons() >= 2 then
-			creature:sendCancelMessage("You cannot summon more creatures.")
-			creature:getPosition():sendMagicEffect(CONST_ME_POFF)
-			return false
-		end
-	end
-
-	local manaCost = monsterType:getManaCost()
-	if creature:getMana() < manaCost and not creature:hasFlag(PlayerFlag_HasInfiniteMana) then
-		creature:sendCancelMessage(RETURNVALUE_NOTENOUGHMANA)
-		creature:getPosition():sendMagicEffect(CONST_ME_POFF)
-		return false
-	end
-
-	local position = creature:getPosition()
-	local summon = Game.createMonster(monsterName, position, true)
-	if not summon then
-		creature:sendCancelMessage(RETURNVALUE_NOTENOUGHROOM)
-		position:sendMagicEffect(CONST_ME_POFF)
-		return false
-	end
-
-	creature:addMana(-manaCost)
-	creature:addManaSpent(manaCost)
-	creature:addSummon(summon)
-	position:sendMagicEffect(CONST_ME_MAGIC_BLUE)
-	summon:getPosition():sendMagicEffect(CONST_ME_TELEPORT)
-	return true
-end
+function spell.onCastSpell(creature, variant) return combat:execute(creature, variant) end
 
 spell:group("support")
-spell:id(9)
+spell:id(146)
 spell:name("Summon Creature")
 spell:words("utevo res")
 spell:level(25)
-spell:hasParams(true)
-spell:cooldown(2000)
-spell:groupCooldown(2000)
-spell:vocation("sorcerer", "druid", "master sorcerer", "elder druid")
+spell:cooldown(2 * 1000)
+spell:groupCooldown(2 * 1000)
+spell:needLearn(false)
+spell:vocation("sorcerer", "master sorcerer", "druid", "elder druid")
 spell:register()

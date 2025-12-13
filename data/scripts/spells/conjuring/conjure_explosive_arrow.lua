@@ -1,20 +1,22 @@
-local spell = Spell(SPELL_INSTANT)
+-- gerado por Spell Converter
+-- script original
 
-function spell.onCastSpell(creature, variant)
-	return creature:conjureItem(0, 2546, 8, CONST_ME_MAGIC_BLUE)
-end
+
+local spell = Spell("instant")
+
+function spell.onCastSpell(creature, variant) return combat:execute(creature, variant) end
 
 spell:group("support")
-spell:id(49)
+spell:id(160)
 spell:name("Conjure Explosive Arrow")
 spell:words("exevo con flam")
 spell:level(25)
 spell:mana(290)
 spell:soul(3)
-spell:isPremium(true)
-spell:isAggressive(false)
 spell:isSelfTarget(true)
-spell:cooldown(2000)
-spell:groupCooldown(2000)
+spell:cooldown(2 * 1000)
+spell:groupCooldown(2 * 1000)
+spell:needLearn(false)
+spell:isAggressive(false)
 spell:vocation("paladin", "royal paladin")
 spell:register()

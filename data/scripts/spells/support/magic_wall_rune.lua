@@ -1,0 +1,19 @@
+-- gerado por Spell Converter
+-- script original
+local combat = Combat()
+combat:setParameter(COMBAT_PARAM_DISTANCEEFFECT, CONST_ANI_ENERGY)
+combat:setParameter(COMBAT_PARAM_CREATEITEM, ITEM_MAGICWALL)
+
+local spell = Spell("rune")
+
+function spell.onCastSpell(creature, variant) return combat:execute(creature, variant) end
+
+spell:group("attack")
+spell:id(2293)
+spell:runeId(2293)
+spell:name("Magic Wall Rune")
+spell:level(32)
+spell:cooldown(2 * 1000)
+spell:groupCooldown(2 * 1000)
+spell:needLearn(false)
+spell:register()

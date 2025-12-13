@@ -1,17 +1,22 @@
-local spell = Spell(SPELL_INSTANT)
+-- gerado por Spell Converter
+-- script original
 
-function spell.onCastSpell(creature, variant)
-	return creature:conjureItem(2260, 2293, 3)
-end
+
+local spell = Spell("instant")
+
+function spell.onCastSpell(creature, variant) return combat:execute(creature, variant) end
 
 spell:group("support")
+spell:id(184)
 spell:name("Magic Wall Rune")
 spell:words("adevo grav tera")
 spell:level(32)
 spell:mana(750)
 spell:soul(5)
+spell:isPremium(true)
+spell:cooldown(2 * 1000)
+spell:groupCooldown(2 * 1000)
+spell:needLearn(false)
 spell:isAggressive(false)
-spell:cooldown(2000)
-spell:groupCooldown(2000)
 spell:vocation("sorcerer", "master sorcerer")
 spell:register()

@@ -1,17 +1,21 @@
-local spell = Spell(SPELL_INSTANT)
+-- gerado por Spell Converter
+-- script original
 
-function spell.onCastSpell(creature, variant)
-	return creature:conjureItem(2260, 2289, 4)
-end
+
+local spell = Spell("instant")
+
+function spell.onCastSpell(creature, variant) return combat:execute(creature, variant) end
 
 spell:group("support")
+spell:id(188)
 spell:name("Poison Wall Rune")
 spell:words("adevo mas grav pox")
 spell:level(29)
 spell:mana(640)
 spell:soul(3)
+spell:cooldown(2 * 1000)
+spell:groupCooldown(2 * 1000)
+spell:needLearn(false)
 spell:isAggressive(false)
-spell:cooldown(2000)
-spell:groupCooldown(2000)
-spell:vocation("sorcerer", "druid", "master sorcerer", "elder druid")
+spell:vocation("sorcerer", "master sorcerer", "druid", "elder druid")
 spell:register()
