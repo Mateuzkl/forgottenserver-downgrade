@@ -7,8 +7,10 @@ combat:setParameter(COMBAT_PARAM_CREATEITEM, ITEM_FIREFIELD_PVP_FULL)
 combat:setArea(createCombatArea(AREA_SQUARE1X1))
 
 local spell = Spell("rune")
+function spell.onCastSpell(creature, variant, isHotkey)
+	return combat:execute(creature, variant)
+end
 
-function spell.onCastSpell(creature, variant) return combat:execute(creature, variant) end
 
 spell:group("attack")
 spell:id(2305)

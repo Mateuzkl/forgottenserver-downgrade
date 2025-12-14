@@ -10,8 +10,10 @@ condition:setParameter(CONDITION_PARAM_STAT_MAGICPOINTS, 1)
 condition:setParameter(CONDITION_PARAM_BUFF_SPELL, true)
 
 local spell = Spell("instant")
+function spell.onCastSpell(creature, variant)
+	return creature:addPartyCondition(combat, variant, condition, 120)
+end
 
-function spell.onCastSpell(creature, variant) return combat:execute(creature, variant) end
 
 spell:group("support")
 spell:id(149)

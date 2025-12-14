@@ -15,8 +15,8 @@ end
 combat:setCallback(CallBackParam.LEVELMAGICVALUE, callback)
 
 local spell = Spell("instant")
-
 function spell.onCastSpell(creature, variant) return combat:execute(creature, variant) end
+
 
 spell:group("attack")
 spell:id(106)

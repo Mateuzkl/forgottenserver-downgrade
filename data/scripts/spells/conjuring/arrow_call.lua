@@ -1,10 +1,10 @@
 -- gerado por Spell Converter
 -- script original
-
-
 local spell = Spell("instant")
+function spell.onCastSpell(creature, variant)
+	return creature:conjureItem(0, 23839, 3, CONST_ME_MAGIC_BLUE)
+end
 
-function spell.onCastSpell(creature, variant) return combat:execute(creature, variant) end
 
 spell:group("support")
 spell:id(154)

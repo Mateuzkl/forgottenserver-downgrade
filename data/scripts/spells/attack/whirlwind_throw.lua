@@ -16,8 +16,8 @@ end
 combat:setCallback(CallBackParam.SKILLVALUE, callback)
 
 local spell = Spell("instant")
-
 function spell.onCastSpell(creature, variant) return combat:execute(creature, variant) end
+
 
 spell:group("attack")
 spell:id(120)

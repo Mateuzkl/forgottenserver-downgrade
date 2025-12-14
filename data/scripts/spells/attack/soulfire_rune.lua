@@ -16,8 +16,10 @@ end
 combat:setCallback(CallBackParam.TARGETCREATURE, callback)
 
 local spell = Spell("rune")
+function spell.onCastSpell(creature, variant, isHotkey)
+	return combat:execute(creature, variant)
+end
 
-function spell.onCastSpell(creature, variant) return combat:execute(creature, variant) end
 
 spell:group("attack")
 spell:id(2308)

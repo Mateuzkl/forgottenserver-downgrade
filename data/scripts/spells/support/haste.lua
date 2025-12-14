@@ -10,8 +10,8 @@ condition:setFormula(0.3, -24, 0.3, -24)
 combat:addCondition(condition)
 
 local spell = Spell("instant")
-
 function spell.onCastSpell(creature, variant) return combat:execute(creature, variant) end
+
 
 spell:group("support")
 spell:id(137)

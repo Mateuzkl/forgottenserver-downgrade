@@ -5,8 +5,10 @@ combat:setParameter(COMBAT_PARAM_DISTANCEEFFECT, CONST_ANI_EARTH)
 combat:setParameter(COMBAT_PARAM_CREATEITEM, ITEM_WILDGROWTH)
 
 local spell = Spell("rune")
+function spell.onCastSpell(creature, variant, isHotkey)
+	return combat:execute(creature, variant)
+end
 
-function spell.onCastSpell(creature, variant) return combat:execute(creature, variant) end
 
 spell:group("support")
 spell:id(2269)

@@ -15,8 +15,11 @@ end
 combat:setCallback(CallBackParam.LEVELMAGICVALUE, callback)
 
 local spell = Spell("instant")
+function spell.onCastSpell(creature, variant)
+	creature:getPosition():sendMagicEffect(CONST_ME_MAGIC_BLUE)
+	return combat:execute(creature, variant)
+end
 
-function spell.onCastSpell(creature, variant) return combat:execute(creature, variant) end
 
 spell:group("healing")
 spell:id(124)

@@ -12,8 +12,8 @@ condition:setParameter(CONDITION_PARAM_BUFF_SPELL, true)
 combat:addCondition(condition)
 
 local spell = Spell("instant")
-
 function spell.onCastSpell(creature, variant) return combat:execute(creature, variant) end
+
 
 spell:group("support")
 spell:id(129)

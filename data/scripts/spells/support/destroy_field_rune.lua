@@ -1,10 +1,21 @@
 -- gerado por Spell Converter
 -- script original
-
-
 local spell = Spell("rune")
+function spell.onCastSpell(creature, variant, isHotkey)
+	local position = variant:getPosition()
+	local tile = Tile(position)
+	local field = tile and tile:getItemByType(ITEM_TYPE_MAGICFIELD)
+	if field and table.contains(FIELDS, field:getId()) then
+		field:remove()
+		position:sendMagicEffect(CONST_ME_POFF)
+		return true
+	end
 
-function spell.onCastSpell(creature, variant) return combat:execute(creature, variant) end
+	creature:sendCancelMessage(RETURNVALUE_NOTPOSSIBLE)
+	creature:getPosition():sendMagicEffect(CONST_ME_POFF)
+	return false
+end
+
 
 spell:group("support")
 spell:id(2261)

@@ -17,8 +17,8 @@ speed:setFormula(-0.7, 56, -0.7, 56)
 combat:addCondition(speed)
 
 local spell = Spell("instant")
-
 function spell.onCastSpell(creature, variant) return combat:execute(creature, variant) end
+
 
 spell:group("support")
 spell:id(144)

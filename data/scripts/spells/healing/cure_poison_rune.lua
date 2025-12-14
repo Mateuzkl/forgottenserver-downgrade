@@ -7,8 +7,10 @@ combat:setParameter(COMBAT_PARAM_TARGETCASTERORTOPMOST, true)
 combat:setParameter(COMBAT_PARAM_AGGRESSIVE, false)
 
 local spell = Spell("rune")
+function spell.onCastSpell(creature, variant, isHotkey)
+	return combat:execute(creature, variant)
+end
 
-function spell.onCastSpell(creature, variant) return combat:execute(creature, variant) end
 
 spell:group("healing")
 spell:id(2266)

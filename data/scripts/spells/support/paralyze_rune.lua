@@ -9,8 +9,13 @@ condition:setFormula(-1, 80, -1, 80)
 combat:addCondition(condition)
 
 local spell = Spell("rune")
+function spell.onCastSpell(creature, variant, isHotkey)
+	if not combat:execute(creature, variant) then return false end
 
-function spell.onCastSpell(creature, variant) return combat:execute(creature, variant) end
+	creature:getPosition():sendMagicEffect(CONST_ME_MAGIC_GREEN)
+	return true
+end
+
 
 spell:group("support")
 spell:id(2278)

@@ -35,8 +35,17 @@ local function levitate(creature, parameter)
 end
 
 local spell = Spell("instant")
+function spell.onCastSpell(creature, variant)
+	local returnValue = levitate(creature, variant:getString())
+	if returnValue ~= RETURNVALUE_NOERROR then
+		creature:sendCancelMessage(returnValue)
+		creature:getPosition():sendMagicEffect(CONST_ME_POFF)
+		return false
+	end
 
-function spell.onCastSpell(creature, variant) return combat:execute(creature, variant) end
+	return true
+end
+
 
 spell:group("support")
 spell:id(139)

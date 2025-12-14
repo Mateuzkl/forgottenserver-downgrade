@@ -1,10 +1,8 @@
 -- gerado por Spell Converter
 -- script original
-function onCastSpell(creature, variant) return creature:conjureItem(0, 2260, 1) end
-
 local spell = Spell("instant")
+function spell.onCastSpell(creature, variant) return creature:conjureItem(0, 2260, 1) end
 
-function spell.onCastSpell(creature, variant) return combat:execute(creature, variant) end
 
 spell:group("support")
 spell:id(156)

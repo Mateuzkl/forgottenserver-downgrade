@@ -11,8 +11,8 @@ condition:setParameter(CONDITION_PARAM_TICKS, (11 * 60 + 35) * 1000)
 combat:addCondition(condition)
 
 local spell = Spell("instant")
-
 function spell.onCastSpell(creature, variant) return combat:execute(creature, variant) end
+
 
 spell:group("support")
 spell:id(136)

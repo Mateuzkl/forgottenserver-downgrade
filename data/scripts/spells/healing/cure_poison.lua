@@ -6,8 +6,8 @@ combat:setParameter(COMBAT_PARAM_DISPEL, CONDITION_POISON)
 combat:setParameter(COMBAT_PARAM_AGGRESSIVE, false)
 
 local spell = Spell("instant")
-
 function spell.onCastSpell(creature, variant) return combat:execute(creature, variant) end
+
 
 spell:group("healing")
 spell:id(122)

@@ -14,8 +14,8 @@ pacified:setParameter(CONDITION_PARAM_TICKS, 10000)
 combat:addCondition(pacified)
 
 local spell = Spell("instant")
-
 function spell.onCastSpell(creature, variant) return combat:execute(creature, variant) end
+
 
 spell:group("support")
 spell:id(147)
