@@ -1,8 +1,5 @@
 -- gerado por Spell Converter
 -- script original
-local condition = Condition(CONDITION_OUTFIT)
-condition:setTicks(200000)
-
 local spell = Spell("rune")
 function spell.onCastSpell(creature, variant, isHotkey)
 	local position, item = variant:getPosition()
@@ -23,6 +20,8 @@ function spell.onCastSpell(creature, variant, isHotkey)
 		return false
 	end
 
+	local condition = Condition(CONDITION_OUTFIT)
+	condition:setTicks(200000)
 	condition:setOutfit({lookTypeEx = item.itemid})
 	creature:addCondition(condition)
 	creature:getPosition():sendMagicEffect(CONST_ME_MAGIC_RED)
@@ -41,4 +40,7 @@ spell:groupCooldown(2 * 1000)
 spell:needLearn(false)
 spell:isAggressive(false)
 spell:allowFarUse(true)
+spell:magicLevel(4)
+spell:charges(1)
+spell:blockType("solid")
 spell:register()
