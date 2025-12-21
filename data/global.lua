@@ -1,6 +1,12 @@
 math.randomseed(os.time())
 dofile('data/lib/lib.lua')
 
+local startupFile=io.open("data/startup/startup.lua", "r")
+if startupFile ~= nil then
+	dofile("data/startup/startup.lua")
+	io.close(startupFile)
+end
+
 -- LuaFormatter off
 ropeSpots = {
 	384, 418, 8278, 8592, 13189, 14435, 14436, 14857, 15635, 19518, 24621, 24622, 24623, 24624, 26019
