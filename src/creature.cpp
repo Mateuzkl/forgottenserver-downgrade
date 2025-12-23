@@ -111,7 +111,7 @@ int32_t Creature::getWalkDelay() const
 	}
 
 	int64_t ct = OTSYS_TIME();
-	int64_t stepDuration = getStepDuration();
+	int64_t stepDuration = getStepDuration() * lastStepCost;
 	return stepDuration - (ct - lastStep);
 }
 
@@ -159,7 +159,17 @@ void Creature::onThink(uint32_t interval)
 
 void Creature::onAttacking(uint32_t interval)
 {
+	if (isRemoved() || isDead()) {
+		attackedCreature = nullptr;
+		return;
+	}
+
 	if (!attackedCreature) {
+		return;
+	}
+
+	if (attackedCreature->isRemoved() || attackedCreature->isDead()) {
+		attackedCreature = nullptr;
 		return;
 	}
 
@@ -432,13 +442,15 @@ void Creature::onRemoveCreature(Creature* creature, bool)
 {
 	onCreatureDisappear(creature, true);
 	if (creature == this) {
-		if (master && !master->isRemoved()) {
-			setMaster(nullptr);
-		}
-	} else if (isMapLoaded) {
-		if (creature->getPosition().z == getPosition().z) {
-			updateTileCache(creature->getTile(), creature->getPosition());
-		}
+		return;
+	}
+
+	if (!isMapLoaded) {
+		return;
+	}
+
+	if (creature->getPosition().z == getPosition().z) {
+		updateTileCache(creature->getTile(), creature->getPosition());
 	}
 }
 
@@ -1085,9 +1097,9 @@ void Creature::addDamagePoints(Creature* attacker, int32_t damagePoints)
 
 void Creature::onAddCondition(ConditionType_t type)
 {
-	if (type == CONDITION_PARALYZE && hasCondition(CONDITION_HASTE)) {
+	if ((type & CONDITION_PARALYZE) && hasCondition(CONDITION_HASTE)) {
 		removeCondition(CONDITION_HASTE);
-	} else if (type == CONDITION_HASTE && hasCondition(CONDITION_PARALYZE)) {
+	} else if ((type & CONDITION_HASTE) && hasCondition(CONDITION_PARALYZE)) {
 		removeCondition(CONDITION_PARALYZE);
 	}
 }
@@ -1104,7 +1116,12 @@ void Creature::onEndCondition(ConditionType_t)
 
 void Creature::onTickCondition(ConditionType_t type, bool& bRemove)
 {
-	const MagicField* field = getTile()->getFieldItem();
+	const Tile* tile = getTile();
+	if (!tile) {
+		return;
+	}
+
+	const MagicField* field = tile->getFieldItem();
 	if (!field) {
 		return;
 	}
@@ -1455,26 +1472,32 @@ int64_t Creature::getStepDuration() const
 		return 0;
 	}
 
-	int32_t stepSpeed = getStepSpeed();
-	if (stepSpeed == 0) {
+	const int32_t stepSpeed = getStepSpeed();
+	if (stepSpeed <= 0) {
 		return 0;
 	}
-	Item* ground = tile->getGround();
-	uint32_t groundSpeed;
-	if (ground) {
-		groundSpeed = Item::items[ground->getID()].speed;
-		if (groundSpeed == 0) {
-			groundSpeed = 150;
+	uint32_t groundSpeed = 150;
+	if (const Tile* tile = getTile()) {
+		if (const Item* ground = tile->getGround()) {
+			groundSpeed = Item::items[ground->getID()].speed;
+			if (groundSpeed == 0) {
+				groundSpeed = 150;
+			}
 		}
-	} else {
-		groundSpeed = 150;
 	}
 
-	int64_t stepDuration = (1000 * groundSpeed) / stepSpeed;
+	int64_t stepDuration = (1000 * static_cast<int64_t>(groundSpeed)) / stepSpeed;
 
-	const Monster* monster = getMonster();
-	if (monster && monster->isTargetNearby() && !monster->isFleeing() && !monster->getMaster()) {
-		stepDuration *= 3;
+	if (stepDuration < SCHEDULER_MINTICKS) {
+		stepDuration = SCHEDULER_MINTICKS;
+	}
+
+	if (const Monster* monster = getMonster()) {
+		if (monster->isTargetNearby() &&
+		    !monster->isFleeing() &&
+		    !monster->getMaster()) {
+			stepDuration *= 3;
+		}
 	}
 
 	return stepDuration * lastStepCost;
@@ -1486,11 +1509,12 @@ int64_t Creature::getEventStepTicks(bool onlyDelay) const
 	if (ret > 0) {
 		return ret;
 	}
-	if (!onlyDelay) {
-		return getStepDuration();
+	const int64_t stepDuration = getStepDuration();
+	if (onlyDelay) {
+		return 1;
 	}
 
-	return 1;
+	return std::max<int64_t>(1, stepDuration * lastStepCost);
 }
 
 LightInfo Creature::getCreatureLight() const { return internalLight; }
