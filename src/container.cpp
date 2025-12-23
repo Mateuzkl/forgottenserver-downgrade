@@ -25,6 +25,9 @@ Container::~Container()
 Item* Container::clone() const
 {
 	Container* clone = static_cast<Container*>(Item::clone());
+	if (!clone) {
+		return nullptr;
+	}
 	for (Item* item : itemlist) {
 		clone->addItem(item->clone());
 	}
@@ -49,6 +52,9 @@ std::string Container::getName(bool addArticle /* = false*/) const
 
 void Container::addItem(Item* item)
 {
+	if (!item) {
+		return;
+	}
 	itemlist.push_back(item);
 	item->setParent(this);
 }
@@ -101,8 +107,9 @@ bool Container::unserializeItemNode(OTB::Loader& loader, const OTB::Node& node, 
 void Container::updateItemWeight(int32_t diff)
 {
 	totalWeight += diff;
-	if (Container* parentContainer = getParentContainer()) {
-		parentContainer->updateItemWeight(diff);
+	Container* parentContainer = this;
+	while ((parentContainer = parentContainer->getParentContainer()) != nullptr) {
+		parentContainer->totalWeight += diff;
 	}
 }
 
@@ -472,6 +479,10 @@ void Container::updateThing(Thing* thing, uint16_t itemId, uint32_t count)
 
 void Container::replaceThing(uint32_t index, Thing* thing)
 {
+	if (!thing) {
+		return;
+	}
+
 	Item* item = thing->getItem();
 	if (!item) {
 		return /*RETURNVALUE_NOTPOSSIBLE*/;
@@ -496,6 +507,10 @@ void Container::replaceThing(uint32_t index, Thing* thing)
 
 void Container::removeThing(Thing* thing, uint32_t count)
 {
+	if (!thing) {
+		return;
+	}
+
 	Item* item = thing->getItem();
 	if (item == nullptr) {
 		return /*RETURNVALUE_NOTPOSSIBLE*/;
