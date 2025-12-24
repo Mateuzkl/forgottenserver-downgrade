@@ -127,6 +127,34 @@ int luaLootSetActionId(lua_State* L)
 	return 1;
 }
 
+int luaLootSetIdFromName(lua_State* L)
+{
+	// loot:setIdFromName(name)
+	Loot* loot = getUserdata<Loot>(L, 1);
+	if (loot && isString(L, 2)) {
+		auto name = getString(L, 2);
+		auto ids = Item::items.nameToItems.equal_range(boost::algorithm::to_lower_copy<std::string>(name));
+
+		if (ids.first == Item::items.nameToItems.cend()) {
+			std::cout << "[Warning - Loot:setIdFromName] Unknown loot item \"" << name << "\". " << std::endl;
+			pushBoolean(L, false);
+			return 1;
+		}
+
+		if (std::next(ids.first) != ids.second) {
+			std::cout << "[Warning - Loot:setIdFromName] Non-unique loot item \"" << name << "\". " << std::endl;
+			pushBoolean(L, false);
+			return 1;
+		}
+
+		loot->lootBlock.id = ids.first->second;
+		pushBoolean(L, true);
+	} else {
+		pushBoolean(L, false);
+	}
+	return 1;
+}
+
 int luaLootSetDescription(lua_State* L)
 {
 	// loot:setDescription(desc)
@@ -167,6 +195,7 @@ void LuaScriptInterface::registerLoot()
 	registerMethod("Loot", "delete", luaDeleteLoot);
 
 	registerMethod("Loot", "setId", luaLootSetId);
+	registerMethod("Loot", "setIdFromName", luaLootSetIdFromName);
 	registerMethod("Loot", "setMinCount", luaLootSetMinCount);
 	registerMethod("Loot", "setMaxCount", luaLootSetMaxCount);
 	registerMethod("Loot", "setSubType", luaLootSetSubType);

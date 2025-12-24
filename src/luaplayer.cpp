@@ -1268,10 +1268,13 @@ int luaPlayerShowTextDialog(lua_State* L)
 	}
 
 	Item* item;
+	bool fixMemoryLeak = false;
 	if (isInteger(L, 2)) {
 		item = Item::CreateItem(getInteger<uint16_t>(L, 2));
+		fixMemoryLeak = true;
 	} else if (isString(L, 2)) {
 		item = Item::CreateItem(Item::items.getItemIdByName(getString(L, 2)));
+		fixMemoryLeak = true;
 	} else if (isUserdata(L, 2)) {
 		if (getUserdataType(L, 2) != LuaData_Item) {
 			pushBoolean(L, false);
@@ -1303,6 +1306,12 @@ int luaPlayerShowTextDialog(lua_State* L)
 	player->setRawWriteItem(item);
 	player->setMaxWriteLen(static_cast<uint16_t>(length));
 	player->sendTextWindow(item, static_cast<uint16_t>(length), canWrite);
+	if (fixMemoryLeak) {
+		// Player::setWriteItem will add reference so we'll end up with 2 references
+		// and since we'll have 2 references the memory allocated will never be destroyed
+		// to avoid that we decrement one reference here
+	item->decrementReferenceCounter();
+	}
 	lua_pushinteger(L, player->getWindowTextId());
 	return 1;
 }
@@ -1407,6 +1416,20 @@ int luaPlayerOpenChannel(lua_State* L)
 	Player* player = getUserdata<Player>(L, 1);
 	if (player) {
 		g_game.playerOpenChannel(player->getID(), channelId);
+		pushBoolean(L, true);
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
+
+int luaPlayerCloseChannel(lua_State* L)
+{
+	// player:closeChannel(channelId)
+	uint16_t channelId = getNumber<uint16_t>(L, 2);
+	Player* player = getUserdata<Player>(L, 1);
+	if (player) {
+		g_game.playerCloseChannel(player->getID(), channelId);
 		pushBoolean(L, true);
 	} else {
 		lua_pushnil(L);
@@ -2645,6 +2668,7 @@ void LuaScriptInterface::registerPlayer()
 	registerMethod("Player", "sendPrivateMessage", luaPlayerSendPrivateMessage);
 	registerMethod("Player", "channelSay", luaPlayerChannelSay);
 	registerMethod("Player", "openChannel", luaPlayerOpenChannel);
+	registerMethod("Player", "closeChannel", luaPlayerCloseChannel);
 
 	registerMethod("Player", "getSlotItem", luaPlayerGetSlotItem);
 
