@@ -366,6 +366,9 @@ void Map::getSpectatorsInternal(SpectatorVec& spectators, const Position& center
 			if (leafE) {
 				const CreatureVector& node_list = (onlyPlayers ? leafE->player_list : leafE->creature_list);
 				for (Creature* creature : node_list) {
+					if (!creature || creature->isRemoved()) {
+						continue;
+					}
 					const Position& cpos = creature->getPosition();
 					if (minRangeZ > cpos.z || maxRangeZ < cpos.z) {
 						continue;
