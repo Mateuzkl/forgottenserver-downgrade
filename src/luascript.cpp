@@ -444,21 +444,8 @@ std::string_view LuaScriptInterface::getFileById(int32_t scriptId)
 
 std::string LuaScriptInterface::getStackTrace(lua_State* L, std::string_view error_desc)
 {
-	lua_getglobal(L, "debug");
-	if (!Lua::isTable(L, -1)) {
-		lua_pop(L, 1);
-		return std::string{error_desc};
-	}
-
-	lua_getfield(L, -1, "traceback");
-	if (!Lua::isFunction(L, -1)) {
-		lua_pop(L, 2);
-		return std::string{error_desc};
-	}
-
-	lua_replace(L, -2);
-	Lua::pushString(L, error_desc);
-	lua_call(L, 1, 1);
+	std::string errorStr(error_desc);
+	luaL_traceback(L, L, errorStr.c_str(), 1);
 	return Lua::popString(L);
 }
 
@@ -1581,6 +1568,13 @@ void LuaScriptInterface::registerFunctions()
 	registerEnum(CLIENTOS_OTCLIENT_WINDOWS);
 	registerEnum(CLIENTOS_OTCLIENT_MAC);
 
+	registerEnum(CLIENTOS_OTCLIENTV8_LINUX);
+	registerEnum(CLIENTOS_OTCLIENTV8_WINDOWS);
+	registerEnum(CLIENTOS_OTCLIENTV8_MAC);
+	registerEnum(CLIENTOS_OTCLIENTV8_ANDROID);
+	registerEnum(CLIENTOS_OTCLIENTV8_IOS);
+	registerEnum(CLIENTOS_OTCLIENTV8_WEB);
+
 	registerEnum(FIGHTMODE_ATTACK);
 	registerEnum(FIGHTMODE_BALANCED);
 	registerEnum(FIGHTMODE_DEFENSE);
@@ -1723,6 +1717,7 @@ void LuaScriptInterface::registerFunctions()
 	registerEnum(PlayerFlag_IsAlwaysPremium);
 	registerEnum(PlayerFlag_IgnoreYellCheck);
 	registerEnum(PlayerFlag_IgnoreSendPrivateCheck);
+	registerEnum(PlayerFlag_CanThrowFar);
 
 	registerEnum(PLAYERSEX_FEMALE);
 	registerEnum(PLAYERSEX_MALE);

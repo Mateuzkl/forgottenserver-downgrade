@@ -15,16 +15,35 @@ using namespace Lua;
 // Container
 int luaContainerCreate(lua_State* L)
 {
-	// Container(uid)
-	uint32_t id = getInteger<uint32_t>(L, 2);
+	// Container(id or userdata)
+	Container* container = nullptr;
 
-	Container* container = LuaScriptInterface::getScriptEnv()->getContainerByUID(id);
-	if (container) {
-		pushUserdata(L, container);
-		setMetatable(L, -1, "Container");
-	} else {
-		lua_pushnil(L);
+	if (isNumber(L, 2)) {
+		container = LuaScriptInterface::getScriptEnv()->getContainerByUID(
+			getNumber<uint32_t>(L, 2)
+		);
+	} else if (isUserdata(L, 2)) {
+		switch (getUserdataType(L, 2)) {
+			case LuaData_Item: {
+				Item* item = getUserdata<Item>(L, 2);
+				container = item ? item->getContainer() : nullptr;
+				break;
+			}
+			case LuaData_Container:
+				container = getUserdata<Container>(L, 2);
+				break;
+			default:
+				break;
+		}
 	}
+
+	if (!container) {
+		lua_pushnil(L);
+		return 1;
+	}
+
+	pushUserdata(L, container);
+	setMetatable(L, -1, "Container");
 	return 1;
 }
 

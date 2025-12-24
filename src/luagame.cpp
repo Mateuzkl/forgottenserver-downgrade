@@ -44,6 +44,10 @@ int luaGameGetSpectators(lua_State* L)
 
 	int index = 0;
 	for (Creature* creature : spectators) {
+		// Avoid crashes by ignoring invalid creatures
+		if (!creature || creature->isRemoved()) {
+			continue;
+		}
 		pushUserdata<Creature>(L, creature);
 		setCreatureMetatable(L, -1, creature);
 		lua_rawseti(L, -2, ++index);
@@ -60,6 +64,34 @@ int luaGameGetPlayers(lua_State* L)
 	for (const auto& playerEntry : g_game.getPlayers()) {
 		pushUserdata<Player>(L, playerEntry.second);
 		setMetatable(L, -1, "Player");
+		lua_rawseti(L, -2, ++index);
+	}
+	return 1;
+}
+
+int luaGameGetNpcs(lua_State* L)
+{
+	// Game.getNpcs()
+	lua_createtable(L, g_game.getNpcsOnline(), 0);
+
+	int index = 0;
+	for (const auto& npcEntry : g_game.getNpcs()) {
+		pushUserdata<Npc>(L, npcEntry.second);
+		setMetatable(L, -1, "Npc");
+		lua_rawseti(L, -2, ++index);
+	}
+	return 1;
+}
+
+int luaGameGetMonsters(lua_State* L)
+{
+	// Game.getMonsters()
+	lua_createtable(L, g_game.getMonstersOnline(), 0);
+
+	int index = 0;
+	for (const auto& monsterEntry : g_game.getMonsters()) {
+		pushUserdata<Monster>(L, monsterEntry.second);
+		setMetatable(L, -1, "Monster");
 		lua_rawseti(L, -2, ++index);
 	}
 	return 1;
@@ -715,6 +747,8 @@ void LuaScriptInterface::registerGame()
 
 	registerMethod("Game", "getSpectators", luaGameGetSpectators);
 	registerMethod("Game", "getPlayers", luaGameGetPlayers);
+	registerMethod("Game", "getNpcs", luaGameGetNpcs);
+	registerMethod("Game", "getMonsters", luaGameGetMonsters);
 	registerMethod("Game", "loadMap", luaGameLoadMap);
 
 	registerMethod("Game", "getExperienceStage", luaGameGetExperienceStage);

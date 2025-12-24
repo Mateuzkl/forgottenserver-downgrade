@@ -416,7 +416,7 @@ private:
 	{
 		if (hasAttribute(ITEM_ATTRIBUTE_CUSTOM)) {
 			removeCustomAttribute(key);
-		} else {
+		} if (!getAttr(ITEM_ATTRIBUTE_CUSTOM).value.custom) {
 			getAttr(ITEM_ATTRIBUTE_CUSTOM).value.custom = new CustomAttributeMap();
 		}
 		auto lowercaseKey = boost::algorithm::to_lower_copy(std::string{key});
@@ -427,7 +427,7 @@ private:
 	{
 		if (hasAttribute(ITEM_ATTRIBUTE_CUSTOM)) {
 			removeCustomAttribute(key);
-		} else {
+		} if (!getAttr(ITEM_ATTRIBUTE_CUSTOM).value.custom) {
 			getAttr(ITEM_ATTRIBUTE_CUSTOM).value.custom = new CustomAttributeMap();
 		}
 		auto lowercaseKey = boost::algorithm::to_lower_copy(std::string{key});
@@ -463,6 +463,9 @@ private:
 			auto lowercaseKey = boost::algorithm::to_lower_copy(std::string{key});
 			if (auto it = customAttrMap->find(lowercaseKey); it != customAttrMap->end()) {
 				customAttrMap->erase(it);
+				if (customAttrMap->empty()) {
+					removeAttribute(ITEM_ATTRIBUTE_CUSTOM);
+				}
 				return true;
 			}
 		}

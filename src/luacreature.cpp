@@ -392,6 +392,22 @@ int luaCreatureGetSpeed(lua_State* L)
 	return 1;
 }
 
+int luaCreatureSetSpeed(lua_State* L)
+{
+	// creature:setSpeed(speed)
+	Creature* creature = getUserdata<Creature>(L, 1);
+	if (!creature) {
+		reportErrorFunc(L, LuaScriptInterface::getErrorDesc(LuaErrorCode::CREATURE_NOT_FOUND));
+		pushBoolean(L, false);
+		return 1;
+	}
+
+	int32_t speed = getInteger<int32_t>(L, 2);
+	g_game.setCreatureSpeed(creature, speed);
+	pushBoolean(L, true);
+	return 1;
+}
+
 int luaCreatureGetBaseSpeed(lua_State* L)
 {
 	// creature:getBaseSpeed()
@@ -712,30 +728,33 @@ int luaCreatureRemoveCondition(lua_State* L)
 {
 	// creature:removeCondition(conditionType[, conditionId = CONDITIONID_COMBAT[, subId = 0[, force = false]]])
 	// creature:removeCondition(condition[, force = false])
-	Creature* creature = getUserdata<Creature>(L, 1);
+	Creature* const creature = getUserdata<Creature>(L, 1);
 	if (!creature) {
 		lua_pushnil(L);
 		return 1;
 	}
 
-	Condition* condition = nullptr;
+	Condition* creatureCondition = nullptr;
 
 	bool force = false;
 
 	if (isUserdata(L, 2)) {
-		auto tmpCondition = getUserdata<const Condition>(L, 2);
+		const Condition* const condition = getUserdata<Condition>(L, 2);
+		const ConditionType_t conditionType = condition->getType();
+		const ConditionId_t conditionId = condition->getId();
+		const uint32_t subId = condition->getSubId();
+		creatureCondition = creature->getCondition(conditionType, conditionId, subId);
 		force = getBoolean(L, 3, false);
-		condition = creature->getCondition(tmpCondition->getType(), tmpCondition->getId(), tmpCondition->getSubId());
 	} else {
-		ConditionType_t conditionType = getInteger<ConditionType_t>(L, 2);
-		ConditionId_t conditionId = getInteger<ConditionId_t>(L, 3, CONDITIONID_COMBAT);
-		uint32_t subId = getInteger<uint32_t>(L, 4, 0);
-		condition = creature->getCondition(conditionType, conditionId, subId);
+		const ConditionType_t conditionType = getNumber<ConditionType_t>(L, 2);
+		const ConditionId_t conditionId = getNumber<ConditionId_t>(L, 3, CONDITIONID_COMBAT);
+		const uint32_t subId = getNumber<uint32_t>(L, 4, 0);
+		creatureCondition = creature->getCondition(conditionType, conditionId, subId);
 		force = getBoolean(L, 5, false);
 	}
 
-	if (condition) {
-		creature->removeCondition(condition, force);
+	if (creatureCondition) {
+		creature->removeCondition(creatureCondition, force);
 		pushBoolean(L, true);
 	} else {
 		lua_pushnil(L);
@@ -1118,6 +1137,7 @@ void LuaScriptInterface::registerCreature()
 	registerMethod("Creature", "setLight", luaCreatureSetLight);
 
 	registerMethod("Creature", "getSpeed", luaCreatureGetSpeed);
+	registerMethod("Creature", "setSpeed", luaCreatureSetSpeed);
 	registerMethod("Creature", "getBaseSpeed", luaCreatureGetBaseSpeed);
 	registerMethod("Creature", "changeSpeed", luaCreatureChangeSpeed);
 
