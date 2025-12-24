@@ -106,7 +106,7 @@ public:
 	void setID() override
 	{
 		if (id == 0) {
-			id = npcAutoID++;
+			id = ++npcAutoID;
 		}
 	}
 
@@ -124,6 +124,8 @@ public:
 	const std::string& getNameDescription() const override { return name; }
 
 	CreatureType_t getType() const override { return CREATURETYPE_NPC; }
+
+	uint16_t getMoneyType() const { return moneyType; }
 
 	void doSay(std::string_view text);
 	void doSayToPlayer(Player* player, std::string_view text);
@@ -208,6 +210,8 @@ private:
 	bool loaded;
 	bool isIdle;
 	bool pushable;
+
+	uint16_t moneyType;
 
 	friend class Npcs;
 	friend class NpcScriptInterface;

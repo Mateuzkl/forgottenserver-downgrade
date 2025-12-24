@@ -1629,7 +1629,14 @@ void ProtocolGame::sendSaleItemList(const std::list<ShopInfo>& shop)
 {
 	NetworkMessage msg;
 	msg.addByte(0x7B);
-	msg.add<uint32_t>(player->getMoney());
+
+	uint16_t moneyType = player->shopOwner ? player->shopOwner->getMoneyType() : 0;
+
+	if (moneyType == 0) {
+		msg.add<uint32_t>(player->getMoney());
+	} else {
+		msg.add<uint32_t>(player->getItemTypeCount(moneyType));
+	}
 
 	std::map<uint16_t, uint32_t> saleMap;
 
@@ -2757,8 +2764,8 @@ void ProtocolGame::AddShopItem(NetworkMessage& msg, const ShopInfo& item)
 
 	msg.addString(item.realName);
 	msg.add<uint32_t>(it.weight);
-	msg.add<uint32_t>(item.buyPrice);
-	msg.add<uint32_t>(item.sellPrice);
+	msg.add<uint32_t>(std::max<uint32_t>(item.buyPrice, 0));
+	msg.add<uint32_t>(std::max<uint32_t>(item.sellPrice, 0));
 }
 
 void ProtocolGame::parseExtendedOpcode(NetworkMessage& msg)
