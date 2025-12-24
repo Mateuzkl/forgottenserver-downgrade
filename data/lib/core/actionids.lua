@@ -6,6 +6,8 @@ actionIds = {
 	citizenshipLast = 30050 -- citizenship teleport last
 }
 
+uniqueIds = {}
+
 -- Check duplicates actionIds
 do
 	local duplicates = {}

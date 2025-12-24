@@ -22,6 +22,7 @@ PlayerStorageKeys = {
 
 
 GlobalStorageKeys = {}
+AccountStorageKeys = {}
 
 
 -- Check duplicates player storage keys

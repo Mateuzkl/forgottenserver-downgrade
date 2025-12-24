@@ -987,9 +987,8 @@ function doPlayerRemOutfit(cid, lookType, addons)
 	if player == nil then return false end
 	if addons == 255 then
 		return player:removeOutfit(lookType)
-	else
-		return player:removeOutfitAddon(lookType, addons)
 	end
+		return player:removeOutfitAddon(lookType, addons)
 end
 doPlayerRemoveOutfit = doPlayerRemOutfit
 function canPlayerWearOutfit(cid, lookType, addons)
@@ -1364,9 +1363,8 @@ function hasProperty(uid, prop)
 	local tile = parent:getTile()
 	if tile and item == tile:getGround() then
 		return tile:hasProperty(prop)
-	else
-		return item:hasProperty(prop)
 	end
+		return item:hasProperty(prop)
 end
 
 function doSetItemText(uid, text)
