@@ -416,6 +416,7 @@ public:
 	Position getClosestFreeTile(Creature* creature, const Position& nextPos, bool extended = false);
 
 	void changeSpeed(Creature* creature, int32_t varSpeedDelta);
+	void setCreatureSpeed(Creature* creature, int32_t speed);
 	void internalCreatureChangeOutfit(Creature* creature, const Outfit_t& outfit);
 	void internalCreatureChangeVisible(Creature* creature, bool visible);
 	void changeLight(const Creature* creature);
@@ -474,6 +475,7 @@ public:
 
 	const std::unordered_map<uint32_t, Player*>& getPlayers() const { return players; }
 	const std::map<uint32_t, Npc*>& getNpcs() const { return npcs; }
+	const std::map<uint32_t, Monster*>& getMonsters() const { return monsters; }
 
 	void addPlayer(Player* player);
 	void removePlayer(Player* player);
@@ -508,6 +510,7 @@ public:
 	std::forward_list<Item*> toDecayItems;
 
 	std::unordered_set<Tile*> getTilesToClean() const { return tilesToClean; }
+	bool isTileInCleanList(Tile* tile) { return tilesToClean.find(tile) != tilesToClean.end(); }
 	void addTileToClean(Tile* tile) { tilesToClean.emplace(tile); }
 	void removeTileToClean(Tile* tile) { tilesToClean.erase(tile); }
 	void clearTilesToClean() { tilesToClean.clear(); }
