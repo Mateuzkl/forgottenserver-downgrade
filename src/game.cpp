@@ -563,6 +563,11 @@ bool Game::removeCreature(Creature* creature, bool isLogout /* = true*/)
 		spectator->onRemoveCreature(creature, isLogout);
 	}
 
+	Creature* master = creature->getMaster();
+	if (master && !master->isRemoved()) {
+		creature->setMaster(nullptr);
+	}
+
 	creature->getParent()->postRemoveNotification(creature, nullptr, 0);
 
 	creature->removeList();
@@ -4274,8 +4279,10 @@ bool Game::combatChangeHealth(Creature* attacker, Creature* target, CombatDamage
 				                static_cast<TextColor_t>(getInteger(ConfigManager::MANA_GAIN_COLOUR)));
 
 				for (Creature* spectator : spectators) {
+				if (!spectator) { continue; }
 					assert(dynamic_cast<Player*>(spectator) != nullptr);
 					Player* tmpPlayer = static_cast<Player*>(spectator);
+				if (!tmpPlayer) { continue; }
 					if (tmpPlayer->getPosition().z != targetPos.z) {
 						continue;
 					}
