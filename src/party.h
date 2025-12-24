@@ -15,6 +15,14 @@ using PlayerVector = std::vector<Player*>;
 inline constexpr int32_t EXPERIENCE_SHARE_RANGE = 30;
 inline constexpr int32_t EXPERIENCE_SHARE_FLOORS = 1;
 
+enum SharedExpStatus_t : uint8_t {
+	SHAREDEXP_OK,
+	SHAREDEXP_TOOFARAWAY,
+	SHAREDEXP_LEVELDIFFTOOLARGE,
+	SHAREDEXP_MEMBERINACTIVE,
+	SHAREDEXP_EMPTYPARTY
+};
+
 class Party
 {
 public:
@@ -46,6 +54,7 @@ public:
 	bool isSharedExperienceActive() const { return sharedExpActive; }
 	bool isSharedExperienceEnabled() const { return sharedExpEnabled; }
 	bool canUseSharedExperience(const Player* player) const;
+	SharedExpStatus_t getMemberSharedExperienceStatus(const Player* player) const;
 	void updateSharedExperience();
 
 	void updatePlayerTicks(Player* player, uint32_t points);
@@ -53,6 +62,7 @@ public:
 
 private:
 	bool canEnableSharedExperience();
+	SharedExpStatus_t getSharedExperienceStatus();
 
 	std::map<uint32_t, int64_t> ticksMap;
 
