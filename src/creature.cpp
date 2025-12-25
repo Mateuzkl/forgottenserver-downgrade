@@ -1476,6 +1476,7 @@ int64_t Creature::getStepDuration() const
 	if (stepSpeed <= 0) {
 		return 0;
 	}
+
 	uint32_t groundSpeed = 150;
 	if (const Tile* tile = getTile()) {
 		if (const Item* ground = tile->getGround()) {
@@ -1492,12 +1493,9 @@ int64_t Creature::getStepDuration() const
 		stepDuration = SCHEDULER_MINTICKS;
 	}
 
-	if (const Monster* monster = getMonster()) {
-		if (monster->isTargetNearby() &&
-		    !monster->isFleeing() &&
-		    !monster->getMaster()) {
-			stepDuration *= 3;
-		}
+	const Monster* monster = getMonster();
+	if (monster && monster->isTargetNearby() && !monster->isFleeing() && !monster->getMaster()) {
+		stepDuration *= 3;
 	}
 
 	return stepDuration * lastStepCost;
@@ -1514,7 +1512,7 @@ int64_t Creature::getEventStepTicks(bool onlyDelay) const
 		return 1;
 	}
 
-	return std::max<int64_t>(1, stepDuration * lastStepCost);
+	return 1;
 }
 
 LightInfo Creature::getCreatureLight() const { return internalLight; }
