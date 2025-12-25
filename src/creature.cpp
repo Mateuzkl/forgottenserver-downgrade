@@ -1493,9 +1493,16 @@ int64_t Creature::getStepDuration() const
 		stepDuration = SCHEDULER_MINTICKS;
 	}
 
-	const Monster* monster = getMonster();
-	if (monster && monster->isTargetNearby() && !monster->isFleeing() && !monster->getMaster()) {
-		stepDuration *= 3;
+	if (stepDuration < SCHEDULER_MINTICKS) {
+		stepDuration = SCHEDULER_MINTICKS;
+	}
+
+	if (const Monster* monster = getMonster()) {
+		if (monster->isTargetNearby() &&
+		    !monster->isFleeing() &&
+		    !monster->getMaster()) {
+			stepDuration *= 3;
+		}
 	}
 
 	return stepDuration * lastStepCost;
@@ -1512,7 +1519,7 @@ int64_t Creature::getEventStepTicks(bool onlyDelay) const
 		return 1;
 	}
 
-	return 1;
+	return std::max<int64_t>(1, stepDuration * lastStepCost);
 }
 
 LightInfo Creature::getCreatureLight() const { return internalLight; }
