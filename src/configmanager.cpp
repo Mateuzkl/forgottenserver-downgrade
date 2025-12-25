@@ -300,6 +300,7 @@ bool ConfigManager::load()
 	booleans[Boolean::NAMELOCK_MANAGER] = getGlobalBoolean(L, "namelockManager", false);
 	booleans[Boolean::START_CHOOSEVOC] = getGlobalBoolean(L, "newPlayerChooseVoc", false);
 	booleans[Boolean::GENERATE_ACCOUNT_NUMBER] = getGlobalBoolean(L, "generateAccountNumber", false);
+	booleans[Boolean::CHECK_DUPLICATE_STORAGE_KEYS] = getGlobalBoolean(L, "checkDuplicateStorageKeys", false);
 
 	strings[String::DEFAULT_PRIORITY] = getGlobalString(L, "defaultPriority", "high");
 	strings[String::SERVER_NAME] = getGlobalString(L, "serverName", "");

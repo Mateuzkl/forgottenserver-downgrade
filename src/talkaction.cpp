@@ -104,9 +104,8 @@ TalkActionResult TalkActions::playerSaySpell(Player* player, SpeakClasses type, 
 
 		if (it->second.executeSay(player, words, param, type)) {
 			return TalkActionResult::CONTINUE;
-		} else {
-			return TalkActionResult::BREAK;
 		}
+			return TalkActionResult::BREAK;
 	}
 	return TalkActionResult::CONTINUE;
 }

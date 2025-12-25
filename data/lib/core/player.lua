@@ -188,14 +188,13 @@ function Player.removeTotalMoney(self, amount)
 			                     ("Paid %d from inventory and %d gold from bank account. Your account balance is now %d gold."):format(
 				                     moneyCount, amount - moneyCount, self:getBankBalance()))
 			return true
-		else
+		end
 			self:setBankBalance(bankCount - amount)
 			self:sendTextMessage(MESSAGE_INFO_DESCR,
 			                     ("Paid %d gold from bank account. Your account balance is now %d gold."):format(
 				                     amount, self:getBankBalance()))
 			return true
 		end
-	end
 	return false
 end
 
@@ -205,11 +204,10 @@ function Player.addLevel(self, amount, round)
 	if amount > 0 then
 		return self:addExperience(Game.getExperienceForLevel(level + amount) -
 			                          (round and self:getExperience() or Game.getExperienceForLevel(level)))
-	else
+	end
 		return self:removeExperience(
 			       ((round and self:getExperience() or Game.getExperienceForLevel(level)) -
 				       Game.getExperienceForLevel(level + amount)))
-	end
 end
 
 function Player.addMagicLevel(self, value)
@@ -269,6 +267,20 @@ function Player.getWeaponType(self)
 	local weapon = self:getSlotItem(CONST_SLOT_LEFT)
 	if weapon then return weapon:getType():getWeaponType() end
 	return WEAPON_NONE
+end
+
+function Player.isPromoted(self)
+	local vocation = self:getVocation()
+	local fromVocId = vocation:getDemotion():getId()
+	return vocation:getId() ~= fromVocId
+end
+
+function Player.setAccountStorageValue(self, key, value)
+	return Game.setAccountStorageValue(self:getAccountId(), key, value)
+end
+
+function Player.getAccountStorageValue(self, key)
+	return Game.getAccountStorageValue(self:getAccountId(), key)
 end
 
 function Player.addTibiaCoins(self, tibiaCoins)

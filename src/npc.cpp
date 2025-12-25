@@ -68,6 +68,8 @@ void Npc::reset()
 	ignoreHeight = false;
 	focusCreature = 0;
 
+	moneyType = 0;
+
 	npcEventHandler.reset();
 
 	parameters.clear();
@@ -182,6 +184,10 @@ bool Npc::loadFromXml()
 		}
 
 		currentOutfit = defaultOutfit;
+	}
+
+	if ((attr = npcNode.attribute("money"))) {
+		moneyType = pugi::cast<uint16_t>(attr.value());
 	}
 
 	for (auto& parameterNode : npcNode.child("parameters").children()) {
@@ -769,8 +775,8 @@ int NpcScriptInterface::luaOpenShopWindow(lua_State* L)
 			lua_pop(L, 1);
 		}
 
-		item.buyPrice = Lua::getField<uint32_t>(L, tableIndex, "buy");
-		item.sellPrice = Lua::getField<uint32_t>(L, tableIndex, "sell");
+		item.buyPrice = Lua::getField<int64_t>(L, tableIndex, "buy");
+		item.sellPrice = Lua::getField<int64_t>(L, tableIndex, "sell");
 		item.realName = Lua::getFieldString(L, tableIndex, "name");
 
 		items.push_back(item);
@@ -989,8 +995,8 @@ int NpcScriptInterface::luaNpcOpenShopWindow(lua_State* L)
 			lua_pop(L, 1);
 		}
 
-		item.buyPrice = Lua::getField<uint32_t>(L, tableIndex, "buy");
-		item.sellPrice = Lua::getField<uint32_t>(L, tableIndex, "sell");
+		item.buyPrice = Lua::getField<int64_t>(L, tableIndex, "buy");
+		item.sellPrice = Lua::getField<int64_t>(L, tableIndex, "sell");
 		item.realName = Lua::getFieldString(L, tableIndex, "name");
 
 		items.push_back(item);

@@ -2098,6 +2098,7 @@ void LuaScriptInterface::registerFunctions()
 	registerEnumIn("configKeys", ConfigManager::MONSTER_OVERSPAWN);
 	registerEnumIn("configKeys", ConfigManager::REMOVE_ON_DESPAWN);
 	registerEnumIn("configKeys", ConfigManager::BED_OFFLINE_TRAINING);
+	registerEnumIn("configKeys", ConfigManager::CHECK_DUPLICATE_STORAGE_KEYS);
 
 	registerEnumIn("configKeys", ConfigManager::MAP_NAME);
 	registerEnumIn("configKeys", ConfigManager::HOUSE_RENT_PERIOD);

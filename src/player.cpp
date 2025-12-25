@@ -68,6 +68,9 @@ bool Player::setVocation(uint16_t vocId)
 	vocation = voc;
 
 	updateRegeneration();
+	setBaseSpeed(voc->getBaseSpeed()); 
+	updateBaseSpeed();
+	g_game.changeSpeed(this, 0);
 	return true;
 }
 
@@ -2990,6 +2993,7 @@ void Player::postAddNotification(Thing* thing, const Cylinder* oldParent, int32_
 
 			for (const auto& it : openContainers) {
 				Container* container = it.second.container;
+			if (!container) { continue; }
 				if (!container->getPosition().isInRange(getPosition(), 1, 1, 0)) {
 					containers.push_back(container);
 				}
@@ -3812,7 +3816,7 @@ Skulls_t Player::getSkullClient(const Creature* creature) const
 		return SKULL_YELLOW;
 	}
 
-	if (isPartner(player)) {
+	if (party && party == player->party) {
 		return SKULL_GREEN;
 	}
 	return Creature::getSkullClient(creature);

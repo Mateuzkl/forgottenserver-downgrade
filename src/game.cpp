@@ -212,6 +212,20 @@ Thing* Game::internalGetThing(Player* player, const Position& pos, int32_t index
 				} else {
 					thing = tile->getTopVisibleCreature(player);
 				}
+		if (player && tile->hasFlag(TILESTATE_SUPPORTS_HANGABLE)) {
+			// do extra checks here if the thing is accessible
+			if (thing && thing->getItem()) {
+				if (tile->hasProperty(CONST_PROP_ISVERTICAL)) {
+						if (player->getPosition().x + 1 == tile->getPosition().x) {
+						thing = nullptr;
+					}
+				} else { // horizontal
+					if (player->getPosition().y + 1 == tile->getPosition().y) {
+						thing = nullptr;
+					}
+				}
+			}
+		}
 				break;
 			}
 
@@ -239,20 +253,6 @@ Thing* Game::internalGetThing(Player* player, const Position& pos, int32_t index
 			}
 		}
 
-		if (player && tile->hasFlag(TILESTATE_SUPPORTS_HANGABLE)) {
-			// do extra checks here if the thing is accessible
-			if (thing && thing->getItem()) {
-				if (tile->hasProperty(CONST_PROP_ISVERTICAL)) {
-					if (player->getPosition().x + 1 == tile->getPosition().x) {
-						thing = nullptr;
-					}
-				} else { // horizontal
-					if (player->getPosition().y + 1 == tile->getPosition().y) {
-						thing = nullptr;
-					}
-				}
-			}
-		}
 		return thing;
 	}
 
@@ -561,6 +561,11 @@ bool Game::removeCreature(Creature* creature, bool isLogout /* = true*/)
 	// event method
 	for (Creature* spectator : spectators) {
 		spectator->onRemoveCreature(creature, isLogout);
+	}
+
+	Creature* master = creature->getMaster();
+	if (master && !master->isRemoved()) {
+		creature->setMaster(nullptr);
 	}
 
 	creature->getParent()->postRemoveNotification(creature, nullptr, 0);
@@ -2446,6 +2451,13 @@ void Game::playerMoveUpContainer(uint32_t playerId, uint8_t cid)
 		return;
 	}
 
+	int8_t test_cid = player->getContainerID(parentContainer);
+	if (test_cid != -1) {
+		player->closeContainer(test_cid);
+		player->sendCloseContainer(test_cid);
+		return;
+	}
+
 	bool hasParent = (dynamic_cast<const Container*>(parentContainer->getParent()) != nullptr);
 	player->addContainer(cid, parentContainer);
 	player->sendContainer(cid, parentContainer, hasParent, player->getContainerIndex(cid));
@@ -2748,7 +2760,7 @@ void Game::playerRequestTrade(uint32_t playerId, const Position& pos, uint8_t st
 		if (HouseTile* houseTile = dynamic_cast<HouseTile*>(tradeItem->getTile())) {
 			House* house = houseTile->getHouse();
 			if (house && !house->isInvited(player)) {
-				player->sendCancelMessage(RETURNVALUE_NOTPOSSIBLE);
+				player->sendCancelMessage(RETURNVALUE_PLAYERISNOTINVITED);
 				return;
 			}
 		}
@@ -4274,8 +4286,10 @@ bool Game::combatChangeHealth(Creature* attacker, Creature* target, CombatDamage
 				                static_cast<TextColor_t>(getInteger(ConfigManager::MANA_GAIN_COLOUR)));
 
 				for (Creature* spectator : spectators) {
+				if (!spectator) { continue; }
 					assert(dynamic_cast<Player*>(spectator) != nullptr);
 					Player* tmpPlayer = static_cast<Player*>(spectator);
+				if (!tmpPlayer) { continue; }
 					if (tmpPlayer->getPosition().z != targetPos.z) {
 						continue;
 					}
