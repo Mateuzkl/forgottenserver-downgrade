@@ -836,7 +836,7 @@ void Combat::doTargetCombat(Creature* caster, Creature* target, CombatDamage& da
 	if (success) {
 		if (damage.blockType == BLOCK_NONE || damage.blockType == BLOCK_ARMOR) {
 			for (const auto& condition : params.conditionList) {
-				if (caster == target || target && !target->isImmune(condition->getType())) {
+				if (caster == target || (target && !target->isImmune(condition->getType()))) {
 					Condition* conditionCopy = condition->clone();
 					if (caster) {
 						conditionCopy->setParam(CONDITION_PARAM_OWNER, caster->getID());
