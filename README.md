@@ -67,6 +67,7 @@ if(version >= 860) then
     g_game.enableFeature(GameIdleAnimations)
     g_game.enableFeature(GameEnhancedAnimations)
     g_game.enableFeature(GameSpritesU32) -- Extended sprites
+    g_game.enableFeature(GameExtendedClientPing) -- Extended Ping
     --g_game.enableFeature(GameSpritesAlphaChannel) -- Transparency
 end
 ```

@@ -259,6 +259,8 @@ private:
 
 	// OTCv8
 	void sendFeatures();
+	void sendNewPing(uint32_t pingId);
+	void parseNewPing(NetworkMessage& msg);
 
 	friend class Player;
 

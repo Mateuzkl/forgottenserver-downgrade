@@ -526,6 +526,9 @@ void ProtocolGame::parsePacket(NetworkMessage& msg)
 		case 0x32:
 			parseExtendedOpcode(msg);
 			break; // otclient extended opcode
+		case 0x40:
+			parseNewPing(msg);
+			break; // GameClientExtendedPing
 		case 0x64:
 			parseAutoWalk(msg);
 			break;
@@ -2779,6 +2782,23 @@ void ProtocolGame::parseExtendedOpcode(NetworkMessage& msg)
 	});
 }
 
+void ProtocolGame::sendNewPing(uint32_t pingId)
+{
+	if (!isOTCv8) return;
+
+	NetworkMessage msg;
+	msg.addByte(0x40);
+	msg.add<uint32_t>(pingId);
+	writeToOutputBuffer(msg);
+}
+
+void ProtocolGame::parseNewPing(NetworkMessage& msg)
+{
+	uint32_t pingId = msg.get<uint32_t>();
+	g_dispatcher.addTask(
+		createTask(std::bind(&ProtocolGame::sendNewPing, getThis(), pingId)));
+}
+
 // OTCv8
 void ProtocolGame::sendFeatures()
 {
@@ -2794,6 +2814,7 @@ void ProtocolGame::sendFeatures()
 	features[GameDoubleSkills] = true;
 	features[GameBaseSkillU16] = true;
 	features[GameAdditionalSkills] = true;
+	features[GameExtendedClientPing] = true;
 
 	if (features.empty()) return;
 
