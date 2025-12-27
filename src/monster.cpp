@@ -553,10 +553,18 @@ void Monster::onCreatureLeave(Creature* creature)
 
 bool Monster::searchTarget(TargetSearchType_t searchType /*= TARGETSEARCH_DEFAULT*/)
 {
+	if (isRemoved()) {
+		return false;
+	}
+
 	std::list<Creature*> resultList;
 	const Position& myPos = getPosition();
 
 	for (Creature* creature : targetList) {
+		if (!creature || creature->isRemoved() || !creature->getTile()) {
+			continue;
+		}
+
 		if (followCreature != creature && isTarget(creature)) {
 			if (searchType == TARGETSEARCH_RANDOM || canUseAttack(myPos, creature)) {
 				resultList.push_back(creature);
@@ -575,10 +583,14 @@ bool Monster::searchTarget(TargetSearchType_t searchType /*= TARGETSEARCH_DEFAUL
 					const Position& targetPosition = target->getPosition();
 					int32_t minRange = myPos.getDistanceX(targetPosition) + myPos.getDistanceY(targetPosition);
 					do {
-						const Position& pos = (*it)->getPosition();
+						Creature* creature = *it;
+						if (!creature || creature->isRemoved() || !creature->getTile()) {
+							continue;
+						}
 
+						const Position& pos = creature->getPosition();
 						if (int32_t distance = myPos.getDistanceX(pos) + myPos.getDistanceY(pos); distance < minRange) {
-							target = *it;
+							target = creature;
 							minRange = distance;
 						}
 					} while (++it != resultList.end());
@@ -586,6 +598,10 @@ bool Monster::searchTarget(TargetSearchType_t searchType /*= TARGETSEARCH_DEFAUL
 			} else {
 				int32_t minRange = std::numeric_limits<int32_t>::max();
 				for (Creature* creature : targetList) {
+					if (!creature || creature->isRemoved() || !creature->getTile()) {
+						continue;
+					}
+
 					if (!isTarget(creature)) {
 						continue;
 					}
@@ -624,6 +640,10 @@ bool Monster::searchTarget(TargetSearchType_t searchType /*= TARGETSEARCH_DEFAUL
 
 	// lets just pick the first target in the list
 	for (Creature* target : targetList) {
+		if (!target || target->isRemoved() || !target->getTile()) {
+			continue;
+		}
+
 		if (followCreature != target && selectTarget(target)) {
 			return true;
 		}
@@ -677,6 +697,13 @@ BlockType_t Monster::blockHit(Creature* attacker, CombatType_t combatType, int32
 
 bool Monster::isTarget(const Creature* creature) const
 {
+	// Debug: detect programming errors early
+	assert(creature != nullptr);
+
+	if (!creature) {
+		return false;
+	}
+
 	if (creature->isRemoved() || !creature->isAttackable() || creature->getZone() == ZONE_PROTECTION ||
 	    !canSeeCreature(creature)) {
 		return false;
@@ -833,7 +860,25 @@ void Monster::onThink(uint32_t interval)
 
 void Monster::doAttacking(uint32_t interval)
 {
-	if (!attackedCreature || (isSummon() && attackedCreature == this)) {
+	if (isRemoved() || isDead()) {
+		return;
+	}
+
+	if (!mType || mType->info.attackSpells.empty()) {
+		return;
+	}
+
+	if (isSummon()) {
+		Creature* master = getMaster();
+		if (!master || master->isRemoved() || master->isDead()) {
+			attackedCreature = nullptr;
+			return;
+		}
+	}
+
+	if (!attackedCreature || attackedCreature->isRemoved() || attackedCreature->isDead() ||
+	    attackedCreature == this) {
+		attackedCreature = nullptr;
 		return;
 	}
 
@@ -842,25 +887,61 @@ void Monster::doAttacking(uint32_t interval)
 	attackTicks += interval;
 
 	const Position& myPos = getPosition();
-	const Position& targetPos = attackedCreature->getPosition();
 
 	for (const spellBlock_t& spellBlock : mType->info.attackSpells) {
 		bool inRange = false;
 
-		if (attackedCreature == nullptr) {
-			break;
+		if (isRemoved() || isDead()) {
+			return;
 		}
 
+		if (!attackedCreature || attackedCreature->isRemoved() || attackedCreature->isDead()) {
+			attackedCreature = nullptr;
+			return;
+		}
+
+		if (!spellBlock.spell) {
+			continue;
+		}
+
+		const Position& targetPos = attackedCreature->getPosition();
+
 		if (canUseSpell(myPos, targetPos, spellBlock, interval, inRange, resetTicks)) {
+			if (!attackedCreature || attackedCreature->isRemoved() || attackedCreature->isDead()) {
+				attackedCreature = nullptr;
+				return;
+			}
+
 			if (spellBlock.chance >= static_cast<uint32_t>(uniform_random(1, 100))) {
 				if (updateLook) {
 					updateLookDirection();
 					updateLook = false;
 				}
 
-				minCombatValue = spellBlock.minCombatValue;
-				maxCombatValue = spellBlock.maxCombatValue;
+				int32_t minVal = spellBlock.minCombatValue;
+				int32_t maxVal = spellBlock.maxCombatValue;
+				if (minVal > maxVal) {
+					std::swap(minVal, maxVal);
+				}
+
+				minCombatValue = minVal;
+				maxCombatValue = maxVal;
+
+				if (!attackedCreature || attackedCreature->isRemoved() || attackedCreature->isDead()) {
+					attackedCreature = nullptr;
+					return;
+				}
+
 				spellBlock.spell->castSpell(this, attackedCreature);
+
+				if (isRemoved() || isDead()) {
+					return;
+				}
+
+				if (!attackedCreature || attackedCreature->isRemoved() || attackedCreature->isDead()) {
+					attackedCreature = nullptr;
+					return;
+				}
 
 				if (spellBlock.isMelee) {
 					lastMeleeAttack = OTSYS_TIME();
@@ -872,6 +953,15 @@ void Monster::doAttacking(uint32_t interval)
 			// melee swing out of reach
 			lastMeleeAttack = 0;
 		}
+	}
+
+	if (isRemoved() || isDead()) {
+		return;
+	}
+
+	if (!attackedCreature || attackedCreature->isRemoved() || attackedCreature->isDead()) {
+		attackedCreature = nullptr;
+		return;
 	}
 
 	if (updateLook) {
@@ -886,6 +976,14 @@ void Monster::doAttacking(uint32_t interval)
 bool Monster::canUseAttack(const Position& pos, const Creature* target) const
 {
 	if (isHostile()) {
+		if (!target) {
+			return false;
+		}
+
+		if (!mType) {
+			return false;
+		}
+
 		const Position& targetPos = target->getPosition();
 		uint32_t distance = std::max<uint32_t>(pos.getDistanceX(targetPos), pos.getDistanceY(targetPos));
 		for (const spellBlock_t& spellBlock : mType->info.attackSpells) {
