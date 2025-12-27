@@ -25,6 +25,9 @@
 #include "spectators.h"
 #include "spells.h"
 #include "teleport.h"
+#include "globalevent.h"
+
+extern GlobalEvents* g_globalEvents;
 
 #include <boost/range/adaptor/reversed.hpp>
 
@@ -2953,6 +2956,7 @@ int LuaScriptInterface::luaStopEvent(lua_State* L)
 int LuaScriptInterface::luaSaveServer(lua_State* L)
 {
 	// saveServer()
+	g_globalEvents->save();
 	g_game.saveGameState();
 	Lua::pushBoolean(L, true);
 	return 1;
