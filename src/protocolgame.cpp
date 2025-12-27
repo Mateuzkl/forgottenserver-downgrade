@@ -2465,6 +2465,10 @@ void ProtocolGame::sendAnimatedText(std::string_view message, const Position& po
 
 void ProtocolGame::sendSpellCooldown(uint8_t spellId, uint32_t time)
 {
+	if (!isOTCv8) {
+		return;
+	}
+
 	NetworkMessage msg;
 	msg.addByte(0xA4);
 	msg.addByte(spellId);
@@ -2475,6 +2479,10 @@ void ProtocolGame::sendSpellCooldown(uint8_t spellId, uint32_t time)
 
 void ProtocolGame::sendSpellGroupCooldown(SpellGroup_t groupId, uint32_t time)
 {
+	if (!isOTCv8) {
+		return;
+	}
+
 	NetworkMessage msg;
 	msg.addByte(0xA5);
 	msg.addByte(groupId);
@@ -2484,6 +2492,10 @@ void ProtocolGame::sendSpellGroupCooldown(SpellGroup_t groupId, uint32_t time)
 
 void ProtocolGame::sendUseItemCooldown(uint32_t time)
 {
+	if (!isOTCv8) {
+		return;
+	}
+
 	NetworkMessage msg;
 	msg.addByte(0xA6);
 	msg.add<uint32_t>(time);
