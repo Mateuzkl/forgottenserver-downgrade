@@ -2147,6 +2147,8 @@ void LuaScriptInterface::registerFunctions()
 	registerEnumIn("configKeys", ConfigManager::STATUS_PORT);
 	registerEnumIn("configKeys", ConfigManager::STAIRHOP_DELAY);
 	registerEnumIn("configKeys", ConfigManager::MARKET_OFFER_DURATION);
+	registerEnumIn("configKeys", ConfigManager::EXP_SHARE_RANGE);
+	registerEnumIn("configKeys", ConfigManager::EXP_SHARE_FLOORS);
 	registerEnumIn("configKeys", ConfigManager::EXP_FROM_PLAYERS_LEVEL_RANGE);
 	registerEnumIn("configKeys", ConfigManager::MAX_PACKETS_PER_SECOND);
 	registerEnumIn("configKeys", ConfigManager::STAMINA_REGEN_MINUTE);

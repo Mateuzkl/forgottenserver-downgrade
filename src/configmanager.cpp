@@ -337,6 +337,8 @@ bool ConfigManager::load()
 	integers[Integer::FRAG_TIME] = getGlobalInteger(L, "timeToDecreaseFrags", 24 * 60 * 60);
 	integers[Integer::WHITE_SKULL_TIME] = getGlobalInteger(L, "whiteSkullTime", 15 * 60);
 	integers[Integer::STAIRHOP_DELAY] = getGlobalInteger(L, "stairJumpExhaustion", 2000);
+	integers[Integer::EXP_SHARE_RANGE] = getGlobalInteger(L, "experienceShareRange", 30);
+	integers[Integer::EXP_SHARE_FLOORS] = getGlobalInteger(L, "experienceShareFloors", 1);
 	integers[Integer::EXP_FROM_PLAYERS_LEVEL_RANGE] = getGlobalInteger(L, "expFromPlayersLevelRange", 75);
 	integers[Integer::MAX_PACKETS_PER_SECOND] = getGlobalInteger(L, "maxPacketsPerSecond", 25);
 	integers[Integer::SERVER_SAVE_NOTIFY_DURATION] = getGlobalInteger(L, "serverSaveNotifyDuration", 5);
