@@ -526,6 +526,9 @@ void ProtocolGame::parsePacket(NetworkMessage& msg)
 		case 0x32:
 			parseExtendedOpcode(msg);
 			break; // otclient extended opcode
+		case 0x40:
+			parseNewPing(msg);
+			break; // GameClientExtendedPing
 		case 0x64:
 			parseAutoWalk(msg);
 			break;
@@ -1936,7 +1939,11 @@ void ProtocolGame::sendMagicEffect(const Position& pos, uint16_t type)
 	NetworkMessage msg;
 	msg.addByte(0x83);
 	msg.addPosition(pos);
+	if (isOTCv8) {
 	msg.add<uint16_t>(type);
+	} else {
+	msg.addByte(type);
+	}
 	writeToOutputBuffer(msg);
 }
 
@@ -2462,6 +2469,10 @@ void ProtocolGame::sendAnimatedText(std::string_view message, const Position& po
 
 void ProtocolGame::sendSpellCooldown(uint8_t spellId, uint32_t time)
 {
+	if (!isOTCv8) {
+		return;
+	}
+
 	NetworkMessage msg;
 	msg.addByte(0xA4);
 	msg.addByte(spellId);
@@ -2472,9 +2483,25 @@ void ProtocolGame::sendSpellCooldown(uint8_t spellId, uint32_t time)
 
 void ProtocolGame::sendSpellGroupCooldown(SpellGroup_t groupId, uint32_t time)
 {
+	if (!isOTCv8) {
+		return;
+	}
+
 	NetworkMessage msg;
 	msg.addByte(0xA5);
 	msg.addByte(groupId);
+	msg.add<uint32_t>(time);
+	writeToOutputBuffer(msg);
+}
+
+void ProtocolGame::sendUseItemCooldown(uint32_t time)
+{
+	if (!isOTCv8) {
+		return;
+	}
+
+	NetworkMessage msg;
+	msg.addByte(0xA6);
 	msg.add<uint32_t>(time);
 	writeToOutputBuffer(msg);
 }
@@ -2595,7 +2622,7 @@ void ProtocolGame::AddPlayerSkills(NetworkMessage& msg)
 		}
 
 		for (uint8_t i = SPECIALSKILL_FIRST; i <= SPECIALSKILL_LAST; ++i) {
-			msg.add<uint16_t>(static_cast<uint16_t>(std::min<int32_t>(100, player->varSpecialSkills[i])));
+			msg.add<uint16_t>(static_cast<uint16_t>(std::min<int32_t>(10000, player->varSpecialSkills[i])));
 			msg.add<uint16_t>(0);
 		}
 	}
@@ -2779,6 +2806,23 @@ void ProtocolGame::parseExtendedOpcode(NetworkMessage& msg)
 	});
 }
 
+void ProtocolGame::sendNewPing(uint32_t pingId)
+{
+	if (!isOTCv8) return;
+
+	NetworkMessage msg;
+	msg.addByte(0x40);
+	msg.add<uint32_t>(pingId);
+	writeToOutputBuffer(msg);
+}
+
+void ProtocolGame::parseNewPing(NetworkMessage& msg)
+{
+	uint32_t pingId = msg.get<uint32_t>();
+	g_dispatcher.addTask(
+		createTask(std::bind(&ProtocolGame::sendNewPing, getThis(), pingId)));
+}
+
 // OTCv8
 void ProtocolGame::sendFeatures()
 {
@@ -2794,6 +2838,7 @@ void ProtocolGame::sendFeatures()
 	features[GameDoubleSkills] = true;
 	features[GameBaseSkillU16] = true;
 	features[GameAdditionalSkills] = true;
+	features[GameExtendedClientPing] = true;
 
 	if (features.empty()) return;
 

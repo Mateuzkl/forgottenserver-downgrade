@@ -12,7 +12,7 @@
       "name": "libiconv",
       "platform": "osx"
     },
-    "libmariadb",
+    "libmysql",
     "openssl",
     "pugixml",
     "zlib"
@@ -36,5 +36,7 @@
     }
   },
   "default-features": ["lua", "http"],
-  "builtin-baseline": "215a2535590f1f63788ac9bd2ed58ad15e6afdff"
+  "overrides": [
+    { "name": "fmt", "version": "10.2.1#1" }
+  ]
 }

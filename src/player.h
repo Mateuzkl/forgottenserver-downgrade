@@ -711,6 +711,11 @@ public:
 			client->sendSpellGroupCooldown(groupId, time);
 		}
 	}
+	void sendUseItemCooldown(uint32_t time) {
+		if (client) {
+			client->sendUseItemCooldown(time);
+		}
+	}
 
 	void sendModalWindow(const ModalWindow& modalWindow);
 

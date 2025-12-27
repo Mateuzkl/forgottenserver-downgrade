@@ -556,7 +556,9 @@ bool Actions::useItem(Player* player, const Position& pos, uint8_t index, Item* 
 	}
 	
 	if (!isFastPotion) {
-		player->setNextAction(OTSYS_TIME() + getInteger(ConfigManager::ACTIONS_DELAY_INTERVAL));
+		int32_t cooldown = getInteger(ConfigManager::ACTIONS_DELAY_INTERVAL);
+		player->setNextAction(OTSYS_TIME() + cooldown);
+		player->sendUseItemCooldown(cooldown);
 	}
 
 	if (isHotkey) {
@@ -602,7 +604,9 @@ bool Actions::useItem(Player* player, const Position& pos, uint8_t index, Item* 
 bool Actions::useItemEx(Player* player, const Position& fromPos, const Position& toPos, uint8_t toStackPos, Item* item,
                         bool isHotkey, Creature* creature /* = nullptr*/)
 {
-	player->setNextAction(OTSYS_TIME() + getInteger(ConfigManager::EX_ACTIONS_DELAY_INTERVAL));
+	int32_t cooldown = getInteger(ConfigManager::EX_ACTIONS_DELAY_INTERVAL);
+	player->setNextAction(OTSYS_TIME() + cooldown);
+	player->sendUseItemCooldown(cooldown);
 
 	Action* action = getAction(item);
 	if (!action) {

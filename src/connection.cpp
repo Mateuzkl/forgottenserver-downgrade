@@ -11,12 +11,12 @@
 #include "scheduler.h"
 #include "server.h"
 
-Connection_ptr ConnectionManager::createConnection(boost::asio::io_service& io_service,
+Connection_ptr ConnectionManager::createConnection(boost::asio::io_context& io_context,
                                                    ConstServicePort_ptr servicePort)
 {
 	std::lock_guard<std::mutex> lockClass(connectionManagerLock);
 
-	auto connection = std::make_shared<Connection>(io_service, servicePort);
+	auto connection = std::make_shared<Connection>(io_context, servicePort);
 	connections.insert(connection);
 	return connection;
 }
@@ -96,7 +96,7 @@ void Connection::accept()
 {
 	std::lock_guard<std::recursive_mutex> lockClass(connectionLock);
 	try {
-		readTimer.expires_from_now(std::chrono::seconds(CONNECTION_READ_TIMEOUT));
+		readTimer.expires_after(std::chrono::seconds(CONNECTION_READ_TIMEOUT));
 		readTimer.async_wait(
 		    [thisPtr = std::weak_ptr<Connection>(shared_from_this())](const boost::system::error_code& error) {
 			    Connection::handleTimeout(thisPtr, error);
@@ -145,7 +145,7 @@ void Connection::parseHeader(const boost::system::error_code& error)
 	}
 
 	try {
-		readTimer.expires_from_now(std::chrono::seconds(CONNECTION_READ_TIMEOUT));
+		readTimer.expires_after(std::chrono::seconds(CONNECTION_READ_TIMEOUT));
 		readTimer.async_wait(
 		    [thisPtr = std::weak_ptr<Connection>(shared_from_this())](const boost::system::error_code& error) {
 			    Connection::handleTimeout(thisPtr, error);
@@ -213,7 +213,7 @@ void Connection::parsePacket(const boost::system::error_code& error)
 	}
 
 	try {
-		readTimer.expires_from_now(std::chrono::seconds(CONNECTION_READ_TIMEOUT));
+		readTimer.expires_after(std::chrono::seconds(CONNECTION_READ_TIMEOUT));
 		readTimer.async_wait(
 		    [thisPtr = std::weak_ptr<Connection>(shared_from_this())](const boost::system::error_code& error) {
 			    Connection::handleTimeout(thisPtr, error);
@@ -256,7 +256,7 @@ void Connection::internalSend(const OutputMessage_ptr& msg)
 {
 	protocol->onSendMessage(msg);
 	try {
-		writeTimer.expires_from_now(std::chrono::seconds(CONNECTION_WRITE_TIMEOUT));
+		writeTimer.expires_after(std::chrono::seconds(CONNECTION_WRITE_TIMEOUT));
 		writeTimer.async_wait(
 		    [thisPtr = std::weak_ptr<Connection>(shared_from_this())](const boost::system::error_code& error) {
 			    Connection::handleTimeout(thisPtr, error);
@@ -284,7 +284,7 @@ uint32_t Connection::getIP()
 		return 0;
 	}
 
-	return htonl(endpoint.address().to_v4().to_ulong());
+	return htonl(endpoint.address().to_v4().to_uint());
 }
 
 void Connection::onWriteOperation(const boost::system::error_code& error)

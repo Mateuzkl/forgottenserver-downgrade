@@ -25,6 +25,9 @@
 #include "spectators.h"
 #include "spells.h"
 #include "teleport.h"
+#include "globalevent.h"
+
+extern GlobalEvents* g_globalEvents;
 
 #include <boost/range/adaptor/reversed.hpp>
 
@@ -2147,6 +2150,8 @@ void LuaScriptInterface::registerFunctions()
 	registerEnumIn("configKeys", ConfigManager::STATUS_PORT);
 	registerEnumIn("configKeys", ConfigManager::STAIRHOP_DELAY);
 	registerEnumIn("configKeys", ConfigManager::MARKET_OFFER_DURATION);
+	registerEnumIn("configKeys", ConfigManager::EXP_SHARE_RANGE);
+	registerEnumIn("configKeys", ConfigManager::EXP_SHARE_FLOORS);
 	registerEnumIn("configKeys", ConfigManager::EXP_FROM_PLAYERS_LEVEL_RANGE);
 	registerEnumIn("configKeys", ConfigManager::MAX_PACKETS_PER_SECOND);
 	registerEnumIn("configKeys", ConfigManager::STAMINA_REGEN_MINUTE);
@@ -2951,6 +2956,7 @@ int LuaScriptInterface::luaStopEvent(lua_State* L)
 int LuaScriptInterface::luaSaveServer(lua_State* L)
 {
 	// saveServer()
+	g_globalEvents->save();
 	g_game.saveGameState();
 	Lua::pushBoolean(L, true);
 	return 1;

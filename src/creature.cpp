@@ -111,7 +111,7 @@ int32_t Creature::getWalkDelay() const
 	}
 
 	int64_t ct = OTSYS_TIME();
-	int64_t stepDuration = getStepDuration() * lastStepCost;
+	int64_t stepDuration = getStepDuration();
 	return stepDuration - (ct - lastStep);
 }
 
@@ -1507,7 +1507,7 @@ int64_t Creature::getEventStepTicks(bool onlyDelay) const
 	if (ret > 0) {
 		return ret;
 	}
-	const int64_t stepDuration = getStepDuration();
+
 	if (onlyDelay) {
 		return 1;
 	}

@@ -59,6 +59,7 @@ void sigusr1Handler()
 {
 	// Dispatcher thread
 	std::cout << "SIGUSR1 received, saving the game state..." << std::endl;
+	g_globalEvents->save();
 	g_game.saveGameState();
 }
 
@@ -159,7 +160,7 @@ void dispatchSignalHandler(int signal)
 
 } // namespace
 
-Signals::Signals(boost::asio::io_service& service) : set(service)
+Signals::Signals(boost::asio::io_context& service) : set(service)
 {
 	set.add(SIGINT);
 	set.add(SIGTERM);

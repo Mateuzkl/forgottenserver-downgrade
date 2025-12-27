@@ -46,6 +46,8 @@ int luaGlobalEventType(lua_State* L)
 			global->setEventType(GLOBALEVENT_SHUTDOWN);
 		} else if (tmpStr == "record") {
 			global->setEventType(GLOBALEVENT_RECORD);
+		} else if (tmpStr == "save") {
+			global->setEventType(GLOBALEVENT_SAVE);
 		} else {
 			std::cout << "[Error - CreatureEvent::configureLuaEvent] Invalid type for global event: " << typeName
 			          << std::endl;
@@ -189,4 +191,5 @@ void LuaScriptInterface::registerGlobalEvents()
 	registerMethod("GlobalEvent", "onStartup", luaGlobalEventOnCallback);
 	registerMethod("GlobalEvent", "onShutdown", luaGlobalEventOnCallback);
 	registerMethod("GlobalEvent", "onRecord", luaGlobalEventOnCallback);
+	registerMethod("GlobalEvent", "onSave", luaGlobalEventOnCallback);
 }

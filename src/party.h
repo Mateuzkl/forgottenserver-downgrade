@@ -12,9 +12,6 @@ class Party;
 
 using PlayerVector = std::vector<Player*>;
 
-inline constexpr int32_t EXPERIENCE_SHARE_RANGE = 30;
-inline constexpr int32_t EXPERIENCE_SHARE_FLOORS = 1;
-
 enum SharedExpStatus_t : uint8_t {
 	SHAREDEXP_OK,
 	SHAREDEXP_TOOFARAWAY,
