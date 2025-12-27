@@ -2482,6 +2482,14 @@ void ProtocolGame::sendSpellGroupCooldown(SpellGroup_t groupId, uint32_t time)
 	writeToOutputBuffer(msg);
 }
 
+void ProtocolGame::sendUseItemCooldown(uint32_t time)
+{
+	NetworkMessage msg;
+	msg.addByte(0xA6);
+	msg.add<uint32_t>(time);
+	writeToOutputBuffer(msg);
+}
+
 ////////////// Add common messages
 void ProtocolGame::AddCreature(NetworkMessage& msg, const Creature* creature, bool known, uint32_t remove)
 {
