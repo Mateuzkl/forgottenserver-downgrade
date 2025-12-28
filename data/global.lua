@@ -97,10 +97,16 @@ end
 function getFormattedWorldTime()
 	local worldTime = getWorldTime()
 	local hours = math.floor(worldTime / 60)
-
 	local minutes = worldTime % 60
-	if minutes < 10 then minutes = '0' .. minutes end
-	return hours .. ':' .. minutes
+	return string.format("%02d:%02d", hours, minutes)
+end
+
+function logInfo(message)
+	print("> " .. message)
+end
+
+function logWarning(message)
+	print("> [Warning] " .. message)
 end
 
 function getLootRandom()
