@@ -105,8 +105,8 @@ int luaGameLoadMap(lua_State* L)
 		try {
 			g_game.loadMap(path);
 		} catch (const std::exception& e) {
-			// FIXME: Should only catch some exceptions
-			std::cout << "[Error - luaGameLoadMap] Failed to load map: " << e.what() << std::endl;
+			std::cout << "[Error - luaGameLoadMap] Failed to load map '" << path << "': " << e.what() << std::endl;
+			std::cout << "Please verify if the file exists and is in the correct location." << std::endl;
 		}
 	});
 	return 0;

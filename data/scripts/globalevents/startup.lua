@@ -65,7 +65,7 @@ function serverstartup.onStartup()
 	logInfo("Loaded all uniques in the map")
 
 	-- load map trainers
-	Game.loadMap("data/world/trainers/trainers-custom.otbm")
+	--Game.loadMap("data/world/trainers/trainers-custom.otbm")
 	logInfo("Loaded map trainers")
 
 	-- for i = 1, #startupGlobalStorages do
