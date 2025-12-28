@@ -33,10 +33,17 @@ timeToDecreaseFrags = 24 * 60 * 60
 whiteSkullTime = 15 * 60
 stairJumpExhaustion = 2000
 experienceByKillingPlayers = false
-expFromPlayersLevelRange = 75
 pzLockSkullAttacker = false
 allowAutoAttackWithoutExhaustion = true
 allowCastingWhileWalking = true
+
+-- Party Config
+-- required to keep shared experience active.
+-- experienceShareRange: Maximum horizontal distance (in tiles) between party members
+-- experienceShareFloors: Maximum vertical floor difference allowed between party members
+expShareRange = 30
+expShareFloors = 1
+expFromPlayersLevelRange = 75
 
 -- Connection Config
 -- NOTE: maxPlayers set to 0 means no limit

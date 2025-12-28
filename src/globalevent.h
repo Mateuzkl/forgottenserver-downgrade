@@ -14,6 +14,7 @@ enum GlobalEvent_t
 	GLOBALEVENT_STARTUP,
 	GLOBALEVENT_SHUTDOWN,
 	GLOBALEVENT_RECORD,
+	GLOBALEVENT_SAVE,
 };
 
 class GlobalEvent;
@@ -31,6 +32,8 @@ public:
 	GlobalEvents& operator=(const GlobalEvents&) = delete;
 
 	void startup() const;
+	void shutdown() const;
+	void save() const;
 
 	void timer();
 	void think();
