@@ -165,7 +165,6 @@ if not KeywordHandler then
 		end
 		return self.lastNode[cid]
 	end
-end
 
 	function KeywordHandler:addSpellKeyword(keys, parameters)
 		-- This function adds a new spell to a character.
