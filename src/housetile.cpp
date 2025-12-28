@@ -8,6 +8,8 @@
 #include "configmanager.h"
 #include "game.h"
 #include "house.h"
+#include "logger.h"
+#include <fmt/format.h>
 
 extern Game g_game;
 
@@ -98,9 +100,7 @@ Tile* HouseTile::queryDestination(int32_t& index, const Thing& thing, Item** des
 				const Position& entryPos = house->getEntryPosition();
 				Tile* destTile = g_game.map.getTile(entryPos);
 				if (!destTile) {
-					std::cout << "Error: [HouseTile::queryDestination] House entry not correct"
-					          << " - Name: " << house->getName() << " - House id: " << house->getId()
-					          << " - Tile not found: " << entryPos << std::endl;
+					LOG_ERROR(fmt::format("[HouseTile::queryDestination] House entry not correct - Name: {} - House id: {} - Tile not found: {}", house->getName(), house->getId(), entryPos));
 
 					destTile = g_game.map.getTile(player->getTemplePosition());
 					if (!destTile) {

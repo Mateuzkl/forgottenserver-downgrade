@@ -8,7 +8,10 @@
 #include "configmanager.h"
 #include "pugicast.h"
 #include "scheduler.h"
+#include "scheduler.h"
 #include "tools.h"
+#include "logger.h"
+#include <fmt/format.h>
 
 GlobalEvents::GlobalEvents() : scriptInterface("GlobalEvent Interface") { scriptInterface.initState(); }
 
@@ -73,8 +76,7 @@ bool GlobalEvents::registerEvent(Event_ptr event, const pugi::xml_node&)
 		}
 	}
 
-	std::cout << "[Warning - GlobalEvents::configureEvent] Duplicate registered globalevent with name: "
-	          << globalEvent->getName() << std::endl;
+	LOG_WARN(fmt::format("[Warning - GlobalEvents::configureEvent] Duplicate registered globalevent with name: {}", globalEvent->getName()));
 	return false;
 }
 
@@ -104,8 +106,7 @@ bool GlobalEvents::registerLuaEvent(GlobalEvent* event)
 		}
 	}
 
-	std::cout << "[Warning - GlobalEvents::configureEvent] Duplicate registered globalevent with name: "
-	          << globalEvent->getName() << std::endl;
+	LOG_WARN(fmt::format("[Warning - GlobalEvents::configureEvent] Duplicate registered globalevent with name: {}", globalEvent->getName()));
 	return false;
 }
 
@@ -170,8 +171,7 @@ void GlobalEvents::think()
 		}
 
 		if (!globalEvent.executeEvent()) {
-			std::cout << "[Error - GlobalEvents::think] Failed to execute event: " << globalEvent.getName()
-			          << std::endl;
+			LOG_ERROR(fmt::format("[Error - GlobalEvents::think] Failed to execute event: {}", globalEvent.getName()));
 		}
 
 		nextExecutionTime = globalEvent.getInterval();
@@ -229,7 +229,7 @@ bool GlobalEvent::configureEvent(const pugi::xml_node& node)
 {
     pugi::xml_attribute nameAttribute = node.attribute("name");
 	if (!nameAttribute) {
-		std::cout << "[Error - GlobalEvent::configureEvent] Missing name for a globalevent" << std::endl;
+		LOG_ERROR("[Error - GlobalEvent::configureEvent] Missing name for a globalevent");
 		return false;
 	}
 
@@ -242,8 +242,7 @@ bool GlobalEvent::configureEvent(const pugi::xml_node& node)
 
 		int32_t hour = params.front();
 		if (hour < 0 || hour > 23) {
-			std::cout << "[Error - GlobalEvent::configureEvent] Invalid hour \"" << attr.as_string()
-			          << "\" for globalevent with name: " << name << std::endl;
+			LOG_ERROR(fmt::format("[Error - GlobalEvent::configureEvent] Invalid hour \"{}\" for globalevent with name: {}", attr.as_string(), name));
 			return false;
 		}
 
@@ -254,23 +253,22 @@ bool GlobalEvent::configureEvent(const pugi::xml_node& node)
 		if (params.size() > 1) {
 			min = params[1];
 			if (min < 0 || min > 59) {
-				std::cout << "[Error - GlobalEvent::configureEvent] Invalid minute \"" << attr.as_string()
-				          << "\" for globalevent with name: " << name << std::endl;
+				LOG_ERROR(fmt::format("[Error - GlobalEvent::configureEvent] Invalid minute \"{}\" for globalevent with name: {}", attr.as_string(), name));
 				return false;
 			}
 
 			if (params.size() > 2) {
 				sec = params[2];
 				if (sec < 0 || sec > 59) {
-					std::cout << "[Error - GlobalEvent::configureEvent] Invalid second \"" << attr.as_string()
-					          << "\" for globalevent with name: " << name << std::endl;
+					LOG_ERROR(fmt::format("[Error - GlobalEvent::configureEvent] Invalid second \"{}\" for globalevent with name: {}", attr.as_string(), name));
 					return false;
 				}
 			}
 		}
 
 		time_t current_time = time(nullptr);
-		struct tm timeinfo = fmt::localtime(current_time);
+		struct tm timeinfo;
+		localtime_s(&timeinfo, &current_time);
 		timeinfo.tm_hour = hour;
 		timeinfo.tm_min = min;
 		timeinfo.tm_sec = sec;
@@ -293,16 +291,14 @@ bool GlobalEvent::configureEvent(const pugi::xml_node& node)
 		} else if (caseInsensitiveEqual(value, "save")) {
 			eventType = GLOBALEVENT_SAVE;
 		} else {
-			std::cout << "[Error - GlobalEvent::configureEvent] No valid type \"" << attr.as_string()
-			          << "\" for globalevent with name " << name << std::endl;
+			LOG_ERROR(fmt::format("[Error - GlobalEvent::configureEvent] No valid type \"{}\" for globalevent with name {}", attr.as_string(), name));
 			return false;
 		}
 	} else if ((attr = node.attribute("interval"))) {
 		interval = std::max<int32_t>(SCHEDULER_MINTICKS, pugi::cast<int32_t>(attr.value()));
 		nextExecution = OTSYS_TIME() + interval;
 	} else {
-		std::cout << "[Error - GlobalEvent::configureEvent] No interval for globalevent with name " << name
-		          << std::endl;
+		LOG_ERROR(fmt::format("[Error - GlobalEvent::configureEvent] No interval for globalevent with name {}", name));
 		return false;
 	}
 	return true;
@@ -330,7 +326,7 @@ bool GlobalEvent::executeRecord(uint32_t current, uint32_t old)
 {
 	// onRecord(current, old)
 	if (!scriptInterface->reserveScriptEnv()) {
-		std::cout << "[Error - GlobalEvent::executeRecord] Call stack overflow" << std::endl;
+		LOG_ERROR("[Error - GlobalEvent::executeRecord] Call stack overflow");
 		return false;
 	}
 
@@ -348,7 +344,7 @@ bool GlobalEvent::executeRecord(uint32_t current, uint32_t old)
 bool GlobalEvent::executeEvent() const
 {
 	if (!scriptInterface->reserveScriptEnv()) {
-		std::cout << "[Error - GlobalEvent::executeEvent] Call stack overflow" << std::endl;
+		LOG_ERROR("[Error - GlobalEvent::executeEvent] Call stack overflow");
 		return false;
 	}
 

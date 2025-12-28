@@ -11,6 +11,8 @@
 #include "monsters.h"
 #include "script.h"
 #include "talkaction.h"
+#include "logger.h"
+#include <fmt/format.h>
 
 extern Events* g_events;
 extern Vocations g_vocations;
@@ -105,8 +107,8 @@ int luaGameLoadMap(lua_State* L)
 		try {
 			g_game.loadMap(path);
 		} catch (const std::exception& e) {
-			std::cout << "[Error - luaGameLoadMap] Failed to load map '" << path << "': " << e.what() << std::endl;
-			std::cout << "Please verify if the file exists and is in the correct location." << std::endl;
+			LOG_ERROR(fmt::format("[Error - luaGameLoadMap] Failed to load map '{}': {}", path, e.what()));
+			LOG_ERROR("Please verify if the file exists and is in the correct location.");
 		}
 	});
 	return 0;

@@ -7,6 +7,8 @@
 #include "luascript.h"
 #include "script.h"
 #include "tools.h"
+#include "logger.h"
+#include <fmt/format.h>
 
 extern GlobalEvents* g_globalEvents;
 extern Scripts* g_scripts;
@@ -49,8 +51,7 @@ int luaGlobalEventType(lua_State* L)
 		} else if (tmpStr == "save") {
 			global->setEventType(GLOBALEVENT_SAVE);
 		} else {
-			std::cout << "[Error - CreatureEvent::configureLuaEvent] Invalid type for global event: " << typeName
-			          << std::endl;
+			LOG_ERROR(fmt::format("[Error - CreatureEvent::configureLuaEvent] Invalid type for global event: {}", typeName));
 			pushBoolean(L, false);
 		}
 		pushBoolean(L, true);
@@ -71,8 +72,7 @@ int luaGlobalEventRegister(lua_State* L)
 		}
 
 		if (globalevent->getEventType() == GLOBALEVENT_NONE && globalevent->getInterval() == 0) {
-			std::cout << "[Error - luaGlobalEventRegister] No interval for globalevent with name "
-			          << globalevent->getName() << std::endl;
+			LOG_ERROR(fmt::format("[Error - luaGlobalEventRegister] No interval for globalevent with name {}", globalevent->getName()));
 			pushBoolean(L, false);
 			return 1;
 		}
@@ -111,8 +111,7 @@ int luaGlobalEventTime(lua_State* L)
 
 		int32_t hour = params.front();
 		if (hour < 0 || hour > 23) {
-			std::cout << "[Error - GlobalEvent::configureEvent] Invalid hour \"" << timer
-			          << "\" for globalevent with name: " << globalevent->getName() << std::endl;
+			LOG_ERROR(fmt::format("[Error - GlobalEvent::configureEvent] Invalid hour \"{}\" for globalevent with name: {}", timer, globalevent->getName()));
 			pushBoolean(L, false);
 			return 1;
 		}
@@ -124,8 +123,7 @@ int luaGlobalEventTime(lua_State* L)
 		if (params.size() > 1) {
 			min = params[1];
 			if (min < 0 || min > 59) {
-				std::cout << "[Error - GlobalEvent::configureEvent] Invalid minute \"" << timer
-				          << "\" for globalevent with name: " << globalevent->getName() << std::endl;
+				LOG_ERROR(fmt::format("[Error - GlobalEvent::configureEvent] Invalid minute \"{}\" for globalevent with name: {}", timer, globalevent->getName()));
 				pushBoolean(L, false);
 				return 1;
 			}
@@ -133,8 +131,7 @@ int luaGlobalEventTime(lua_State* L)
 			if (params.size() > 2) {
 				sec = params[2];
 				if (sec < 0 || sec > 59) {
-					std::cout << "[Error - GlobalEvent::configureEvent] Invalid second \"" << timer
-					          << "\" for globalevent with name: " << globalevent->getName() << std::endl;
+					LOG_ERROR(fmt::format("[Error - GlobalEvent::configureEvent] Invalid second \"{}\" for globalevent with name: {}", timer, globalevent->getName()));
 					pushBoolean(L, false);
 					return 1;
 				}
@@ -142,7 +139,8 @@ int luaGlobalEventTime(lua_State* L)
 		}
 
 		time_t current_time = time(nullptr);
-		struct tm timeinfo = fmt::localtime(current_time);
+		struct tm timeinfo;
+		localtime_s(&timeinfo, &current_time);
 		timeinfo.tm_hour = hour;
 		timeinfo.tm_min = min;
 		timeinfo.tm_sec = sec;

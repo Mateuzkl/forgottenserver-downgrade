@@ -6,7 +6,10 @@
 #include "outfit.h"
 
 #include "pugicast.h"
+#include "pugicast.h"
 #include "tools.h"
+#include "logger.h"
+#include <fmt/format.h>
 
 bool Outfits::loadFromXml()
 {
@@ -24,19 +27,19 @@ bool Outfits::loadFromXml()
 		}
 
 		if (!(attr = outfitNode.attribute("type"))) {
-			std::cout << "[Warning - Outfits::loadFromXml] Missing outfit type." << std::endl;
+			LOG_WARN("[Warning - Outfits::loadFromXml] Missing outfit type.");
 			continue;
 		}
 
 		uint16_t type = pugi::cast<uint16_t>(attr.value());
 		if (type > PLAYERSEX_LAST) {
-			std::cout << "[Warning - Outfits::loadFromXml] Invalid outfit type " << type << "." << std::endl;
+			LOG_WARN(fmt::format("[Warning - Outfits::loadFromXml] Invalid outfit type {}.", type));
 			continue;
 		}
 
 		pugi::xml_attribute lookTypeAttribute = outfitNode.attribute("looktype");
 		if (!lookTypeAttribute) {
-			std::cout << "[Warning - Outfits::loadFromXml] Missing looktype on outfit." << std::endl;
+			LOG_WARN("[Warning - Outfits::loadFromXml] Missing looktype on outfit.");
 			continue;
 		}
 

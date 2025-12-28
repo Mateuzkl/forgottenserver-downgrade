@@ -8,10 +8,14 @@
 #include "configmanager.h"
 
 #include <mysql/errmsg.h>
+#include "logger.h"
+#include <fmt/format.h>
 
 static bool connectToDatabase(MYSQL*& handle, const bool retryIfError)
 {
 	bool isFirstAttemptToConnect = true;
+	bool ssl_enforce = false;
+	bool ssl_verify = false;
 
 retry:
 	if (!isFirstAttemptToConnect) {
@@ -24,15 +28,19 @@ retry:
 	// connection handle initialization
 	handle = mysql_init(nullptr);
 	if (!handle) {
-		std::cout << std::endl << "Failed to initialize MySQL connection handle." << std::endl;
+		LOG_ERROR("Failed to initialize MySQL connection handle.");
 		goto error;
 	}
+	// Disable SSL enforcement and verification
+	mysql_options(handle, MYSQL_OPT_SSL_ENFORCE, &ssl_enforce);
+	mysql_options(handle, MYSQL_OPT_SSL_VERIFY_SERVER_CERT, &ssl_verify);
+	
 	// connects to database
 	if (!mysql_real_connect(handle, getString(ConfigManager::MYSQL_HOST).data(),
 	                        getString(ConfigManager::MYSQL_USER).data(), getString(ConfigManager::MYSQL_PASS).data(),
 	                        getString(ConfigManager::MYSQL_DB).data(), getInteger(ConfigManager::SQL_PORT),
 	                        getString(ConfigManager::MYSQL_SOCK).data(), 0)) {
-		std::cout << std::endl << "MySQL Error Message: " << mysql_error(handle) << std::endl;
+		LOG_ERROR(fmt::format("MySQL Error Message: {}", mysql_error(handle)));
 		goto error;
 	}
 	return true;
@@ -53,8 +61,7 @@ static bool isLostConnectionError(const unsigned error)
 static bool executeQuery(MYSQL*& handle, const std::string_view query, const bool retryIfLostConnection)
 {
 	while (mysql_real_query(handle, query.data(), query.length()) != 0) {
-		std::cout << "[Error - mysql_real_query] Query: " << query.substr(0, 256) << std::endl
-		          << "Message: " << mysql_error(handle) << std::endl;
+		LOG_ERROR(fmt::format("[Error - mysql_real_query] Query: {}\nMessage: {}", query.substr(0, 256), mysql_error(handle)));
 		const unsigned error = mysql_errno(handle);
 		if (!isLostConnectionError(error) || !retryIfLostConnection) {
 			return false;
@@ -132,8 +139,7 @@ retry:
 	// as it is described in MySQL manual: "it doesn't hurt" :P
 	MYSQL_RES* res = mysql_store_result(handle);
 	if (!res) {
-		std::cout << "[Error - mysql_store_result] Query: " << query << std::endl
-		          << "Message: " << mysql_error(handle) << std::endl;
+		LOG_ERROR(fmt::format("[Error - mysql_store_result] Query: {}\nMessage: {}", query, mysql_error(handle)));
 		const unsigned error = mysql_errno(handle);
 		if (!isLostConnectionError(error) || !retryQueries) {
 			return nullptr;
@@ -192,8 +198,7 @@ std::string_view DBResult::getString(std::string_view column) const
 {
 	auto it = listNames.find(column);
 	if (it == listNames.end()) {
-		std::cout << "[Error - DBResult::getString] Column '" << column << "' does not exist in result set."
-		          << std::endl;
+		LOG_ERROR(fmt::format("[Error - DBResult::getString] Column '{}' does not exist in result set.", column));
 		return {};
 	}
 
@@ -209,8 +214,7 @@ std::string_view DBResult::getStream(std::string_view column, unsigned long& siz
 {
 	auto it = listNames.find(column);
 	if (it == listNames.end()) {
-		std::cout << "[Error - DBResult::getStream] Column '" << column << "' doesn't exist in the result set"
-		          << std::endl;
+		LOG_ERROR(fmt::format("[Error - DBResult::getStream] Column '{}' doesn't exist in the result set", column));
 		size = 0;
 		return {};
 	}

@@ -25,6 +25,8 @@
 #include "spectators.h"
 #include "spells.h"
 #include "teleport.h"
+#include "logger.h"
+#include <fmt/format.h>
 #include "globalevent.h"
 
 extern GlobalEvents* g_globalEvents;
@@ -122,7 +124,7 @@ void ScriptEnvironment::insertItem(uint32_t uid, Item* item)
 {
 	auto result = localMap.emplace(uid, item);
 	if (!result.second) {
-		std::cout << std::endl << "Lua Script Error: Thing uid already taken.";
+		LOG_ERROR("Lua Script Error: Thing uid already taken.");
 	}
 }
 
@@ -461,30 +463,30 @@ void LuaScriptInterface::reportError(const char* function, std::string_view erro
 	LuaScriptInterface* scriptInterface;
 	getScriptEnv()->getEventInfo(scriptId, scriptInterface, callbackId, timerEvent);
 
-	std::cout << std::endl << "Lua Script Error: ";
+	LOG_ERROR("Lua Script Error: ");
 
 	if (scriptInterface) {
-		std::cout << '[' << scriptInterface->getInterfaceName() << "] " << std::endl;
+		LOG_ERROR(fmt::format("[{}] ", scriptInterface->getInterfaceName()));
 
 		if (timerEvent) {
-			std::cout << "in a timer event called from: " << std::endl;
+			LOG_ERROR("in a timer event called from: ");
 		}
 
 		if (callbackId) {
-			std::cout << "in callback: " << scriptInterface->getFileById(callbackId) << std::endl;
+			LOG_ERROR(fmt::format("in callback: {}", scriptInterface->getFileById(callbackId)));
 		}
 
-		std::cout << scriptInterface->getFileById(scriptId) << std::endl;
+		LOG_ERROR(scriptInterface->getFileById(scriptId));
 	}
 
 	if (function) {
-		std::cout << function << "(). ";
+		LOG_ERROR(fmt::format("{}(). ", function));
 	}
 
 	if (L && stack_trace) {
-		std::cout << getStackTrace(L, error_desc) << std::endl;
+		LOG_ERROR(getStackTrace(L, error_desc));
 	} else {
-		std::cout << error_desc << std::endl;
+		LOG_ERROR(error_desc);
 	}
 }
 
@@ -1159,6 +1161,15 @@ void LuaScriptInterface::registerFunctions()
 	// debugPrint(text)
 	lua_register(luaState, "debugPrint", LuaScriptInterface::luaDebugPrint);
 
+	// logInfo(text)
+	lua_register(luaState, "logInfo", LuaScriptInterface::luaLogInfo);
+
+	// logWarning(text)
+	lua_register(luaState, "logWarning", LuaScriptInterface::luaLogWarning);
+
+	// logError(text)
+	lua_register(luaState, "logError", LuaScriptInterface::luaLogError);
+
 	// isInWar(cid, target)
 	lua_register(luaState, "isInWar", LuaScriptInterface::luaIsInWar);
 
@@ -1210,6 +1221,7 @@ void LuaScriptInterface::registerFunctions()
 	registerGlobalVariable("ACCOUNT_MANAGER_NEW", static_cast<uint8_t>(AccountManagerMode::ACCOUNT_MANAGER_NEW));
 	registerGlobalVariable("ACCOUNT_MANAGER_ACCOUNT", static_cast<uint8_t>(AccountManagerMode::ACCOUNT_MANAGER_ACCOUNT));
 	registerGlobalVariable("ACCOUNT_MANAGER_NAMELOCK", static_cast<uint8_t>(AccountManagerMode::ACCOUNT_MANAGER_NAMELOCK));
+
 
 	registerEnum(AMMO_NONE);
 	registerEnum(AMMO_BOLT);
@@ -2467,6 +2479,24 @@ int LuaScriptInterface::luaDebugPrint(lua_State* L)
 	return 0;
 }
 
+int LuaScriptInterface::luaLogInfo(lua_State* L)
+{
+	g_logger().info(Lua::getString(L, 1));
+	return 0;
+}
+
+int LuaScriptInterface::luaLogWarning(lua_State* L)
+{
+	g_logger().warn(Lua::getString(L, 1));
+	return 0;
+}
+
+int LuaScriptInterface::luaLogError(lua_State* L)
+{
+	g_logger().error(Lua::getString(L, 1));
+	return 0;
+}
+
 int LuaScriptInterface::luaGetWorldTime(lua_State* L)
 {
 	// getWorldTime()
@@ -3520,7 +3550,7 @@ void LuaEnvironment::executeTimerEvent(uint32_t eventIndex)
 		env->setScriptId(timerEventDesc.scriptId, this);
 		callFunction(timerEventDesc.parameters.size());
 	} else {
-		std::cout << "[Error - LuaScriptInterface::executeTimerEvent] Call stack overflow" << std::endl;
+		LOG_ERROR("[Error - LuaScriptInterface::executeTimerEvent] Call stack overflow");
 	}
 
 	// free resources

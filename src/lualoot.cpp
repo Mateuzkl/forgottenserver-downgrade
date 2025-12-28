@@ -5,6 +5,8 @@
 
 #include "luascript.h"
 #include "monsters.h"
+#include "logger.h"
+#include <fmt/format.h>
 
 namespace {
 using namespace Lua;
@@ -42,13 +44,13 @@ int luaLootSetId(lua_State* L)
 			auto ids = Item::items.nameToItems.equal_range(boost::algorithm::to_lower_copy<std::string>(name));
 
 			if (ids.first == Item::items.nameToItems.cend()) {
-				std::cout << "[Warning - Loot:setId] Unknown loot item \"" << name << "\". " << std::endl;
+				LOG_WARN(fmt::format("[Warning - Loot:setId] Unknown loot item \"{}\"", name));
 				pushBoolean(L, false);
 				return 1;
 			}
 
 			if (std::next(ids.first) != ids.second) {
-				std::cout << "[Warning - Loot:setId] Non-unique loot item \"" << name << "\". " << std::endl;
+				LOG_WARN(fmt::format("[Warning - Loot:setId] Non-unique loot item \"{}\"", name));
 				pushBoolean(L, false);
 				return 1;
 			}
@@ -136,13 +138,13 @@ int luaLootSetIdFromName(lua_State* L)
 		auto ids = Item::items.nameToItems.equal_range(boost::algorithm::to_lower_copy<std::string>(name));
 
 		if (ids.first == Item::items.nameToItems.cend()) {
-			std::cout << "[Warning - Loot:setIdFromName] Unknown loot item \"" << name << "\". " << std::endl;
+			LOG_WARN(fmt::format("[Warning - Loot:setIdFromName] Unknown loot item \"{}\"", name));
 			pushBoolean(L, false);
 			return 1;
 		}
 
 		if (std::next(ids.first) != ids.second) {
-			std::cout << "[Warning - Loot:setIdFromName] Non-unique loot item \"" << name << "\". " << std::endl;
+			LOG_WARN(fmt::format("[Warning - Loot:setIdFromName] Non-unique loot item \"{}\"", name));
 			pushBoolean(L, false);
 			return 1;
 		}

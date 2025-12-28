@@ -7,6 +7,7 @@
 
 #include "player.h"
 #include "pugicast.h"
+#include "logger.h"
 
 TalkActions::TalkActions() : scriptInterface("TalkAction Interface") { scriptInterface.initState(); }
 
@@ -52,7 +53,7 @@ bool TalkActions::registerLuaEvent(TalkAction* event)
 	const auto& words = talkAction->stealWordsMap();
 
 	if (words.empty()) {
-		std::cout << "[Warning - TalkActions::registerLuaEvent] Missing words for talk action." << std::endl;
+		LOG_WARN("[Warning - TalkActions::registerLuaEvent] Missing words for talk action.");
 		return false;
 	}
 
@@ -114,7 +115,7 @@ bool TalkAction::configureEvent(const pugi::xml_node& node)
 {
 	pugi::xml_attribute wordsAttribute = node.attribute("words");
 	if (!wordsAttribute) {
-		std::cout << "[Error - TalkAction::configureEvent] Missing words for talk action or spell" << std::endl;
+		LOG_ERROR("[Error - TalkAction::configureEvent] Missing words for talk action or spell");
 		return false;
 	}
 
@@ -143,7 +144,7 @@ bool TalkAction::executeSay(Player* player, std::string_view words, std::string_
 {
 	// onSay(player, words, param, type)
 	if (!scriptInterface->reserveScriptEnv()) {
-		std::cout << "[Error - TalkAction::executeSay] Call stack overflow" << std::endl;
+		LOG_ERROR("[Error - TalkAction::executeSay] Call stack overflow");
 		return false;
 	}
 

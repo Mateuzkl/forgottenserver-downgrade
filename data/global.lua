@@ -101,14 +101,6 @@ function getFormattedWorldTime()
 	return string.format("%02d:%02d", hours, minutes)
 end
 
-function logInfo(message)
-	print("> " .. message)
-end
-
-function logWarning(message)
-	print("> [Warning] " .. message)
-end
-
 function getLootRandom()
 	return math.random(0, MAX_LOOTCHANCE) / configManager.getNumber(configKeys.RATE_LOOT)
 end

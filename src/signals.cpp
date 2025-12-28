@@ -21,6 +21,8 @@
 #include "weapons.h"
 
 #include <csignal>
+#include <fmt/format.h>
+#include "logger.h"
 
 extern Scheduler g_scheduler;
 extern DatabaseTasks g_databaseTasks;
@@ -44,21 +46,21 @@ namespace {
 [[maybe_unused]] void sigbreakHandler()
 {
 	// Dispatcher thread
-	std::cout << "SIGBREAK received, shutting game server down..." << std::endl;
+	LOG_INFO("SIGBREAK received, shutting game server down...");
 	g_game.setGameState(GAME_STATE_SHUTDOWN);
 }
 
 void sigtermHandler()
 {
 	// Dispatcher thread
-	std::cout << "SIGTERM received, shutting game server down..." << std::endl;
+	LOG_INFO("SIGTERM received, shutting game server down...");
 	g_game.setGameState(GAME_STATE_SHUTDOWN);
 }
 
 void sigusr1Handler()
 {
 	// Dispatcher thread
-	std::cout << "SIGUSR1 received, saving the game state..." << std::endl;
+	LOG_INFO("SIGUSR1 received, saving the game state...");
 	g_globalEvents->save();
 	g_game.saveGameState();
 }
@@ -66,54 +68,54 @@ void sigusr1Handler()
 void sighupHandler()
 {
 	// Dispatcher thread
-	std::cout << "SIGHUP received, reloading config files..." << std::endl;
+	LOG_INFO("SIGHUP received, reloading config files...");
 
 	g_actions->reload();
-	std::cout << "Reloaded actions." << std::endl;
+	LOG_INFO("Reloaded actions.");
 
 	ConfigManager::load();
-	std::cout << "Reloaded config." << std::endl;
+	LOG_INFO("Reloaded config.");
 
 	g_creatureEvents->reload();
-	std::cout << "Reloaded creature scripts." << std::endl;
+	LOG_INFO("Reloaded creature scripts.");
 
 	g_moveEvents->reload();
-	std::cout << "Reloaded movements." << std::endl;
+	LOG_INFO("Reloaded movements.");
 
 	Npcs::reload();
-	std::cout << "Reloaded npcs." << std::endl;
+	LOG_INFO("Reloaded npcs.");
 
 	g_game.raids.reload();
 	g_game.raids.startup();
-	std::cout << "Reloaded raids." << std::endl;
+	LOG_INFO("Reloaded raids.");
 
 	g_monsters.reload();
-	std::cout << "Reloaded monsters." << std::endl;
+	LOG_INFO("Reloaded monsters.");
 
 	g_spells->reload();
-	std::cout << "Reloaded spells." << std::endl;
+	LOG_INFO("Reloaded spells.");
 
 	g_talkActions->reload();
-	std::cout << "Reloaded talk actions." << std::endl;
+	LOG_INFO("Reloaded talk actions.");
 
 	Item::items.reload();
-	std::cout << "Reloaded items." << std::endl;
+	LOG_INFO("Reloaded items.");
 
 	g_weapons->reload();
 	g_weapons->loadDefaults();
-	std::cout << "Reloaded weapons." << std::endl;
+	LOG_INFO("Reloaded weapons.");
 
 	g_globalEvents->reload();
-	std::cout << "Reloaded globalevents." << std::endl;
+	LOG_INFO("Reloaded globalevents.");
 
 	g_events->load();
-	std::cout << "Reloaded events." << std::endl;
+	LOG_INFO("Reloaded events.");
 
 	g_chat->load();
-	std::cout << "Reloaded chatchannels." << std::endl;
+	LOG_INFO("Reloaded chatchannels.");
 
 	g_luaEnvironment.loadFile("data/global.lua");
-	std::cout << "Reloaded global.lua." << std::endl;
+	LOG_INFO("Reloaded global.lua.");
 
 	lua_gc(g_luaEnvironment.getLuaState(), LUA_GCCOLLECT, 0);
 }
@@ -121,7 +123,7 @@ void sighupHandler()
 void sigintHandler()
 {
 	// Dispatcher thread
-	std::cout << "SIGINT received, shutting game server down..." << std::endl;
+	LOG_INFO("SIGINT received, shutting game server down...");
 	g_game.setGameState(GAME_STATE_SHUTDOWN);
 }
 
@@ -181,7 +183,7 @@ void Signals::asyncWait()
 {
 	set.async_wait([this](const boost::system::error_code& err, int signal) {
 		if (err) {
-			std::cerr << "Signal handling error: " << err.message() << std::endl;
+			LOG_ERROR(fmt::format("Signal handling error: {}", err.message()));
 			return;
 		}
 		dispatchSignalHandler(signal);

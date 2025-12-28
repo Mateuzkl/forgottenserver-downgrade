@@ -6,6 +6,8 @@
 #include "teleport.h"
 
 #include "game.h"
+#include "logger.h"
+#include <fmt/format.h>
 
 extern Game g_game;
 
@@ -65,7 +67,7 @@ void Teleport::addThing(int32_t, Thing* thing)
 		while (true) {
 			const Position& nextPos = destTeleport->getDestPos();
 			if (std::find(lastPositions.begin(), lastPositions.end(), nextPos) != lastPositions.end()) {
-				std::cout << "Warning: possible infinite loop teleport. " << nextPos << std::endl;
+				LOG_WARN(fmt::format("Warning: possible infinite loop teleport. {}", nextPos));
 				return;
 			}
 

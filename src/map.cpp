@@ -12,6 +12,8 @@
 #include "iomapserialize.h"
 #include "monster.h"
 #include "spectators.h"
+#include "logger.h"
+#include <fmt/format.h>
 
 extern Game g_game;
 
@@ -19,21 +21,25 @@ bool Map::loadMap(const std::string& identifier, bool loadHouses)
 {
 	IOMap loader;
 	if (!loader.loadMap(this, identifier)) {
-		std::cout << "[Fatal - Map::loadMap] " << loader.getLastErrorString() << std::endl;
+		LOG_ERROR(fmt::format("[Fatal - Map::loadMap] {}", loader.getLastErrorString()));
 		return false;
 	}
 
 	if (!IOMap::loadSpawns(this)) {
-		std::cout << "[Warning - Map::loadMap] Failed to load spawn data." << std::endl;
+		LOG_WARN("[Warning - Map::loadMap] Failed to load spawn data.");
+	} else {
+		LOG_INFO(fmt::format("Loaded {} npcs and spawned {} monsters", spawns.getNpcCount(), spawns.getMonsterCount()));
 	}
 
 	if (loadHouses) {
 		if (!IOMap::loadHouses(this)) {
-			std::cout << "[Warning - Map::loadMap] Failed to load house data." << std::endl;
+			LOG_WARN("[Warning - Map::loadMap] Failed to load house data.");
 		}
 
 		IOMapSerialize::loadHouseInfo();
 		IOMapSerialize::loadHouseItems(this);
+		
+		LOG_INFO(fmt::format("Loaded {} towns with {} houses in total", towns.getTowns().size(), houses.getHouses().size()));
 	}
 	return true;
 }
@@ -83,7 +89,7 @@ Tile* Map::getTile(uint16_t x, uint16_t y, uint8_t z) const
 void Map::setTile(uint16_t x, uint16_t y, uint8_t z, std::unique_ptr<Tile> newTile)
 {
 	if (z >= MAP_MAX_LAYERS) {
-		std::cout << "ERROR: Attempt to set tile on invalid coordinate " << Position(x, y, z) << "!" << std::endl;
+		LOG_ERROR(fmt::format("ERROR: Attempt to set tile on invalid coordinate {}!", Position(x, y, z)));
 		return;
 	}
 
@@ -1052,7 +1058,6 @@ uint32_t Map::clean() const
 		g_game.setGameState(GAME_STATE_NORMAL);
 	}
 
-	std::cout << "> CLEAN: Removed " << count << " item" << (count != 1 ? "s" : "") << " from " << tiles << " tile"
-	          << (tiles != 1 ? "s" : "") << " in " << (OTSYS_TIME() - start) / (1000.) << " seconds." << std::endl;
+	LOG_INFO(fmt::format("> CLEAN: Removed {} item{} from {} tile{} in {} seconds.", count, count != 1 ? "s" : "", tiles, tiles != 1 ? "s" : "", (OTSYS_TIME() - start) / (1000.)));
 	return count;
 }

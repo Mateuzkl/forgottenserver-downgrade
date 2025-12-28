@@ -10,6 +10,8 @@
 #include "game.h"
 #include "iologindata.h"
 #include "spells.h"
+#include "logger.h"
+#include <fmt/format.h>
 
 extern Game g_game;
 extern Monsters g_monsters;
@@ -43,7 +45,7 @@ Monster::Monster(MonsterType* mType) : Creature(), nameDescription(mType->nameDe
 	// register creature events
 	for (std::string_view scriptName : mType->info.scripts) {
 		if (!registerCreatureEvent(scriptName)) {
-			std::cout << "[Warning - Monster::Monster] Unknown event name: " << scriptName << std::endl;
+			LOG_WARN(fmt::format("[Warning - Monster::Monster] Unknown event name: {}", scriptName));
 		}
 	}
 }
@@ -116,7 +118,7 @@ void Monster::onCreatureAppear(Creature* creature, bool isLogin)
 		// onCreatureAppear(self, creature)
 		LuaScriptInterface* scriptInterface = mType->info.scriptInterface;
 		if (!scriptInterface->reserveScriptEnv()) {
-			std::cout << "[Error - Monster::onCreatureAppear] Call stack overflow" << std::endl;
+			LOG_ERROR("[Error - Monster::onCreatureAppear] Call stack overflow");
 			return;
 		}
 
@@ -158,7 +160,7 @@ void Monster::onRemoveCreature(Creature* creature, bool isLogout)
 		// onCreatureDisappear(self, creature)
 		LuaScriptInterface* scriptInterface = mType->info.scriptInterface;
 		if (!scriptInterface->reserveScriptEnv()) {
-			std::cout << "[Error - Monster::onCreatureDisappear] Call stack overflow" << std::endl;
+			LOG_ERROR("[Error - Monster::onCreatureDisappear] Call stack overflow");
 			return;
 		}
 
@@ -199,7 +201,7 @@ void Monster::onCreatureMove(Creature* creature, const Tile* newTile, const Posi
 		// onCreatureMove(self, creature, oldPosition, newPosition)
 		LuaScriptInterface* scriptInterface = mType->info.scriptInterface;
 		if (!scriptInterface->reserveScriptEnv()) {
-			std::cout << "[Error - Monster::onCreatureMove] Call stack overflow" << std::endl;
+			LOG_ERROR("[Error - Monster::onCreatureMove] Call stack overflow");
 			return;
 		}
 
@@ -281,7 +283,7 @@ void Monster::onCreatureSay(Creature* creature, SpeakClasses type, std::string_v
 		// onCreatureSay(self, creature, type, message)
 		LuaScriptInterface* scriptInterface = mType->info.scriptInterface;
 		if (!scriptInterface->reserveScriptEnv()) {
-			std::cout << "[Error - Monster::onCreatureSay] Call stack overflow" << std::endl;
+			LOG_ERROR("[Error - Monster::onCreatureSay] Call stack overflow");
 			return;
 		}
 
@@ -323,7 +325,7 @@ bool Monster::setType(MonsterType* newType, bool restoreHealth)
 	// Unregister creature events (current MonsterType)
 	for (const std::string& scriptName : mType->info.scripts) {
 		if (!unregisterCreatureEvent(scriptName)) {
-			std::cout << "[Warning - Monster::setType] Unknown event name: " << scriptName << std::endl;
+			LOG_WARN(fmt::format("[Warning - Monster::setType] Unknown event name: {}", scriptName));
 		}
 	}
 
@@ -353,7 +355,7 @@ bool Monster::setType(MonsterType* newType, bool restoreHealth)
 	// Register creature events (new MonsterType)
 	for (const std::string& scriptName : newType->info.scripts) {
 		if (!registerCreatureEvent(scriptName)) {
-			std::cout << "[Warning - Monster::setType] Unknown event name: " << scriptName << std::endl;
+			LOG_WARN(fmt::format("[Warning - Monster::setType] Unknown event name: {}", scriptName));
 		}
 	}
 
@@ -471,7 +473,7 @@ void Monster::onCreatureFound(Creature* creature, bool pushFront /* = false*/)
 
 void Monster::onCreatureEnter(Creature* creature)
 {
-	// std::cout << "onCreatureEnter - " << creature->getName() << std::endl;
+	// LOG_INFO(fmt::format("onCreatureEnter - {}", creature->getName()));
 
 	if (getMaster() == creature) {
 		// Follow master again
@@ -525,7 +527,7 @@ bool Monster::isOpponent(const Creature* creature) const
 
 void Monster::onCreatureLeave(Creature* creature)
 {
-	// std::cout << "onCreatureLeave - " << creature->getName() << std::endl;
+	// LOG_INFO(fmt::format("onCreatureLeave - {}", creature->getName()));
 
 	if (getMaster() == creature) {
 		// Take random steps and only use defense abilities (e.g. heal) until its master comes back
@@ -792,7 +794,7 @@ void Monster::onThink(uint32_t interval)
 		// onThink(self, interval)
 		LuaScriptInterface* scriptInterface = mType->info.scriptInterface;
 		if (!scriptInterface->reserveScriptEnv()) {
-			std::cout << "[Error - Monster::onThink] Call stack overflow" << std::endl;
+			LOG_ERROR("[Error - Monster::onThink] Call stack overflow");
 			return;
 		}
 

@@ -6,6 +6,8 @@
 #include "luascript.h"
 #include "movement.h"
 #include "script.h"
+#include "logger.h"
+#include <fmt/format.h>
 
 extern MoveEvents* g_moveEvents;
 extern Scripts* g_scripts;
@@ -56,7 +58,7 @@ int luaMoveEventType(lua_State* L)
 			moveevent->setEventType(MOVE_EVENT_REMOVE_ITEM);
 			moveevent->moveFunction = moveevent->RemoveItemField;
 		} else {
-			std::cout << "Error: [MoveEvent::configureMoveEvent] No valid event name " << typeName << std::endl;
+			LOG_ERROR(fmt::format("[MoveEvent::configureMoveEvent] No valid event name {}", typeName));
 			pushBoolean(L, false);
 		}
 		pushBoolean(L, true);
@@ -134,7 +136,7 @@ int luaMoveEventSlot(lua_State* L)
 		} else if (slotName == "ammo") {
 			moveevent->setSlot(SLOTP_AMMO);
 		} else {
-			std::cout << "[Warning - MoveEvent::configureMoveEvent] Unknown slot type: " << slotName << std::endl;
+			LOG_WARN(fmt::format("[Warning - MoveEvent::configureMoveEvent] Unknown slot type: {}", slotName));
 			pushBoolean(L, false);
 			return 1;
 		}

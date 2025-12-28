@@ -10,6 +10,8 @@
 #include "game.h"
 #include "iologindata.h"
 #include "pugicast.h"
+#include "logger.h"
+#include <fmt/format.h>
 
 extern Game g_game;
 
@@ -149,7 +151,7 @@ void House::setOwner(uint32_t guid_guild, bool updateDatabase /* = true*/, Playe
 		try {
 			std::tie(sqlPlayerGuid, sqlAccountId, sqlPlayerName, sqlGuildId, sqlGuildName) = initializeOwnerDataFromDatabase(guid_guild, type);
 		} catch (const std::runtime_error& err) {
-			std::cout << err.what();
+			LOG_ERROR(fmt::format("{}", err.what()));
 			return;
 		}
 
@@ -290,7 +292,7 @@ bool House::transferToDepot() const
 		if (!guild) {
 			guild = IOGuild::loadGuild(owner);
 			if (!guild) {
-				std::cout << "Warning: [Houses::transferToDepot] Failed to find guild associated to guildhall = " << id << ". Guild = " << owner << std::endl;
+				LOG_WARN(fmt::format("Warning: [Houses::transferToDepot] Failed to find guild associated to guildhall = {}. Guild = {}", id, owner));
 				return false;
 			}
 		}
@@ -707,7 +709,7 @@ bool Houses::loadHousesXML(const std::string& filename)
 
 		House* house = getHouse(houseId);
 		if (!house) {
-			std::cout << "Error: [Houses::loadHousesXML] Unknown house, id = " << houseId << std::endl;
+			LOG_ERROR(fmt::format("Error: [Houses::loadHousesXML] Unknown house, id = {}", houseId));
 			return false;
 		}
 
@@ -717,8 +719,7 @@ bool Houses::loadHousesXML(const std::string& filename)
 		                  pugi::cast<uint16_t>(houseNode.attribute("entryy").value()),
 		                  pugi::cast<uint16_t>(houseNode.attribute("entryz").value()));
 		if (entryPos.x == 0 && entryPos.y == 0 && entryPos.z == 0) {
-			std::cout << "[Warning - Houses::loadHousesXML] House entry not set"
-			          << " - Name: " << house->getName() << " - House id: " << houseId << std::endl;
+			LOG_WARN(fmt::format("[Warning - Houses::loadHousesXML] House entry not set - Name: {} - House id: {}", house->getName(), houseId));
 		}
 		house->setEntryPos(entryPos);
 
@@ -839,12 +840,8 @@ void Houses::payHouses(RentPeriod_t rentPeriod) const
 			}
 
 			if (guild->getBankBalance() >= rent) {
-				std::cout << "[Info - Houses::payHouses] Paying rent info"
-				    << " - Name: " << house->getName()
-					<< " - Guild: " << guild->getName()
-					<< " - Balance " << guild->getBankBalance()
-					<< " - Rent " << rent
-					<< " - New balance " << guild->getBankBalance() - rent << std::endl;
+				LOG_INFO(fmt::format("[Info - Houses::payHouses] Paying rent info - Name: {} - Guild: {} - Balance {} - Rent {} - New balance {}",
+					house->getName(), guild->getName(), guild->getBankBalance(), rent, guild->getBankBalance() - rent));
 				guild->setBankBalance(guild->getBankBalance() - rent);
 
 				Database& db = Database::getInstance();
@@ -861,7 +858,7 @@ void Houses::payHouses(RentPeriod_t rentPeriod) const
 					house->setOwner(0);
 					std::ostringstream ss;
 					ss << "Error: Guild " << guild->getName() << " has an owner that does not exist: " << guild->getOwnerGUID();
-					std::cout << ss.str() << std::endl;
+					LOG_ERROR(ss.str());
 					continue;
 				}
 

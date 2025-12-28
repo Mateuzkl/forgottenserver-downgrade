@@ -6,6 +6,8 @@
 #include "luascript.h"
 #include "script.h"
 #include "weapons.h"
+#include "logger.h"
+#include <fmt/format.h>
 
 extern Weapons* g_weapons;
 extern Scripts* g_scripts;
@@ -74,7 +76,7 @@ int luaWeaponAction(lua_State* L)
 		} else if (tmpStr == "move") {
 			weapon->action = WEAPONACTION_MOVE;
 		} else {
-			std::cout << "Error: [Weapon::action] No valid action " << typeName << std::endl;
+			LOG_ERROR(fmt::format("Error: [Weapon::action] No valid action {}", typeName));
 			pushBoolean(L, false);
 		}
 		pushBoolean(L, true);
@@ -297,7 +299,7 @@ int luaWeaponElement(lua_State* L)
 			} else if (tmpStrValue == "holy") {
 				weapon->params.combatType = COMBAT_HOLYDAMAGE;
 			} else {
-				std::cout << "[Warning - weapon:element] Type \"" << element << "\" does not exist." << std::endl;
+				LOG_WARN(fmt::format("[Warning - weapon:element] Type \"{}\" does not exist.", element));
 			}
 		} else {
 			weapon->params.combatType = getInteger<CombatType_t>(L, 2);
@@ -558,7 +560,7 @@ int luaWeaponAmmoType(lua_State* L)
 		} else if (type == "bolt") {
 			it.ammoType = AMMO_BOLT;
 		} else {
-			std::cout << "[Warning - weapon:ammoType] Type \"" << type << "\" does not exist." << std::endl;
+			LOG_WARN(fmt::format("[Warning - weapon:ammoType] Type \"{}\" does not exist.", type));
 			lua_pushnil(L);
 			return 1;
 		}
@@ -624,7 +626,7 @@ int luaWeaponExtraElement(lua_State* L)
 			} else if (tmpStrValue == "holy") {
 				it.abilities.get()->elementType = COMBAT_HOLYDAMAGE;
 			} else {
-				std::cout << "[Warning - weapon:extraElement] Type \"" << element << "\" does not exist." << std::endl;
+				LOG_WARN(fmt::format("[Warning - weapon:extraElement] Type \"{}\" does not exist.", element));
 			}
 		} else {
 			it.abilities.get()->elementType = getInteger<CombatType_t>(L, 3);

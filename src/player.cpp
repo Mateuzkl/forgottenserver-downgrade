@@ -16,6 +16,8 @@
 #include "movement.h"
 #include "rewardchest.h"
 #include "scheduler.h"
+#include "logger.h"
+#include <fmt/format.h>
 #include "tools.h"
 #include "weapons.h"
 
@@ -1179,7 +1181,7 @@ void Player::onRemoveCreature(Creature* creature, bool isLogout)
 		}
 
 		if (!saved) {
-			std::cout << "Error while saving player: " << getName() << std::endl;
+			LOG_ERROR(fmt::format("Error while saving player: {}", getName()));
 		}
 	}
 }
@@ -5083,7 +5085,7 @@ void Player::handleNewAccountManager(const std::string& text, std::ostringstream
 					managerTalkState[i] = false;
 				}
 
-				std::cout << "[Error] Failed to create account after " << maxAttempts << " attempts" << std::endl;
+				LOG_ERROR(fmt::format("[Error] Failed to create account after {} attempts", maxAttempts));
 			}
 		} else {
 			msg << "What would you like your account name to be?";

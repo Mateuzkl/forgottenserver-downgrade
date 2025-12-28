@@ -6,6 +6,8 @@
 
 #include "pugicast.h"
 #include <mysql/mysql.h>
+#include "logger.h"
+#include <fmt/format.h>
 
 class DBResult;
 using DBResult_ptr = std::shared_ptr<DBResult>;
@@ -130,8 +132,7 @@ public:
 	{
 		auto it = listNames.find(s);
 		if (it == listNames.end()) {
-			std::cout << "[Error - DBResult::getNumber] Column '" << s << "' doesn't exist in the result set"
-			          << std::endl;
+			LOG_ERROR(fmt::format("[Error - DBResult::getNumber] Column '{}' doesn't exist in the result set", s));
 			return {};
 		}
 

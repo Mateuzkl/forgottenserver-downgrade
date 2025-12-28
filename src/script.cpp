@@ -8,6 +8,8 @@
 #include "configmanager.h"
 
 #include <fmt/color.h>
+#include <fmt/ranges.h>
+#include "logger.h"
 
 extern LuaEnvironment g_luaEnvironment;
 
@@ -21,7 +23,7 @@ bool Scripts::loadScripts(const std::string& folderName, bool isLib, bool reload
 
 	const auto dir = fs::current_path() / "data" / folderName;
 	if (!fs::exists(dir) || !fs::is_directory(dir)) {
-		std::cout << "[Warning - Scripts::loadScripts] Can not load folder '" << folderName << "'." << std::endl;
+		LOG_WARN(fmt::format("[Warning - Scripts::loadScripts] Can not load folder '{}'.", folderName));
 		return false;
 	}
 
@@ -54,8 +56,8 @@ bool Scripts::loadScripts(const std::string& folderName, bool isLib, bool reload
 	for (auto it = v.begin(); it != v.end(); ++it) {
 		const std::string scriptFile = it->string();
 		if (scriptInterface.loadFile(scriptFile) == -1) {
-			std::cout << "> " << it->filename().string() << " [error]" << std::endl;
-			std::cout << "^ " << scriptInterface.getLastLuaError() << std::endl;
+			LOG_ERROR(fmt::format("> {} [error]", it->filename().string()));
+			LOG_ERROR(fmt::format("^ {}", scriptInterface.getLastLuaError()));
 			continue;
 		}
 
@@ -75,15 +77,15 @@ bool Scripts::loadScripts(const std::string& folderName, bool isLib, bool reload
 
 	if (scriptsConsoleLogs) {
 		if (!disabled.empty()) {
-			std::cout << fmt::format("{{{}}}", fmt::join(disabled, ", ")) << std::endl;
+			LOG_INFO(fmt::format("{{{}}}", fmt::join(disabled, ", ")));
 		}
 
 		if (!loaded.empty()) {
-			std::cout << fmt::format("{{{}}}", fmt::join(loaded, ", ")) << std::endl;
+			LOG_INFO(fmt::format("{{{}}}", fmt::join(loaded, ", ")));
 		}
 
 		if (!reloaded.empty()) {
-			std::cout << fmt::format("{{{}}}", fmt::join(reloaded, ", ")) << std::endl;
+			LOG_INFO(fmt::format("{{{}}}", fmt::join(reloaded, ", ")));
 		}
 	}
 

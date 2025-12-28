@@ -1069,7 +1069,7 @@ void ValueCallback::getMinMaxValues(Player* player, CombatDamage& damage) const
 {
 	// onGetPlayerMinMaxValues(...)
 	if (!scriptInterface->reserveScriptEnv()) {
-		std::cout << "[Error - ValueCallback::getMinMaxValues] Call stack overflow" << std::endl;
+		LOG_ERROR("[Error - ValueCallback::getMinMaxValues] Call stack overflow");
 		return;
 	}
 
@@ -1124,7 +1124,7 @@ void ValueCallback::getMinMaxValues(Player* player, CombatDamage& damage) const
 		}
 
 		default: {
-			std::cout << "ValueCallback::getMinMaxValues - unknown callback type" << std::endl;
+			LOG_ERROR("ValueCallback::getMinMaxValues - unknown callback type");
 			scriptInterface->resetScriptEnv();
 			return;
 		}
@@ -1152,7 +1152,7 @@ void TileCallback::onTileCombat(Creature* creature, Tile* tile) const
 {
 	// onTileCombat(creature, pos)
 	if (!scriptInterface->reserveScriptEnv()) {
-		std::cout << "[Error - TileCallback::onTileCombat] Call stack overflow" << std::endl;
+		LOG_ERROR("[Error - TileCallback::onTileCombat] Call stack overflow");
 		return;
 	}
 
@@ -1182,7 +1182,7 @@ void TargetCallback::onTargetCombat(Creature* creature, Creature* target) const
 {
 	// onTargetCombat(creature, target)
 	if (!scriptInterface->reserveScriptEnv()) {
-		std::cout << "[Error - TargetCallback::onTargetCombat] Call stack overflow" << std::endl;
+		LOG_ERROR("[Error - TargetCallback::onTargetCombat] Call stack overflow");
 		return;
 	}
 

@@ -7,7 +7,10 @@
 
 #include "player.h"
 #include "pugicast.h"
+#include "pugicast.h"
 #include "tools.h"
+#include "logger.h"
+#include <fmt/format.h>
 
 bool Vocations::loadFromXml()
 {
@@ -21,7 +24,7 @@ bool Vocations::loadFromXml()
 	for (auto vocationNode : doc.child("vocations").children()) {
 		pugi::xml_attribute attr = vocationNode.attribute("id");
 		if (!attr) {
-			std::cout << "[Warning - Vocations::loadFromXml] Missing vocation id" << std::endl;
+			LOG_WARN("[Warning - Vocations::loadFromXml] Missing vocation id");
 			continue;
 		}
 
@@ -71,8 +74,7 @@ bool Vocations::loadFromXml()
 			} else if (caseInsensitiveEqual(attrName, "skillloss") || caseInsensitiveEqual(attrName, "lossskill")) {
 				voc.setLossSkill(attrNode.as_bool());
 			} else {
-				std::cout << "[Notice - Vocations::loadFromXml] Unknown attribute: \"" << attrName
-				          << "\" for vocation: " << voc.id << std::endl;
+				LOG_WARN(fmt::format("[Notice - Vocations::loadFromXml] Unknown attribute: \"{}\" for vocation: {}", attrName, voc.id));
 			}
 		}
 
@@ -83,12 +85,10 @@ bool Vocations::loadFromXml()
 					if (skillId <= SKILL_LAST) {
 						voc.skillMultipliers[skillId] = pugi::cast<double>(childNode.attribute("multiplier").value());
 					} else {
-						std::cout << "[Notice - Vocations::loadFromXml] No valid skill id: " << skillId
-						          << " for vocation: " << voc.id << std::endl;
+						LOG_WARN(fmt::format("[Notice - Vocations::loadFromXml] No valid skill id: {} for vocation: {}", skillId, voc.id));
 					}
 				} else {
-					std::cout << "[Notice - Vocations::loadFromXml] Missing skill id for vocation: " << voc.id
-					          << std::endl;
+					LOG_WARN(fmt::format("[Notice - Vocations::loadFromXml] Missing skill id for vocation: {}", voc.id));
 				}
 			} else if (caseInsensitiveEqual(childNode.name(), "formula")) {
 				if ((attr = childNode.attribute("meleeDamage"))) {
@@ -120,7 +120,7 @@ Vocation* Vocations::getVocation(uint16_t id)
 {
 	auto it = vocationsMap.find(id);
 	if (it == vocationsMap.end()) {
-		std::cout << "[Warning - Vocations::getVocation] Vocation " << id << " not found." << std::endl;
+		LOG_WARN(fmt::format("[Warning - Vocations::getVocation] Vocation {} not found.", id));
 		return nullptr;
 	}
 	return &it->second;

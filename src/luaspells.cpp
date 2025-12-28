@@ -5,6 +5,8 @@
 
 #include "luascript.h"
 #include "spells.h"
+#include "logger.h"
+#include <fmt/format.h>
 
 extern Spells* g_spells;
 
@@ -17,7 +19,7 @@ int luaSpellCreate(lua_State* L)
 	// Spell(words, name or id) to get an existing spell
 	// Spell(type) ex: Spell(SPELL_INSTANT) or Spell(SPELL_RUNE) to create a new spell
 	if (lua_gettop(L) == 1) {
-		std::cout << "[Error - Spell::luaSpellCreate] There is no parameter set!" << std::endl;
+		LOG_ERROR("[Error - Spell::luaSpellCreate] There is no parameter set!");
 		lua_pushnil(L);
 		return 1;
 	}
@@ -223,13 +225,13 @@ int luaSpellGroup(lua_State* L)
 				if (group != SPELLGROUP_NONE) {
 					spell->setGroup(group);
 				} else {
-					std::cout << "[Warning - Spell::group] Unknown group: " << getString(L, 2) << std::endl;
+					LOG_WARN(fmt::format("[Warning - Spell::group] Unknown group: {}", getString(L, 2)));
 					pushBoolean(L, false);
 					return 1;
 				}
 				pushBoolean(L, true);
 			} else {
-				std::cout << "[Warning - Spell::group] Unknown group: " << getString(L, 2) << std::endl;
+				LOG_WARN(fmt::format("[Warning - Spell::group] Unknown group: {}", getString(L, 2)));
 				pushBoolean(L, false);
 				return 1;
 			}
@@ -245,7 +247,7 @@ int luaSpellGroup(lua_State* L)
 				if (primaryGroup != SPELLGROUP_NONE) {
 					spell->setGroup(primaryGroup);
 				} else {
-					std::cout << "[Warning - Spell::group] Unknown primaryGroup: " << getString(L, 2) << std::endl;
+					LOG_WARN(fmt::format("[Warning - Spell::group] Unknown primaryGroup: {}", getString(L, 2)));
 					pushBoolean(L, false);
 					return 1;
 				}
@@ -253,14 +255,13 @@ int luaSpellGroup(lua_State* L)
 				if (secondaryGroup != SPELLGROUP_NONE) {
 					spell->setSecondaryGroup(secondaryGroup);
 				} else {
-					std::cout << "[Warning - Spell::group] Unknown secondaryGroup: " << getString(L, 3) << std::endl;
+					LOG_WARN(fmt::format("[Warning - Spell::group] Unknown secondaryGroup: {}", getString(L, 3)));
 					pushBoolean(L, false);
 					return 1;
 				}
 				pushBoolean(L, true);
 			} else {
-				std::cout << "[Warning - Spell::group] Unknown primaryGroup: " << getString(L, 2)
-				          << " or secondaryGroup: " << getString(L, 3) << std::endl;
+				LOG_WARN(fmt::format("[Warning - Spell::group] Unknown primaryGroup: {} or secondaryGroup: {}", getString(L, 2), getString(L, 3)));
 				pushBoolean(L, false);
 				return 1;
 			}

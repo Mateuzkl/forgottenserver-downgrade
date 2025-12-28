@@ -10,6 +10,8 @@
 #include "lua.hpp"
 #include "monster.h"
 #include "pugicast.h"
+#include "logger.h"
+#include <fmt/format.h>
 
 #if LUA_VERSION_NUM >= 502
 #undef lua_strlen
@@ -216,7 +218,7 @@ bool ConfigManager::load()
 
 	strings[CONFIG_FILE] = "config.lua";
 	if (luaL_dofile(L, getString(String::CONFIG_FILE).data())) {
-		std::cout << "[Error - ConfigManager::load] " << lua_tostring(L, -1) << std::endl;
+		g_logger().error("{}", lua_tostring(L, -1));
 		lua_close(L);
 		return false;
 	}
@@ -391,9 +393,7 @@ bool ConfigManager::load()
 	if (expStages.empty()) {
 		expStages = loadLuaStages(L);
 	} else {
-		std::cout << "[Warning - ConfigManager::load] XML stages are deprecated, "
-		             "consider moving to config.lua."
-		          << std::endl;
+		LOG_WARN("[Warning - ConfigManager::load] XML stages are deprecated, consider moving to config.lua.");
 	}
 	expStages.shrink_to_fit();
 
@@ -409,7 +409,7 @@ bool ConfigManager::load()
 bool ConfigManager::getBoolean(Boolean what)
 {
 	if (what >= Boolean::LAST_BOOLEAN) {
-		std::cout << "[Warning - ConfigManager::getBoolean] Accessing invalid index: " << what << std::endl;
+		LOG_WARN(fmt::format("[Warning - ConfigManager::getBoolean] Accessing invalid index: {}", static_cast<int>(what)));
 		return false;
 	}
 	return booleans[what];
@@ -418,7 +418,7 @@ bool ConfigManager::getBoolean(Boolean what)
 std::string_view ConfigManager::getString(String what)
 {
 	if (what >= String::LAST_STRING) {
-		std::cout << "[Warning - ConfigManager::getString] Accessing invalid index: " << what << std::endl;
+		LOG_WARN(fmt::format("[Warning - ConfigManager::getString] Accessing invalid index: {}", static_cast<int>(what)));
 		return "";
 	}
 	return strings[what];
@@ -427,7 +427,7 @@ std::string_view ConfigManager::getString(String what)
 int64_t ConfigManager::getInteger(Integer what)
 {
 	if (what >= Integer::LAST_INTEGER) {
-		std::cout << "[Warning - ConfigManager::getInteger] Accessing invalid index: " << what << std::endl;
+		LOG_WARN(fmt::format("[Warning - ConfigManager::getInteger] Accessing invalid index: {}", static_cast<int>(what)));
 		return 0;
 	}
 	return integers[what];
@@ -450,7 +450,7 @@ float ConfigManager::getExperienceStage(uint32_t level)
 bool ConfigManager::setBoolean(Boolean what, bool value)
 {
 	if (what >= Boolean::LAST_BOOLEAN) {
-		std::cout << "[Warning - ConfigManager::setBoolean] Accessing invalid index: " << what << std::endl;
+		LOG_WARN(fmt::format("[Warning - ConfigManager::setBoolean] Accessing invalid index: {}", static_cast<int>(what)));
 		return false;
 	}
 
@@ -461,7 +461,7 @@ bool ConfigManager::setBoolean(Boolean what, bool value)
 bool ConfigManager::setString(String what, std::string_view value)
 {
 	if (what >= String::LAST_STRING) {
-		std::cout << "[Warning - ConfigManager::setString] Accessing invalid index: " << what << std::endl;
+		LOG_WARN(fmt::format("[Warning - ConfigManager::setString] Accessing invalid index: {}", static_cast<int>(what)));
 		return false;
 	}
 
@@ -472,7 +472,7 @@ bool ConfigManager::setString(String what, std::string_view value)
 bool ConfigManager::setInteger(Integer what, int64_t value)
 {
 	if (what >= Integer::LAST_INTEGER) {
-		std::cout << "[Warning - ConfigManager::setInteger] Accessing invalid index: " << what << std::endl;
+		LOG_WARN(fmt::format("[Warning - ConfigManager::setInteger] Accessing invalid index: {}", static_cast<int>(what)));
 		return false;
 	}
 
@@ -483,7 +483,7 @@ bool ConfigManager::setInteger(Integer what, int64_t value)
 float ConfigManager::getFloat(float_config_t what)
 {
 	if (what >= LAST_FLOAT_CONFIG) {
-		std::cout << "[Warning - ConfigManager::getFloat] Accessing invalid index: " << what << std::endl;
+		LOG_WARN(fmt::format("[Warning - ConfigManager::getFloat] Accessing invalid index: {}", static_cast<int>(what)));
 		return 0.0f;
 	}
 	return floats[what];
@@ -492,7 +492,7 @@ float ConfigManager::getFloat(float_config_t what)
 bool ConfigManager::setFloat(float_config_t what, float value)
 {
 	if (what >= LAST_FLOAT_CONFIG) {
-		std::cout << "[Warning - ConfigManager::setFloat] Accessing invalid index: " << what << std::endl;
+		LOG_WARN(fmt::format("[Warning - ConfigManager::setFloat] Accessing invalid index: {}", static_cast<int>(what)));
 		return false;
 	}
 	floats[what] = value;

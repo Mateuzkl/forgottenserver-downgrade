@@ -13,10 +13,11 @@
 #include <iomanip>
 #include <openssl/evp.h>
 #include <openssl/hmac.h>
+#include "logger.h"
 
 void printXMLError(std::string_view where, std::string_view fileName, const pugi::xml_parse_result& result)
 {
-	std::cout << '[' << where << "] Failed to load " << fileName << ": " << result.description() << std::endl;
+	LOG_ERROR(fmt::format("[{}] Failed to load {}: {}", where, fileName, result.description()));
 
 	FILE* file = fopen(fileName.data(), "rb");
 	if (!file) {
@@ -51,16 +52,7 @@ void printXMLError(std::string_view where, std::string_view fileName, const pugi
 	} while (bytes == 32768);
 	fclose(file);
 
-	std::cout << "Line " << currentLine << ':' << std::endl;
-	std::cout << line << std::endl;
-	for (size_t i = 0; i < lineOffsetPosition; i++) {
-		if (line[i] == '\t') {
-			std::cout << '\t';
-		} else {
-			std::cout << ' ';
-		}
-	}
-	std::cout << '^' << std::endl;
+	LOG_ERROR(fmt::format("Line {}:\n{}\n{}^", currentLine, line, std::string(lineOffsetPosition, ' ')));
 }
 
 std::string transformToSHA1(std::string_view input)
@@ -354,12 +346,16 @@ std::string convertIPToString(uint32_t ip)
 
 std::string formatDate(time_t time)
 {
-	return fmt::format("{:%d/%m/%Y %H:%M:%S}", fmt::localtime(time));
+	std::tm t;
+	localtime_s(&t, &time);
+	return fmt::format("{:%d/%m/%Y %H:%M:%S}", t);
 }
 
 std::string formatDateShort(time_t time)
 {
-	return fmt::format("{:%d %b %Y}", fmt::localtime(time));
+	std::tm t;
+	localtime_s(&t, &time);
+	return fmt::format("{:%d %b %Y}", t);
 }
 
 Position getNextPosition(Direction direction, Position pos)

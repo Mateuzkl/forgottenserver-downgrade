@@ -7,6 +7,8 @@
 #include "monsters.h"
 #include "script.h"
 #include "spells.h"
+#include "logger.h"
+#include <fmt/format.h>
 
 extern Monsters g_monsters;
 extern Scripts* g_scripts;
@@ -487,8 +489,7 @@ int luaMonsterTypeCombatImmunities(lua_State* L)
 				monsterType->info.damageImmunities |= COMBAT_MANADRAIN;
 				pushBoolean(L, true);
 			} else {
-				std::cout << "[Warning - Monsters::loadMonster] Unknown immunity name " << immunity
-				          << " for monster: " << monsterType->name << std::endl;
+				LOG_WARN(fmt::format("[Warning - Monsters::loadMonster] Unknown immunity name {} for monster: {}", immunity, monsterType->name));
 				lua_pushnil(L);
 			}
 		}
@@ -547,8 +548,7 @@ int luaMonsterTypeConditionImmunities(lua_State* L)
 				monsterType->info.conditionImmunities |= CONDITION_BLEEDING;
 				pushBoolean(L, true);
 			} else {
-				std::cout << "[Warning - Monsters::loadMonster] Unknown immunity name " << immunity
-				          << " for monster: " << monsterType->name << std::endl;
+				LOG_WARN(fmt::format("[Warning - Monsters::loadMonster] Unknown immunity name {} for monster: {}", immunity, monsterType->name));
 				lua_pushnil(L);
 			}
 		}
@@ -599,8 +599,7 @@ int luaMonsterTypeAddAttack(lua_State* L)
 			if (g_monsters.deserializeSpell(spell, sb, monsterType->name)) {
 				monsterType->info.attackSpells.push_back(std::move(sb));
 			} else {
-				std::cout << monsterType->name << std::endl;
-				std::cout << "[Warning - Monsters::loadMonster] Cant load spell. " << spell->name << std::endl;
+				LOG_WARN(fmt::format("{} [Warning - Monsters::loadMonster] Cant load spell. {}", monsterType->name, spell->name));
 			}
 		} else {
 			lua_pushnil(L);
@@ -652,8 +651,7 @@ int luaMonsterTypeAddDefense(lua_State* L)
 			if (g_monsters.deserializeSpell(spell, sb, monsterType->name)) {
 				monsterType->info.defenseSpells.push_back(std::move(sb));
 			} else {
-				std::cout << monsterType->name << std::endl;
-				std::cout << "[Warning - Monsters::loadMonster] Cant load spell. " << spell->name << std::endl;
+				LOG_WARN(fmt::format("{} [Warning - Monsters::loadMonster] Cant load spell. {}", monsterType->name, spell->name));
 			}
 		} else {
 			lua_pushnil(L);
@@ -961,7 +959,7 @@ int luaMonsterTypeRace(lua_State* L)
 			} else if (race == "energy") {
 				monsterType->info.race = RACE_ENERGY;
 			} else {
-				std::cout << "[Warning - Monsters::loadMonster] Unknown race type " << race << "." << std::endl;
+				LOG_WARN(fmt::format("[Warning - Monsters::loadMonster] Unknown race type {}.", race));
 				lua_pushnil(L);
 				return 1;
 			}

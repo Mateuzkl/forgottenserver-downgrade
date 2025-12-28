@@ -55,6 +55,7 @@ find_package(OpenSSL 3.0.0 REQUIRED COMPONENTS Crypto)
 find_package(ZLIB REQUIRED)
 
 find_package(fmt 8.1.1 CONFIG)
+find_package(spdlog CONFIG REQUIRED)
 if (NOT fmt_FOUND)
     find_package(fmt 8.1.1 REQUIRED)
 endif()

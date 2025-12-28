@@ -8,6 +8,8 @@
 #include "actions.h"
 
 #include <sstream>
+#include "logger.h"
+#include <fmt/format.h>
 
 #include "bed.h"
 #include "configmanager.h"
@@ -79,8 +81,7 @@ bool Actions::registerEvent(Event_ptr event, const pugi::xml_node& node)
 		for (const auto& id : idList) {
 			auto result = useItemMap.emplace(static_cast<uint16_t>(id), *action);
 			if (!result.second) {
-				std::cout << "[Warning - Actions::registerEvent] Duplicate registered item with id: " << id
-				          << std::endl;
+				LOG_WARN(fmt::format("[Warning - Actions::registerEvent] Duplicate registered item with id: {}", id));
 				continue;
 			}
 
@@ -93,8 +94,7 @@ bool Actions::registerEvent(Event_ptr event, const pugi::xml_node& node)
 		for (const auto& uid : uidList) {
 			auto result = uniqueItemMap.emplace(static_cast<uint16_t>(uid), *action);
 			if (!result.second) {
-				std::cout << "[Warning - Actions::registerEvent] Duplicate registered item with uniqueid: " << uid
-				          << std::endl;
+				LOG_WARN(fmt::format("[Warning - Actions::registerEvent] Duplicate registered item with uniqueid: {}", uid));
 				continue;
 			}
 
@@ -107,8 +107,7 @@ bool Actions::registerEvent(Event_ptr event, const pugi::xml_node& node)
 		for (const auto& aid : aidList) {
 			auto result = actionItemMap.emplace(static_cast<uint16_t>(aid), *action);
 			if (!result.second) {
-				std::cout << "[Warning - Actions::registerEvent] Duplicate registered item with actionid: " << aid
-				          << std::endl;
+				LOG_WARN(fmt::format("[Warning - Actions::registerEvent] Duplicate registered item with actionid: {}", aid));
 				continue;
 			}
 
@@ -123,15 +122,14 @@ bool Actions::registerEvent(Event_ptr event, const pugi::xml_node& node)
 			uint16_t toId = pugi::cast<uint16_t>(toIdAttribute.value());
 			for (; iterId <= toId; iterId++) {
 				if (!useItemMap.emplace(iterId, *action).second) {
-					std::cout << "[Warning - Actions::registerEvent] Duplicate registered item with id: " << iterId
-					          << " in fromid: " << fromId << ", toid: " << toId << std::endl;
+					LOG_WARN(fmt::format("[Warning - Actions::registerEvent] Duplicate registered item with id: {} in fromid: {}, toid: {}", iterId, fromId, toId));
 					continue;
 				}
 
 				success = true;
 			}
 		} else {
-			std::cout << "[Warning - Actions::registerEvent] Missing toid in fromid: " << attr.as_string() << std::endl;
+			LOG_WARN(fmt::format("[Warning - Actions::registerEvent] Missing toid in fromid: {}", attr.as_string()));
 		}
 	}
 
@@ -142,16 +140,14 @@ bool Actions::registerEvent(Event_ptr event, const pugi::xml_node& node)
 			uint16_t toUid = pugi::cast<uint16_t>(toUidAttribute.value());
 			for (; iterUid <= toUid; iterUid++) {
 				if (!uniqueItemMap.emplace(iterUid, *action).second) {
-					std::cout << "[Warning - Actions::registerEvent] Duplicate registered item with unique id: "
-					          << iterUid << " in fromuid: " << fromUid << ", touid: " << toUid << std::endl;
+					LOG_WARN(fmt::format("[Warning - Actions::registerEvent] Duplicate registered item with unique id: {} in fromuid: {}, touid: {}", iterUid, fromUid, toUid));
 					continue;
 				}
 
 				success = true;
 			}
 		} else {
-			std::cout << "[Warning - Actions::registerEvent] Missing touid in fromuid: " << attr.as_string()
-			          << std::endl;
+			LOG_WARN(fmt::format("[Warning - Actions::registerEvent] Missing touid in fromuid: {}", attr.as_string()));
 		}
 	}
 
@@ -162,16 +158,14 @@ bool Actions::registerEvent(Event_ptr event, const pugi::xml_node& node)
 			uint16_t toAid = pugi::cast<uint16_t>(toAidAttribute.value());
 			for (; iterAid <= toAid; iterAid++) {
 				if (!actionItemMap.emplace(iterAid, *action).second) {
-					std::cout << "[Warning - Actions::registerEvent] Duplicate registered item with action id: "
-					          << iterAid << " in fromaid: " << fromAid << ", toaid: " << toAid << std::endl;
+					LOG_WARN(fmt::format("[Warning - Actions::registerEvent] Duplicate registered item with action id: {} in fromaid: {}, toaid: {}", iterAid, fromAid, toAid));
 					continue;
 				}
 
 				success = true;
 			}
 		} else {
-			std::cout << "[Warning - Actions::registerEvent] Missing toaid in fromaid: " << attr.as_string()
-			          << std::endl;
+			LOG_WARN(fmt::format("[Warning - Actions::registerEvent] Missing toaid in fromaid: {}", attr.as_string()));
 		}
 	}
 
@@ -179,8 +173,7 @@ bool Actions::registerEvent(Event_ptr event, const pugi::xml_node& node)
 		for (const auto& pos : action->getPositionList()) {
 			auto result = positionMap.emplace(pos, *action);
 			if (!result.second) {
-				std::cout << "[Warning - Actions::registerEvent] Duplicate position ("
-				          << pos.x << ", " << pos.y << ", " << pos.z << ")" << std::endl;
+				LOG_WARN(fmt::format("[Warning - Actions::registerEvent] Duplicate position {}", pos));
 			} else {
 				success = true;
 			}
@@ -201,8 +194,7 @@ bool Actions::registerLuaEvent(Action* event)
 	bool success = false;
 	for (const auto& id : ids) {
 		if (!useItemMap.emplace(id, *action).second) {
-			std::cout << "[Warning - Actions::registerLuaEvent] Duplicate registered item with id: " << id
-			          << " in range from id: " << ids.front() << ", to id: " << ids.back() << std::endl;
+			LOG_WARN(fmt::format("[Warning - Actions::registerLuaEvent] Duplicate registered item with id: {} in range from id: {}, to id: {}", id, ids.front(), ids.back()));
 			continue;
 		}
 
@@ -211,8 +203,7 @@ bool Actions::registerLuaEvent(Action* event)
 
 	for (const auto& id : uids) {
 		if (!uniqueItemMap.emplace(id, *action).second) {
-			std::cout << "[Warning - Actions::registerLuaEvent] Duplicate registered item with uid: " << id
-			          << " in range from uid: " << uids.front() << ", to uid: " << uids.back() << std::endl;
+			LOG_WARN(fmt::format("[Warning - Actions::registerLuaEvent] Duplicate registered item with uid: {} in range from uid: {}, to uid: {}", id, uids.front(), uids.back()));
 			continue;
 		}
 
@@ -221,8 +212,7 @@ bool Actions::registerLuaEvent(Action* event)
 
 	for (const auto& id : aids) {
 		if (!actionItemMap.emplace(id, *action).second) {
-			std::cout << "[Warning - Actions::registerLuaEvent] Duplicate registered item with aid: " << id
-			          << " in range from aid: " << aids.front() << ", to aid: " << aids.back() << std::endl;
+			LOG_WARN(fmt::format("[Warning - Actions::registerLuaEvent] Duplicate registered item with aid: {} in range from aid: {}, to aid: {}", id, aids.front(), aids.back()));
 			continue;
 		}
 
@@ -233,8 +223,7 @@ bool Actions::registerLuaEvent(Action* event)
 		for (const auto& pos : action->getPositionList()) {
 			auto result = positionMap.emplace(pos, *action);
 			if (!result.second) {
-				std::cout << "[Warning - Actions::registerLuaEvent] Duplicate position ("
-				          << pos.x << ", " << pos.y << ", " << pos.z << ")" << std::endl;
+				LOG_WARN(fmt::format("[Warning - Actions::registerLuaEvent] Duplicate position {}", pos));
 			} else {
 				success = true;
 			}
@@ -242,7 +231,7 @@ bool Actions::registerLuaEvent(Action* event)
 	}
 
 	if (!success) {
-		std::cout << "[Warning - Actions::registerLuaEvent] There is no id / aid / uid / position set for this event" << std::endl;
+		LOG_WARN("[Warning - Actions::registerLuaEvent] There is no id / aid / uid / position set for this event");
 	}
 	return success;
 }
@@ -664,8 +653,7 @@ bool Action::configureEvent(const pugi::xml_node& node)
 
 bool Action::loadFunction(const pugi::xml_attribute& attr, bool)
 {
-	std::cout << "[Warning - Action::loadFunction] Function \"" << attr.as_string() << "\" does not exist."
-	          << std::endl;
+	LOG_WARN(fmt::format("[Warning - Action::loadFunction] Function \"{}\" does not exist.", attr.as_string()));
 	return false;
 }
 
@@ -692,7 +680,7 @@ bool Action::executeUse(Player* player, Item* item, const Position& fromPosition
 {
 	// onUse(player, item, fromPosition, target, toPosition, isHotkey)
 	if (!scriptInterface->reserveScriptEnv()) {
-		std::cout << "[Error - Action::executeUse] Call stack overflow" << std::endl;
+		LOG_ERROR("[Error - Action::executeUse] Call stack overflow");
 		return false;
 	}
 

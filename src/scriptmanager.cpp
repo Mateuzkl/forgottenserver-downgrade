@@ -14,6 +14,7 @@
 #include "spells.h"
 #include "talkaction.h"
 #include "weapons.h"
+#include "logger.h"
 
 Actions* g_actions = nullptr;
 CreatureEvents* g_creatureEvents = nullptr;
@@ -47,26 +48,26 @@ bool ScriptingManager::loadScriptSystems()
 	// Ensure g_luaEnvironment is properly initialized
 	if (!g_luaEnvironment.getLuaState()) {
 		if (!g_luaEnvironment.initState()) {
-			std::cout << "> ERROR: Failed to initialize Lua environment!" << std::endl;
+			LOG_ERROR("> ERROR: Failed to initialize Lua environment!");
 			return false;
 		}
 	}
 
 	if (g_luaEnvironment.loadFile("data/global.lua") == -1) {
-		std::cout << "[Warning - ScriptingManager::loadScriptSystems] Can not load data/global.lua" << std::endl;
+		LOG_WARN("[Warning - ScriptingManager::loadScriptSystems] Can not load data/global.lua");
 	}
 
 	g_scripts = new Scripts();
-	std::cout << ">> Loading lua libs" << std::endl;
+	LOG_INFO(">> Loading lua libs");
 	if (!g_scripts->loadScripts("scripts/lib", true, false)) {
-		std::cout << "> ERROR: Unable to load lua libs!" << std::endl;
+		LOG_ERROR("> ERROR: Unable to load lua libs!");
 		return false;
 	}
 
 	g_chat = new Chat();
 
 	if (!g_scripts->loadScripts("items", false, false)) {
-		std::cout << "> ERROR: Unable to load items (LUA)!" << std::endl;
+		LOG_ERROR("> ERROR: Unable to load items (LUA)!");
 		return false;
 	}
 
@@ -81,7 +82,7 @@ bool ScriptingManager::loadScriptSystems()
 
 	g_events = new Events();
 	if (!g_events->load()) {
-		std::cout << "> ERROR: Unable to load events!" << std::endl;
+		LOG_ERROR("> ERROR: Unable to load events!");
 		return false;
 	}
 

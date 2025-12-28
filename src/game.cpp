@@ -25,6 +25,8 @@
 #include "spells.h"
 #include "talkaction.h"
 #include "weapons.h"
+#include "logger.h"
+#include <fmt/format.h>
 
 extern Actions* g_actions;
 extern Chat* g_chat;
@@ -146,14 +148,14 @@ void Game::saveGameState()
 		setGameState(GAME_STATE_MAINTAIN);
 	}
 
-	std::cout << "Saving server..." << std::endl;
+	LOG_INFO("Saving server...");
 
 	if (!saveGameStorageValues()) {
-		std::cout << "[Error - Game::saveGameState] Failed to save game storage values." << std::endl;
+		LOG_ERROR("[Error - Game::saveGameState] Failed to save game storage values.");
 	}
 
 	if (!saveAccountStorageValues()) {
-		std::cout << "[Error - Game::saveGameState] Failed to save account-level storage values." << std::endl;
+		LOG_ERROR("[Error - Game::saveGameState] Failed to save account-level storage values.");
 	}
 
 	for (const auto& it : players) {
@@ -1914,7 +1916,7 @@ bool Game::playerBroadcastMessage(Player* player, std::string_view text) const
 		return false;
 	}
 
-	std::cout << "> " << player->getName() << " broadcasted: \"" << text << "\"." << std::endl;
+	LOG_INFO(fmt::format("> {} broadcasted: \"{}\".", player->getName(), text));
 
 	for (const auto& it : players) {
 		it.second->sendPrivateMessage(player, TALKTYPE_BROADCAST, text);
@@ -4798,8 +4800,7 @@ void Game::internalDecayItem(Item* item)
 	} else {
 		ReturnValue ret = internalRemoveItem(item);
 		if (ret != RETURNVALUE_NOERROR) {
-			std::cout << "[Debug - Game::internalDecayItem] internalDecayItem failed, error code: "
-			          << static_cast<uint32_t>(ret) << ", item id: " << item->getID() << std::endl;
+			LOG_ERROR(fmt::format("[Debug - Game::internalDecayItem] internalDecayItem failed, error code: {}, item id: {}", static_cast<uint32_t>(ret), item->getID()));
 		}
 	}
 }
@@ -4837,13 +4838,14 @@ void Game::updateWorldTime()
 {
 	g_scheduler.addEvent(createSchedulerTask(EVENT_WORLDTIMEINTERVAL, [this]() { updateWorldTime(); }));
 	time_t osTime = time(nullptr);
-	struct tm timeInfo = fmt::localtime(osTime);
+	struct tm timeInfo;
+	localtime_s(&timeInfo, &osTime);
 	worldTime = (timeInfo.tm_sec + (timeInfo.tm_min * 60)) / 2.5f;
 }
 
 void Game::shutdown()
 {
-	std::cout << "Shutting down..." << std::flush;
+	LOG_INFO("Shutting down...");
 
 	g_scheduler.shutdown();
 	g_databaseTasks.shutdown();
@@ -4859,7 +4861,7 @@ void Game::shutdown()
 
 	ConnectionManager::getInstance().closeAll();
 
-	std::cout << " done!" << std::endl;
+	LOG_INFO("Shutdown complete.");
 }
 
 void Game::cleanup()
@@ -4882,7 +4884,7 @@ void Game::ReleaseItem(Item* item) { ToReleaseItems.push_back(item); }
 
 void Game::broadcastMessage(std::string_view text, MessageClasses type) const
 {
-	std::cout << "> Broadcasted message: \"" << text << "\"." << std::endl;
+	LOG_INFO(fmt::format("> Broadcasted message: \"{}\".", text));
 	for (const auto& it : players) {
 		it.second->sendTextMessage(type, text);
 	}
@@ -5355,7 +5357,7 @@ bool Game::addUniqueItem(uint16_t uniqueId, Item* item)
 {
 	auto result = uniqueItems.emplace(uniqueId, item);
 	if (!result.second) {
-		std::cout << "Duplicate unique id: " << uniqueId << std::endl;
+		LOG_WARN(fmt::format("Duplicate unique id: {}", uniqueId));
 	}
 	return result.second;
 }
@@ -5409,10 +5411,10 @@ bool Game::reload(ReloadTypes_t reloadType)
 
 		case RELOAD_TYPE_SPELLS: {
 			if (!g_spells->reload()) {
-				std::cout << "[Error - Game::reload] Failed to reload spells." << std::endl;
+				LOG_ERROR("[Error - Game::reload] Failed to reload spells.");
 				std::terminate();
 			} else if (!g_monsters.reload()) {
-				std::cout << "[Error - Game::reload] Failed to reload monsters." << std::endl;
+				LOG_ERROR("[Error - Game::reload] Failed to reload monsters.");
 				std::terminate();
 			}
 			return true;
@@ -5452,10 +5454,10 @@ bool Game::reload(ReloadTypes_t reloadType)
 
 		default: {
 			if (!g_spells->reload()) {
-				std::cout << "[Error - Game::reload] Failed to reload spells." << std::endl;
+				LOG_ERROR("[Error - Game::reload] Failed to reload spells.");
 				std::terminate();
 			} else if (!g_monsters.reload()) {
-				std::cout << "[Error - Game::reload] Failed to reload monsters." << std::endl;
+				LOG_ERROR("[Error - Game::reload] Failed to reload monsters.");
 				std::terminate();
 			}
 

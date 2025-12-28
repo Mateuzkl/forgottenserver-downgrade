@@ -9,6 +9,8 @@
 #include "configmanager.h"
 #include "outputmessage.h"
 #include "scheduler.h"
+#include "logger.h"
+#include <fmt/format.h>
 
 Ban g_bans;
 
@@ -35,7 +37,7 @@ void ServiceManager::stop()
 		try {
 			boost::asio::post(io_context, std::bind(&ServicePort::onStopServer, servicePortIt.second));
 		} catch (boost::system::system_error& e) {
-			std::cout << "[ServiceManager::stop] Network Error: " << e.what() << std::endl;
+			LOG_ERROR(fmt::format("[ServiceManager::stop] Network Error: {}", e.what()));
 		}
 	}
 
@@ -157,7 +159,7 @@ void ServicePort::open(uint16_t port)
 
 		accept();
 	} catch (boost::system::system_error& e) {
-		std::cout << "[ServicePort::open] Error: " << e.what() << std::endl;
+		LOG_ERROR(fmt::format("[ServicePort::open] Error: {}", e.what()));
 
 		pendingStart = true;
 		g_scheduler.addEvent(createSchedulerTask(

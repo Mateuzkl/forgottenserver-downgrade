@@ -5,7 +5,10 @@
 #define FS_SERVER_H
 
 #include "connection.h"
+#include "connection.h"
 #include "signals.h"
+#include "logger.h"
+#include <fmt/format.h>
 
 #include <memory>
 
@@ -102,8 +105,7 @@ template <typename ProtocolType>
 bool ServiceManager::add(uint16_t port)
 {
 	if (port == 0) {
-		std::cout << "ERROR: No port provided for service " << ProtocolType::protocol_name() << ". Service disabled."
-		          << std::endl;
+		LOG_ERROR(fmt::format("ERROR: No port provided for service {}. Service disabled.", ProtocolType::protocol_name()));
 		return false;
 	}
 
@@ -119,8 +121,7 @@ bool ServiceManager::add(uint16_t port)
 		service_port = foundServicePort->second;
 
 		if (service_port->is_single_socket() || ProtocolType::server_sends_first) {
-			std::cout << "ERROR: " << ProtocolType::protocol_name() << " and " << service_port->get_protocol_names()
-			          << " cannot use the same port " << port << '.' << std::endl;
+			LOG_ERROR(fmt::format("ERROR: {} and {} cannot use the same port {}.", ProtocolType::protocol_name(), service_port->get_protocol_names(), port));
 			return false;
 		}
 	}

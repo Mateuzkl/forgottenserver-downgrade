@@ -46,6 +46,9 @@ public:
 	bool isInSpawnZone(const Position& pos);
 	void cleanup();
 
+	uint32_t getSpawnedCount() const { return spawnedMap.size(); }
+	size_t getMonsterCount() const { return spawnMap.size(); }
+
 private:
 	// map of the spawned creatures
 	using SpawnedMap = std::multimap<uint32_t, Monster*>;
@@ -76,6 +79,15 @@ public:
 	void clear();
 
 	bool isStarted() const { return started; }
+
+	size_t getNpcCount() const { return std::distance(npcList.begin(), npcList.end()); }
+	size_t getMonsterCount() const {
+		size_t count = 0;
+		for (const auto& spawn : spawnList) {
+			count += spawn.getMonsterCount();
+		}
+		return count;
+	}
 
 private:
 	std::forward_list<Npc*> npcList;
