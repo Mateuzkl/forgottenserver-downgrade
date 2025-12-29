@@ -6,6 +6,7 @@
 #include "guild.h"
 
 #include "game.h"
+#include "tools.h"
 
 extern Game g_game;
 
@@ -38,7 +39,7 @@ GuildRank_ptr Guild::getRankById(uint32_t rankId) const
 GuildRank_ptr Guild::getRankByName(std::string_view name) const
 {
 	for (auto& rank : ranks) {
-		if (rank->name == name) {
+		if (caseInsensitiveEqual(rank->name, name)) {
 			return rank;
 		}
 	}
