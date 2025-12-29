@@ -26,86 +26,25 @@
 extern Game g_game;
 Decay g_decay;
 
-void Decay::startDecay(Item* item, int32_t duration)
+constexpr int32_t Decay::clampSchedulerDuration(int32_t duration) noexcept
 {
-	if (item->hasAttribute(ITEM_ATTRIBUTE_DURATION_TIMESTAMP)) {
-		stopDecay(item, item->getIntAttr(ITEM_ATTRIBUTE_DURATION_TIMESTAMP));
-	}
-
-	int64_t timestamp = OTSYS_TIME() + static_cast<int64_t>(duration);
-	if (decayMap.empty()) {
-		eventId = g_scheduler.addEvent(createSchedulerTask(std::max<int32_t>(SCHEDULER_MINTICKS, duration), std::bind(&Decay::checkDecay, this)));
-	} else {
-		if (timestamp < decayMap.begin()->first) {
-			g_scheduler.stopEvent(eventId);
-			eventId = g_scheduler.addEvent(createSchedulerTask(std::max<int32_t>(SCHEDULER_MINTICKS, duration), std::bind(&Decay::checkDecay, this)));
-		}
-	}
-
-	item->incrementReferenceCounter();
-	item->setDecaying(DECAYING_TRUE);
-	item->setDurationTimestamp(timestamp);
-	decayMap[timestamp].push_back(item);
+	return std::max(SCHEDULER_MINTICKS, duration);
 }
 
-void Decay::stopDecay(Item* item, int64_t timestamp)
+void Decay::scheduleNextCheck(DecayTimestamp nextTimestamp) noexcept
 {
-	auto it = decayMap.find(timestamp);
-	if (it != decayMap.end()) {
-		std::vector<Item*>& decayItems = it->second;
-
-		size_t i = 0, end = decayItems.size();
-		if (end == 1) {
-			if (item == decayItems[i]) {
-				if (item->hasAttribute(ITEM_ATTRIBUTE_DURATION)) {
-					//Incase we removed duration attribute don't assign new duration
-					item->setDuration(item->getDuration());
-				}
-				item->removeAttribute(ITEM_ATTRIBUTE_DECAYSTATE);
-				g_game.ReleaseItem(item);
-
-				decayMap.erase(it);
-			}
-			return;
-		}
-		while (i < end) {
-			if (item == decayItems[i]) {
-				if (item->hasAttribute(ITEM_ATTRIBUTE_DURATION)) {
-					//Incase we removed duration attribute don't assign new duration
-					item->setDuration(item->getDuration());
-				}
-				item->removeAttribute(ITEM_ATTRIBUTE_DECAYSTATE);
-				g_game.ReleaseItem(item);
-
-				std::swap(decayItems[i], decayItems.back());
-				decayItems.pop_back();
-				return;
-			}
-			++i;
-		}
-	}
+	const auto currentTime = OTSYS_TIME();
+	const auto delay = clampSchedulerDuration(static_cast<int32_t>(nextTimestamp - currentTime));
+	eventId = g_scheduler.addEvent(createSchedulerTask(delay, [this] { checkDecay(); }));
 }
 
-void Decay::checkDecay()
+void Decay::processDecayBatch(std::span<ItemRef const> items) noexcept
 {
-	int64_t timestamp = OTSYS_TIME();
-
-	std::vector<Item*> tempItems;
-	tempItems.reserve(32);// Small preallocation
-
-	auto it = decayMap.begin(), end = decayMap.end();
-	while (it != end) {
-		if (it->first > timestamp) {
-			break;
+	for (auto* item : items) {
+		if (!item) [[unlikely]] {
+			continue;
 		}
 
-		// Iterating here is unsafe so let's copy our items into temporary vector
-		std::vector<Item*>& decayItems = it->second;
-		tempItems.insert(tempItems.end(), decayItems.begin(), decayItems.end());
-		it = decayMap.erase(it);
-	}
-
-	for (Item* item : tempItems) {
 		if (!item->canDecay()) {
 			item->setDuration(item->getDuration());
 			item->setDecaying(DECAYING_FALSE);
@@ -116,8 +55,99 @@ void Decay::checkDecay()
 
 		g_game.ReleaseItem(item);
 	}
+}
 
-	if (it != end) {
-		eventId = g_scheduler.addEvent(createSchedulerTask(std::max<int32_t>(SCHEDULER_MINTICKS, static_cast<int32_t>(it->first - timestamp)), std::bind(&Decay::checkDecay, this)));
+size_t Decay::getTotalDecayingItems() const noexcept
+{
+	size_t total = 0;
+	for (const auto& [timestamp, items] : decayMap) {
+		total += items.size();
+	}
+	return total;
+}
+
+void Decay::startDecay(Item* item, int32_t duration)
+{
+	if (!item) [[unlikely]] {
+		return;
+	}
+
+	if (item->hasAttribute(ITEM_ATTRIBUTE_DURATION_TIMESTAMP)) {
+		stopDecay(item, item->getIntAttr(ITEM_ATTRIBUTE_DURATION_TIMESTAMP));
+	}
+
+	const DecayTimestamp timestamp = OTSYS_TIME() + static_cast<int64_t>(duration);
+	const auto schedulerDuration = clampSchedulerDuration(duration);
+
+	const bool needsReschedule = decayMap.empty() || timestamp < decayMap.begin()->first;
+
+	if (needsReschedule) {
+		if (!decayMap.empty()) {
+			g_scheduler.stopEvent(eventId);
+		}
+
+		eventId = g_scheduler.addEvent(createSchedulerTask(schedulerDuration, [this] { checkDecay(); }));
+	}
+
+	item->incrementReferenceCounter();
+	item->setDecaying(DECAYING_TRUE);
+	item->setDurationTimestamp(timestamp);
+	decayMap[timestamp].push_back(item);
+}
+
+void Decay::stopDecay(Item* item, int64_t timestamp) noexcept
+{
+	if (!item) [[unlikely]] {
+		return;
+	}
+
+	const auto it = decayMap.find(timestamp);
+	if (it == decayMap.end()) {
+		return;
+	}
+
+	auto& decayItems = it->second;
+
+	if (const auto itemIt = std::ranges::find(decayItems, item); itemIt != decayItems.end()) {
+		if (item->hasAttribute(ITEM_ATTRIBUTE_DURATION)) {
+			item->setDuration(item->getDuration());
+		}
+
+		item->removeAttribute(ITEM_ATTRIBUTE_DECAYSTATE);
+		g_game.ReleaseItem(item);
+
+		if (decayItems.size() == 1) {
+			decayMap.erase(it);
+		} else {
+			std::iter_swap(itemIt, decayItems.end() - 1);
+			decayItems.pop_back();
+		}
+	}
+}
+
+void Decay::checkDecay() noexcept
+{
+	const auto timestamp = OTSYS_TIME();
+
+	std::vector<Item*> expiredItems;
+	expiredItems.reserve(DEFAULT_RESERVE_SIZE);
+
+	auto it = decayMap.begin();
+	while (it != decayMap.end() && it->first <= timestamp) {
+		auto& items = it->second;
+
+		expiredItems.insert(
+			expiredItems.end(),
+			std::make_move_iterator(items.begin()),
+			std::make_move_iterator(items.end())
+		);
+
+		it = decayMap.erase(it);
+	}
+
+	processDecayBatch(expiredItems);
+
+	if (!decayMap.empty()) {
+		scheduleNextCheck(decayMap.begin()->first);
 	}
 }

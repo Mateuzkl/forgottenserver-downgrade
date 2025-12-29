@@ -55,5 +55,6 @@
 #include <valarray>
 #include <variant>
 #include <vector>
+#include <span>
 
 #endif // FS_OTPCH_H
