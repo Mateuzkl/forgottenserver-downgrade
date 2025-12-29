@@ -139,18 +139,14 @@ void GlobalEvents::timer()
 			continue;
 		}
 
-		nextExecutionTime = 86400000;
-		if (nextExecutionTime < nextScheduledTime) {
-			nextScheduledTime = nextExecutionTime;
-		}
-
-		globalEvent.setNextExecution(now + nextExecutionTime);
+		nextScheduledTime = std::min<int64_t>(nextScheduledTime, globalEvent.getInterval());
+		globalEvent.setNextExecution(now + globalEvent.getInterval());
 
 		++it;
 	}
 
 	if (nextScheduledTime != std::numeric_limits<int64_t>::max()) {
-		thinkEventId = g_scheduler.addEvent(createSchedulerTask(nextScheduledTime, [this]() { timer(); }));
+		timerEventId = g_scheduler.addEvent(createSchedulerTask(nextScheduledTime, [this]() { timer(); }));
 	}
 }
 
@@ -175,16 +171,14 @@ void GlobalEvents::think()
 		}
 
 		nextExecutionTime = globalEvent.getInterval();
-		if (nextExecutionTime < nextScheduledTime) {
-			nextScheduledTime = nextExecutionTime;
-		}
+		nextExecutionTime = std::min<int64_t>(nextExecutionTime, nextScheduledTime);
+		nextScheduledTime = nextExecutionTime;
 
-		globalEvent.setNextExecution(globalEvent.getNextExecution() + nextExecutionTime);
+		globalEvent.setNextExecution(now + nextExecutionTime);
 	}
 
 	if (nextScheduledTime != std::numeric_limits<int64_t>::max()) {
-		timerEventId = g_scheduler.addEvent(
-		    createSchedulerTask(std::max<int64_t>(1000, nextScheduledTime), [this]() { think(); }));
+		timerEventId = g_scheduler.addEvent(createSchedulerTask(nextScheduledTime, [this]() { think(); }));
 	}
 }
 
@@ -279,7 +273,7 @@ bool GlobalEvent::configureEvent(const pugi::xml_node& node)
 
 		time_t difference = static_cast<time_t>(difftime(mktime(&timeinfo), current_time));
 		if (difference < 0) {
-			difference += 86400000;
+			difference += 86400;
 		}
 
 		nextExecution = (current_time + difference) * 1000;
