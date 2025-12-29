@@ -13,22 +13,23 @@ extern Scheduler g_scheduler;
 
 namespace {
 
-constexpr uint16_t OUTPUTMESSAGE_FREE_LIST_CAPACITY = 2048;
-constexpr std::chrono::milliseconds OUTPUTMESSAGE_AUTOSEND_DELAY{10};
+const uint16_t OUTPUTMESSAGE_FREE_LIST_CAPACITY = 2048;
+const std::chrono::milliseconds OUTPUTMESSAGE_AUTOSEND_DELAY{10};
 
 void sendAll(const std::vector<Protocol_ptr>& bufferedProtocols);
 
 void scheduleSendAll(const std::vector<Protocol_ptr>& bufferedProtocols)
 {
-	g_scheduler.addEvent(createSchedulerTask(OUTPUTMESSAGE_AUTOSEND_DELAY.count(), 
-		[&bufferedProtocols]() { sendAll(bufferedProtocols); }));
+	g_scheduler.addEvent(
+	    createSchedulerTask(OUTPUTMESSAGE_AUTOSEND_DELAY.count(), [&]() { sendAll(bufferedProtocols); }));
 }
 
 void sendAll(const std::vector<Protocol_ptr>& bufferedProtocols)
 {
 	// dispatcher thread
-	for (const auto& protocol : bufferedProtocols) {
-		if (auto msg = protocol->getCurrentBuffer(); msg) {
+	for (auto& protocol : bufferedProtocols) {
+		auto& msg = protocol->getCurrentBuffer();
+		if (msg) {
 			protocol->send(std::move(msg));
 		}
 	}
@@ -46,13 +47,14 @@ void OutputMessagePool::addProtocolToAutosend(Protocol_ptr protocol)
 	if (bufferedProtocols.empty()) {
 		scheduleSendAll(bufferedProtocols);
 	}
-	bufferedProtocols.emplace_back(std::move(protocol));
+	bufferedProtocols.emplace_back(protocol);
 }
 
 void OutputMessagePool::removeProtocolFromAutosend(const Protocol_ptr& protocol)
 {
 	// dispatcher thread
-	if (auto it = std::ranges::find(bufferedProtocols, protocol); it != bufferedProtocols.end()) {
+	auto it = std::find(bufferedProtocols.begin(), bufferedProtocols.end(), protocol);
+	if (it != bufferedProtocols.end()) {
 		std::swap(*it, bufferedProtocols.back());
 		bufferedProtocols.pop_back();
 	}

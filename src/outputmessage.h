@@ -17,31 +17,30 @@ public:
 	OutputMessage(const OutputMessage&) = delete;
 	OutputMessage& operator=(const OutputMessage&) = delete;
 
-	[[nodiscard]] uint8_t* getOutputBuffer() noexcept { return &buffer[outputBufferStart]; }
+	uint8_t* getOutputBuffer() { return &buffer[outputBufferStart]; }
 
-	void writeMessageLength() noexcept { add_header(info.length); }
+	void writeMessageLength() { add_header(info.length); }
 
-	void addCryptoHeader(bool addChecksum, bool compression = false) noexcept {
-		if (compression) {
-			add_header<uint32_t>(0);
-		} else if (addChecksum) {
+	void addCryptoHeader(const bool addChecksum)
+	{
+		if (addChecksum) {
 			add_header(adlerChecksum(&buffer[outputBufferStart], info.length));
 		}
 
 		writeMessageLength();
 	}
 
-	void append(const NetworkMessage& msg) noexcept
+	void append(const NetworkMessage& msg)
 	{
-		const auto msgLen = msg.getLength();
+		auto msgLen = msg.getLength();
 		std::memcpy(buffer.data() + info.position, msg.getBuffer() + 8, msgLen);
 		info.length += msgLen;
 		info.position += msgLen;
 	}
 
-	void append(const OutputMessage_ptr& msg) noexcept
+	void append(const OutputMessage_ptr& msg)
 	{
-		const auto msgLen = msg->getLength();
+		auto msgLen = msg->getLength();
 		std::memcpy(buffer.data() + info.position, msg->getBuffer() + 8, msgLen);
 		info.length += msgLen;
 		info.position += msgLen;
@@ -49,8 +48,7 @@ public:
 
 private:
 	template <typename T>
-		requires std::is_trivially_copyable_v<T>
-	void add_header(T add) noexcept
+	void add_header(T add)
 	{
 		assert(outputBufferStart >= sizeof(T));
 		outputBufferStart -= sizeof(T);
@@ -69,13 +67,13 @@ public:
 	OutputMessagePool(const OutputMessagePool&) = delete;
 	OutputMessagePool& operator=(const OutputMessagePool&) = delete;
 
-	[[nodiscard]] static OutputMessagePool& getInstance() noexcept
+	static OutputMessagePool& getInstance()
 	{
 		static OutputMessagePool instance;
 		return instance;
 	}
 
-	[[nodiscard]] static OutputMessage_ptr getOutputMessage();
+	static OutputMessage_ptr getOutputMessage();
 
 	void addProtocolToAutosend(Protocol_ptr protocol);
 	void removeProtocolFromAutosend(const Protocol_ptr& protocol);
