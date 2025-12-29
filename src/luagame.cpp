@@ -10,6 +10,7 @@
 #include "monster.h"
 #include "monsters.h"
 #include "script.h"
+#include "spells.h"
 #include "talkaction.h"
 #include "logger.h"
 #include <fmt/format.h>
@@ -19,6 +20,7 @@ extern Vocations g_vocations;
 extern Game g_game;
 extern Monsters g_monsters;
 extern Scripts* g_scripts;
+extern Spells* g_spells;
 extern TalkActions* g_talkActions;
 
 extern LuaEnvironment g_luaEnvironment;
@@ -297,6 +299,40 @@ int luaGameGetVocations(lua_State* L)
 	for (const auto& [id, vocation] : vocations) {
 		pushUserdata<const Vocation>(L, &vocation);
 		setMetatable(L, -1, "Vocation");
+		lua_rawseti(L, -2, ++index);
+	}
+
+	return 1;
+}
+
+int luaGameGetRuneSpells(lua_State* L)
+{
+	// Game.getRuneSpells()
+	const auto& runeSpells = g_spells->getRuneSpells();
+
+	lua_createtable(L, runeSpells.size(), 0);
+
+	int index = 0;
+	for (const auto& spell : runeSpells | std::views::values) {
+		pushUserdata<const Spell>(L, &spell);
+		setMetatable(L, -1, "Spell");
+		lua_rawseti(L, -2, ++index);
+	}
+
+	return 1;
+}
+
+int luaGameGetInstantSpells(lua_State* L)
+{
+	// Game.getInstantSpells()
+	const auto& instantSpells = g_spells->getInstantSpells();
+
+	lua_createtable(L, instantSpells.size(), 0);
+
+	int index = 0;
+	for (const auto& spell : instantSpells | std::views::values) {
+		pushUserdata<const Spell>(L, &spell);
+		setMetatable(L, -1, "Spell");
 		lua_rawseti(L, -2, ++index);
 	}
 
@@ -768,6 +804,8 @@ void LuaScriptInterface::registerGame()
 	registerMethod("Game", "getOutfits", luaGameGetOutfits);
 	registerMethod("Game", "getMounts", luaGameGetMounts);
 	registerMethod("Game", "getVocations", luaGameGetVocations);
+	registerMethod("Game", "getRuneSpells", luaGameGetRuneSpells);
+	registerMethod("Game", "getInstantSpells", luaGameGetInstantSpells);
 
 	registerMethod("Game", "getGameState", luaGameGetGameState);
 	registerMethod("Game", "setGameState", luaGameSetGameState);
