@@ -56,5 +56,6 @@
 #include <variant>
 #include <vector>
 #include <span>
+#include <ranges>
 
 #endif // FS_OTPCH_H
