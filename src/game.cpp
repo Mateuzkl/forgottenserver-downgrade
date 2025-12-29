@@ -5189,7 +5189,14 @@ Guild_ptr Game::getGuild(uint32_t id) const
 	return it->second;
 }
 
-void Game::addGuild(Guild_ptr guild) { guilds[guild->getId()] = guild; }
+void Game::addGuild(Guild_ptr guild) 
+{
+  if (!guild) {
+     return;
+   }
+   
+	guilds[guild->getId()] = guild;
+}
 
 void Game::removeGuild(uint32_t guildId) { guilds.erase(guildId); }
 
