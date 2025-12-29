@@ -2588,87 +2588,6 @@ void Game::playerWriteItem(uint32_t playerId, uint32_t windowTextId, std::string
 	player->setWriteItem(nullptr);
 }
 
-/*
-void Game::playerBrowseField(uint32_t playerId, const Position& pos)
-{
-    Player* player = getPlayerByID(playerId);
-    if (!player) {
-        return;
-    }
-
-    const Position& playerPos = player->getPosition();
-    if (playerPos.z != pos.z) {
-        player->sendCancelMessage(playerPos.z > pos.z ? RETURNVALUE_FIRSTGOUPSTAIRS : RETURNVALUE_FIRSTGODOWNSTAIRS);
-        return;
-    }
-
-    if (!playerPos.isInRange(pos, 1, 1)) {
-        std::vector<Direction> listDir;
-        if (player->getPathTo(pos, listDir, 0, 1, true, true)) {
-            g_dispatcher.addTask(
-                [=, this, playerID = player->getID(), listDir = std::move(listDir)]() { playerAutoWalk(playerID,
-listDir); }); SchedulerTask* task = createSchedulerTask(RANGE_BROWSE_FIELD_INTERVAL, std::bind(
-                                      &Game::playerBrowseField, this, playerId, pos
-                                  ));
-            player->setNextWalkActionTask(task);
-        } else {
-            player->sendCancelMessage(RETURNVALUE_THEREISNOWAY);
-        }
-        return;
-    }
-
-    Tile* tile = map.getTile(pos);
-    if (!tile) {
-        return;
-    }
-
-    if (!g_events->eventPlayerOnBrowseField(player, pos)) {
-        return;
-    }
-
-    Container* container;
-
-    auto it = browseFields.find(tile);
-    if (it == browseFields.end()) {
-        container = new Container(tile);
-        container->incrementReferenceCounter();
-        browseFields[tile] = container;
-        g_scheduler.addEvent(createSchedulerTask(30000, std::bind(&Game::decreaseBrowseFieldRef, this,
-tile->getPosition()))); } else { container = it->second;
-    }
-
-    uint8_t dummyContainerId = 0xF - ((pos.x % 3) * 3 + (pos.y % 3));
-    Container* openContainer = player->getContainerByID(dummyContainerId);
-    if (openContainer) {
-        player->onCloseContainer(openContainer);
-        player->closeContainer(dummyContainerId);
-    } else {
-        player->addContainer(dummyContainerId, container);
-        player->sendContainer(dummyContainerId, container, false, 0);
-    }
-}*/
-
-/*void Game::playerSeekInContainer(uint32_t playerId, uint8_t containerId, uint16_t index)
-{
-    Player* player = getPlayerByID(playerId);
-    if (!player) {
-        return;
-    }
-
-    Container* container = player->getContainerByID(containerId);
-    if (!container || !container->hasPagination()) {
-        return;
-    }
-
-    if ((index % container->capacity()) != 0 || index >= container->size()) {
-        return;
-    }
-
-    player->setContainerIndex(containerId, index);
-    player->sendContainer(containerId, container, container->hasParent(), index);
-}
-*/
-
 void Game::playerUpdateHouseWindow(uint32_t playerId, uint8_t listId, uint32_t windowTextId, std::string_view text)
 {
 	Player* player = getPlayerByID(playerId);
@@ -2687,43 +2606,7 @@ void Game::playerUpdateHouseWindow(uint32_t playerId, uint8_t listId, uint32_t w
 
 	player->setEditHouse(nullptr);
 }
-/*
-void Game::playerWrapItem(uint32_t playerId, const Position& position, uint8_t stackPos, const uint16_t spriteId)
-{
-    Player* player = getPlayerByID(playerId);
-    if (!player) {
-        return;
-    }
 
-    Thing* thing = internalGetThing(player, position, stackPos, 0, STACKPOS_TOPDOWN_ITEM);
-    if (!thing) {
-        return;
-    }
-
-    Item* item = thing->getItem();
-    if (!item || item->getClientID() != spriteId || !item->hasAttribute(ITEM_ATTRIBUTE_WRAPID) ||
-item->hasAttribute(ITEM_ATTRIBUTE_UNIQUEID)) { player->sendCancelMessage(RETURNVALUE_NOTPOSSIBLE); return;
-    }
-
-    if (position.x != 0xFFFF && !position.isInRange(player->getPosition(), 1, 1, 0)) {
-        std::vector<Direction> listDir;
-        if (player->getPathTo(position, listDir, 0, 1, true, true)) {
-            g_dispatcher.addTask(
-                [=, this, playerID = player->getID(), listDir = std::move(listDir)]() { playerAutoWalk(playerID,
-listDir); });
-
-            SchedulerTask* task = createSchedulerTask(RANGE_WRAP_ITEM_INTERVAL, std::bind(&Game::playerWrapItem, this,
-                playerId, position, stackPos, spriteId));
-            player->setNextWalkActionTask(task);
-        } else {
-            player->sendCancelMessage(RETURNVALUE_THEREISNOWAY);
-        }
-        return;
-    }
-
-    g_events->eventPlayerOnWrapItem(player, item);
-}
-*/
 void Game::playerRequestTrade(uint32_t playerId, const Position& pos, uint8_t stackPos, uint32_t tradePlayerId,
                               uint16_t spriteId)
 {

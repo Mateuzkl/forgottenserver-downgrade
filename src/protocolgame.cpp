@@ -2820,7 +2820,7 @@ void ProtocolGame::parseNewPing(NetworkMessage& msg)
 {
 	uint32_t pingId = msg.get<uint32_t>();
 	g_dispatcher.addTask(
-		createTask(std::bind(&ProtocolGame::sendNewPing, getThis(), pingId)));
+		createTask([protocol = getThis(), pingId]() { protocol->sendNewPing(pingId); }));
 }
 
 // OTCv8
