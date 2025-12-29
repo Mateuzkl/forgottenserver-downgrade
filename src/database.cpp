@@ -14,8 +14,6 @@
 static bool connectToDatabase(MYSQL*& handle, const bool retryIfError)
 {
 	bool isFirstAttemptToConnect = true;
-	bool ssl_enforce = false;
-	bool ssl_verify = false;
 
 retry:
 	if (!isFirstAttemptToConnect) {
@@ -31,9 +29,21 @@ retry:
 		LOG_ERROR("Failed to initialize MySQL connection handle.");
 		goto error;
 	}
+
 	// Disable SSL enforcement and verification
-	mysql_options(handle, MYSQL_OPT_SSL_ENFORCE, &ssl_enforce);
-	mysql_options(handle, MYSQL_OPT_SSL_VERIFY_SERVER_CERT, &ssl_verify);
+#if defined(_WIN32)
+	{
+		bool ssl_enforce = false;
+		bool ssl_verify = false;
+		mysql_options(handle, MYSQL_OPT_SSL_ENFORCE, &ssl_enforce);
+		mysql_options(handle, MYSQL_OPT_SSL_VERIFY_SERVER_CERT, &ssl_verify);
+	}
+#else
+	{
+		unsigned int ssl_mode = SSL_MODE_DISABLED;
+		mysql_options(handle, MYSQL_OPT_SSL_MODE, &ssl_mode);
+	}
+#endif
 	
 	// connects to database
 	if (!mysql_real_connect(handle, getString(ConfigManager::MYSQL_HOST).data(),

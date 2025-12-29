@@ -4839,7 +4839,11 @@ void Game::updateWorldTime()
 	g_scheduler.addEvent(createSchedulerTask(EVENT_WORLDTIMEINTERVAL, [this]() { updateWorldTime(); }));
 	time_t osTime = time(nullptr);
 	struct tm timeInfo;
+#if defined(_WIN32)
 	localtime_s(&timeInfo, &osTime);
+#else
+	localtime_r(&osTime, &timeInfo);
+#endif
 	worldTime = (timeInfo.tm_sec + (timeInfo.tm_min * 60)) / 2.5f;
 }
 

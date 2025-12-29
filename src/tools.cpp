@@ -347,14 +347,22 @@ std::string convertIPToString(uint32_t ip)
 std::string formatDate(time_t time)
 {
 	std::tm t;
+#if defined(_WIN32)
 	localtime_s(&t, &time);
+#else
+	localtime_r(&time, &t);
+#endif
 	return fmt::format("{:%d/%m/%Y %H:%M:%S}", t);
 }
 
 std::string formatDateShort(time_t time)
 {
 	std::tm t;
+#if defined(_WIN32)
 	localtime_s(&t, &time);
+#else
+	localtime_r(&time, &t);
+#endif
 	return fmt::format("{:%d %b %Y}", t);
 }
 
