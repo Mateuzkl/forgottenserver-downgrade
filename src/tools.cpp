@@ -1187,7 +1187,7 @@ std::string_view getReturnMessage(ReturnValue value)
 
 int64_t OTSYS_TIME()
 {
-	return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch())
+	return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch())
 	    .count();
 }
 

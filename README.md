@@ -4,6 +4,8 @@
 
 ### 🐱 [Based nekiro downgrade.](https://github.com/nekiro/TFS-1.5-Downgrades)
 
+**Version: TFS 1.7 | Protocol: 8.60**
+
 - This downgrade is not download and run distribution, monsters and spells are probably not 100% correct.
 - You are welcome to submit a pull request though.
 

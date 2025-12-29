@@ -144,7 +144,7 @@ void GlobalEvents::timer()
 			nextScheduledTime = nextExecutionTime;
 		}
 
-		globalEvent.setNextExecution(globalEvent.getNextExecution() + nextExecutionTime);
+		globalEvent.setNextExecution(now + nextExecutionTime);
 
 		++it;
 	}
