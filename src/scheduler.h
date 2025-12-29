@@ -13,9 +13,9 @@ class SchedulerTask : public Task
 {
 public:
 	void setEventId(uint32_t id) { eventId = id; }
+	uint32_t getEventId() const { return eventId; }
 
-	[[nodiscard]] uint32_t getEventId() const noexcept { return eventId; }
-	[[nodiscard]] uint32_t getDelay() const noexcept { return delay; }
+	uint32_t getDelay() const { return delay; }
 
 private:
 	SchedulerTask(uint32_t delay, TaskFunc&& f) : Task(std::move(f)), delay(delay) {}
@@ -26,7 +26,7 @@ private:
 	friend SchedulerTask* createSchedulerTask(uint32_t, TaskFunc&&);
 };
 
-[[nodiscard]] SchedulerTask* createSchedulerTask(uint32_t delay, TaskFunc&& f);
+SchedulerTask* createSchedulerTask(uint32_t delay, TaskFunc&& f);
 
 class Scheduler : public ThreadHolder<Scheduler>
 {
