@@ -5,7 +5,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * (at your option) any later.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -25,14 +25,30 @@
 class Decay
 {
 	public:
+		static constexpr size_t DEFAULT_RESERVE_SIZE = 32;
+
 		void startDecay(Item* item, int32_t duration);
-		void stopDecay(Item* item, int64_t timestamp);
+		void stopDecay(Item* item, int64_t timestamp) noexcept;
+
+		[[nodiscard]] bool hasDecayingItems() const noexcept { return !decayMap.empty(); }
+
+		[[nodiscard]] size_t getDecayBucketCount() const noexcept { return decayMap.size(); }
+
+		[[nodiscard]] size_t getTotalDecayingItems() const noexcept;
 
 	private:
-		void checkDecay();
+		using DecayTimestamp = int64_t;
+		using ItemRef = Item*;
+		using DecayBucket = std::vector<ItemRef>;
+
+		void checkDecay() noexcept;
+		void processDecayBatch(std::span<ItemRef const> items) noexcept;
+		void scheduleNextCheck(DecayTimestamp nextTimestamp) noexcept;
+
+		[[nodiscard]] static constexpr int32_t clampSchedulerDuration(int32_t duration) noexcept;
 
 		uint64_t eventId {0};
-		std::map<int64_t, std::vector<Item*>> decayMap;
+		std::map<DecayTimestamp, DecayBucket> decayMap;
 };
 
 extern Decay g_decay;
