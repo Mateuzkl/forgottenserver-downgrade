@@ -810,7 +810,7 @@ bool Events::eventPlayerOnMoveCreature(Player* player, Creature* creature, const
 
 bool Events::eventPlayerOnStepTile(Player* player, const Position& fromPosition, const Position& toPosition)
 {
-	// Player:onStepTile(fromPosition, toPosition)
+	// Player:onStepTile(fromPosition, toPosition) or Player.onStepTile(self, fromPosition, toPosition)
 	if (info.playerOnStepTile == -1) {
 		return true;
 	}
@@ -831,7 +831,16 @@ bool Events::eventPlayerOnStepTile(Player* player, const Position& fromPosition,
 	Lua::pushPosition(L, fromPosition);
 	Lua::pushPosition(L, toPosition);
 
-	return scriptInterface.callFunction(3);
+	bool result = scriptInterface.callFunction(3);
+
+	// Incremental GC to reduce memory pressure from frequent step events
+	static uint32_t stepCounter = 0;
+	if (++stepCounter >= 100) {
+		stepCounter = 0;
+		lua_gc(L, LUA_GCSTEP, 50);
+	}
+
+	return result;
 }
 
 void Events::eventPlayerOnReportRuleViolation(Player* player, std::string_view targetName, uint8_t reportType,

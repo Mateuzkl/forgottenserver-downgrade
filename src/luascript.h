@@ -514,6 +514,7 @@ public:
 	bool initState() override;
 	bool reInitState();
 	bool closeState() override;
+	static void shutdown();
 
 	LuaScriptInterface* getTestInterface();
 
