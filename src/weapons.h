@@ -44,7 +44,7 @@ private:
 	Event_ptr getEvent(std::string_view nodeName) override;
 	bool registerEvent(Event_ptr event, const pugi::xml_node& node) override;
 
-	std::map<uint32_t, Weapon*> weapons;
+	std::map<uint32_t, std::unique_ptr<Weapon>> weapons;
 
 	LuaScriptInterface scriptInterface{"Weapon Interface"};
 };
