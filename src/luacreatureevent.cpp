@@ -44,6 +44,8 @@ int luaCreatureEventType(lua_State* L)
 			creature->setEventType(CREATURE_EVENT_LOGIN);
 		} else if (tmpStr == "logout") {
 			creature->setEventType(CREATURE_EVENT_LOGOUT);
+		} else if (tmpStr == "reconnect") {
+			creature->setEventType(CREATURE_EVENT_RECONNECT);
 		} else if (tmpStr == "think") {
 			creature->setEventType(CREATURE_EVENT_THINK);
 		} else if (tmpStr == "preparedeath") {
@@ -120,6 +122,7 @@ void LuaScriptInterface::registerCreatureEvents()
 	registerMethod("CreatureEvent", "register", luaCreatureEventRegister);
 	registerMethod("CreatureEvent", "onLogin", luaCreatureEventOnCallback);
 	registerMethod("CreatureEvent", "onLogout", luaCreatureEventOnCallback);
+	registerMethod("CreatureEvent", "onReconnect", luaCreatureEventOnCallback);
 	registerMethod("CreatureEvent", "onThink", luaCreatureEventOnCallback);
 	registerMethod("CreatureEvent", "onPrepareDeath", luaCreatureEventOnCallback);
 	registerMethod("CreatureEvent", "onDeath", luaCreatureEventOnCallback);

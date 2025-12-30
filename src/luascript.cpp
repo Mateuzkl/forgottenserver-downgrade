@@ -1541,6 +1541,7 @@ void LuaScriptInterface::registerFunctions()
 	registerEnum(CREATURE_EVENT_NONE);
 	registerEnum(CREATURE_EVENT_LOGIN);
 	registerEnum(CREATURE_EVENT_LOGOUT);
+	registerEnum(CREATURE_EVENT_RECONNECT);
 	registerEnum(CREATURE_EVENT_THINK);
 	registerEnum(CREATURE_EVENT_PREPAREDEATH);
 	registerEnum(CREATURE_EVENT_DEATH);
