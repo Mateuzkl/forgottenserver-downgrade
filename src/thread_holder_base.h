@@ -17,7 +17,7 @@ public:
 	void start()
 	{
 		setState(THREAD_STATE_RUNNING);
-		thread = std::thread(&Derived::threadMain, static_cast<Derived*>(this));
+		thread = std::jthread(&Derived::threadMain, static_cast<Derived*>(this));
 	}
 
 	void stop() { setState(THREAD_STATE_CLOSING); }
@@ -36,7 +36,7 @@ protected:
 
 private:
 	std::atomic<ThreadState> threadState{THREAD_STATE_TERMINATED};
-	std::thread thread;
+	std::jthread thread;
 };
 
 #endif
