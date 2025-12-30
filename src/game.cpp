@@ -3699,7 +3699,6 @@ void Game::checkCreatureWalk(uint32_t creatureId)
 	Creature* creature = getCreatureByID(creatureId);
 	if (creature && !creature->isDead()) {
 		creature->onWalk();
-		cleanup();
 	}
 }
 
