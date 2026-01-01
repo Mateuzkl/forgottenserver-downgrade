@@ -3547,7 +3547,7 @@ bool Game::playerYell(Player* player, std::string_view text)
 		}
 
 		Condition* condition = Condition::createCondition(CONDITIONID_DEFAULT, CONDITION_YELLTICKS, 30000, 0);
-		player->addCondition(condition);
+		player->addCondition(std::unique_ptr<Condition>(condition));
 	}
 
 	internalCreatureSay(player, TALKTYPE_YELL, boost::algorithm::to_upper_copy(std::string{text}), false);
@@ -5087,15 +5087,14 @@ void Game::parsePlayerExtendedOpcode(uint32_t playerId, uint8_t opcode, std::str
 	}
 }
 
-void Game::forceAddCondition(uint32_t creatureId, Condition* condition)
+void Game::forceAddCondition(uint32_t creatureId, std::unique_ptr<Condition> condition)
 {
 	Creature* creature = getCreatureByID(creatureId);
 	if (!creature) {
-		delete condition;
 		return;
 	}
 
-	creature->addCondition(condition, true);
+	creature->addCondition(std::move(condition));
 }
 
 void Game::forceRemoveCondition(uint32_t creatureId, ConditionType_t type)

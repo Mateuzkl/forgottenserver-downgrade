@@ -680,9 +680,9 @@ void Combat::doCombat(Creature* caster, Creature* target) const
 			if (params.origin != ORIGIN_MELEE) {
 				for (const auto& condition : params.conditionList) {
 					if (caster == target || !target->isImmune(condition->getType())) {
-						Condition* conditionCopy = condition->clone();
+						std::unique_ptr<Condition> conditionCopy(condition->clone());
 						conditionCopy->setParam(CONDITION_PARAM_OWNER, caster->getID());
-						target->addCombatCondition(conditionCopy);
+						target->addCombatCondition(std::move(conditionCopy));
 					}
 				}
 			}
@@ -770,7 +770,7 @@ void Combat::doCombat(Creature* caster, const Position& position) const
 								}
 
 								// TODO: infight condition until all aggressive conditions has ended
-								creature->addCombatCondition(conditionCopy);
+								creature->addCombatCondition(std::unique_ptr<Condition>(conditionCopy));
 							}
 						}
 					}
@@ -844,7 +844,7 @@ void Combat::doTargetCombat(Creature* caster, Creature* target, CombatDamage& da
 
 					// TODO: infight condition until all aggressive conditions has ended
 					if (target) {
-						target->addCombatCondition(conditionCopy);
+						target->addCombatCondition(std::unique_ptr<Condition>(conditionCopy));
 					}
 				}
 			}
@@ -1014,7 +1014,7 @@ void Combat::doAreaCombat(Creature* caster, const Position& position, const Area
 						}
 
 						// TODO: infight condition until all aggressive conditions has ended
-						creature->addCombatCondition(conditionCopy);
+						creature->addCombatCondition(std::unique_ptr<Condition>(conditionCopy));
 					}
 				}
 			}
@@ -1411,6 +1411,6 @@ void MagicField::onStepInField(Creature* creature)
 			}
 		}
 
-		creature->addCondition(conditionCopy);
+		creature->addCondition(std::unique_ptr<Condition>(conditionCopy));
 	}
 }
