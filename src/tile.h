@@ -16,6 +16,7 @@ class Mailbox;
 class MagicField;
 class QTreeLeafNode;
 class BedItem;
+class HouseTile;
 
 using CreatureVector = std::vector<Creature*>;
 using ItemVector = std::vector<Item*>;
@@ -137,6 +138,9 @@ public:
 
 	int32_t getThrowRange() const override final { return 0; }
 	bool isPushable() const override final { return false; }
+
+	virtual HouseTile* getHouseTile() { return nullptr; }
+	virtual const HouseTile* getHouseTile() const { return nullptr; }
 
 	MagicField* getFieldItem() const;
 	Teleport* getTeleportItem() const;

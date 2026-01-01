@@ -701,7 +701,7 @@ int luaTileGetHouse(lua_State* L)
 		return 1;
 	}
 
-	if (HouseTile* houseTile = dynamic_cast<HouseTile*>(tile)) {
+	if (HouseTile* houseTile = tile->getHouseTile()) {
 		pushUserdata<House>(L, houseTile->getHouse());
 		setMetatable(L, -1, "House");
 	} else {

@@ -222,7 +222,12 @@ bool House::kickPlayer(Player* player, Player* target) const
 		return false;
 	}
 
-	HouseTile* houseTile = dynamic_cast<HouseTile*>(target->getTile());
+	const auto tile = target->getTile();
+	if (!tile) {
+		return false;
+	}
+
+	const auto houseTile = tile->getHouseTile();
 	if (!houseTile || houseTile->getHouse() != this) {
 		return false;
 	}

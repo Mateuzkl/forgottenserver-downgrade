@@ -244,14 +244,16 @@ ReturnValue Container::queryAdd(int32_t index, const Thing& thing, uint32_t coun
 	}
 
 	const Cylinder* const topParent = getTopParent();
-	if (const HouseTile* const houseTile = dynamic_cast<const HouseTile*>(topParent->getTile())) {
-		House* house = houseTile->getHouse();
-		if (house && house->getProtected() && actor && !topParent->getCreature() && !house->canModifyItems(actor->getPlayer())) {
-			return RETURNVALUE_CANNOTMOVEITEMISPROTECTED;
+	if (const auto tile = topParent->getTile()) {
+		if (const auto houseTile = tile->getHouseTile()) {
+			const auto house = houseTile->getHouse();
+			if (house && house->getProtected() && actor && !topParent->getCreature() && !house->canModifyItems(actor->getPlayer())) {
+				return RETURNVALUE_CANNOTMOVEITEMISPROTECTED;
 		}
 		if (actor && getBoolean(ConfigManager::ONLY_INVITED_CAN_MOVE_HOUSE_ITEMS)) {
 			if (!topParent->getCreature() && !house->isInvited(actor->getPlayer())) {
 				return RETURNVALUE_PLAYERISNOTINVITED;
+				}
 			}
 		}
 	}
@@ -336,14 +338,16 @@ ReturnValue Container::queryRemove(const Thing& thing, uint32_t count, uint32_t 
 	}
 
 	const Cylinder* const topParent = getTopParent();
-	if (const HouseTile* const houseTile = dynamic_cast<const HouseTile*>(topParent->getTile())) {
-		House* house = houseTile->getHouse();
-		if (house && house->getProtected() && actor && !topParent->getCreature() && !house->canModifyItems(actor->getPlayer())) {
-			return RETURNVALUE_CANNOTMOVEITEMISPROTECTED;
+	if (const auto tile = topParent->getTile()) {
+		if (const auto houseTile = tile->getHouseTile()) {
+			const auto house = houseTile->getHouse();
+			if (house && house->getProtected() && actor && !topParent->getCreature() && !house->canModifyItems(actor->getPlayer())) {
+				return RETURNVALUE_CANNOTMOVEITEMISPROTECTED;
 		}
 		if (actor && getBoolean(ConfigManager::ONLY_INVITED_CAN_MOVE_HOUSE_ITEMS)) {
 			if (!topParent->getCreature() && !house->isInvited(actor->getPlayer())) {
 				return RETURNVALUE_PLAYERISNOTINVITED;
+				}
 			}
 		}
 	}
