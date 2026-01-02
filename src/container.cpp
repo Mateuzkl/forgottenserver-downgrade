@@ -35,20 +35,6 @@ Item* Container::clone() const
 	return clone;
 }
 
-Container* Container::getParentContainer() const
-{
-	auto thing = getParent();
-	if (!thing) {
-		return nullptr;
-	}
-	
-	auto item = thing->getItem();
-	if (!item) {
-		return nullptr;
-	}
-	return item->getContainer();
-}
-
 std::string Container::getName(bool addArticle /* = false*/) const
 {
 	const ItemType& it = items[id];
@@ -112,9 +98,13 @@ bool Container::unserializeItemNode(OTB::Loader& loader, const OTB::Node& node, 
 void Container::updateItemWeight(int32_t diff)
 {
 	totalWeight += diff;
-	Container* parentContainer = this;
-	while ((parentContainer = parentContainer->getParentContainer()) != nullptr) {
-		parentContainer->totalWeight += diff;
+
+	if (const auto parent = getParent()) {
+		if (const auto item = parent->getItem()) {
+			if (const auto parentContainer = item->getContainer()) {
+				parentContainer->updateItemWeight(diff);
+			}
+		}
 	}
 }
 
