@@ -65,7 +65,7 @@ bool CreatureEvents::registerEvent(Event_ptr event, const pugi::xml_node&)
 	}
 
 	// if not, register it normally
-	creatureEvents.emplace(creatureEvent->getName(), std::move(*creatureEvent));
+	creatureEvents.emplace(boost::algorithm::to_lower_copy(creatureEvent->getName()), std::move(*creatureEvent));
 	return true;
 }
 
@@ -88,13 +88,15 @@ bool CreatureEvents::registerLuaEvent(CreatureEvent* event)
 	}
 
 	// if not, register it normally
-	creatureEvents.emplace(creatureEvent->getName(), std::move(*creatureEvent));
+	creatureEvents.emplace(boost::algorithm::to_lower_copy(creatureEvent->getName()), std::move(*creatureEvent));
 	return true;
 }
 
 CreatureEvent* CreatureEvents::getEventByName(std::string_view name, bool forceLoaded /*= true*/)
 {
-	auto it = creatureEvents.find(std::string{name});
+	std::string key = boost::algorithm::to_lower_copy(std::string{name});
+
+	auto it = creatureEvents.find(key);
 	if (it != creatureEvents.end()) {
 		if (!forceLoaded || it->second.isLoaded()) {
 			return &it->second;
