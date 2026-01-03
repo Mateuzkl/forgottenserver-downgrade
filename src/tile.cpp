@@ -1285,8 +1285,9 @@ void Tile::postAddNotification(Thing* thing, const Cylinder* oldParent, int32_t 
 	SpectatorVec spectators;
 	g_game.map.getSpectators(spectators, getPosition(), true, true);
 	for (Creature* spectator : spectators) {
-		assert(dynamic_cast<Player*>(spectator) != nullptr);
-		static_cast<Player*>(spectator)->postAddNotification(thing, oldParent, index, LINK_NEAR);
+		Player* player = spectator->getPlayer();
+		if (!player) { continue; }
+		player->postAddNotification(thing, oldParent, index, LINK_NEAR);
 	}
 
 	// add a reference to this item, it may be deleted after being added (mailbox for example)
@@ -1344,26 +1345,24 @@ void Tile::postRemoveNotification(Thing* thing, const Cylinder* newParent, int32
 	g_game.map.getSpectators(spectators, tilePos, true, true);
 
 	for (Creature* spectator : spectators) {
-		assert(dynamic_cast<Player*>(spectator) != nullptr);
-
+		Player* player = spectator->getPlayer();
+		if (!player) { continue; }
+	
 		if (thingCount > TILE_UPDATE_THRESHOLD) {
 			// If the tile contains more than the defined threshold of things,
 			// send a full tile update to the player to keep the client’s view in sync
-			static_cast<Player*>(spectator)->sendUpdateTile(this, tilePos);
+			if (Player* spectatorPlayer = dynamic_cast<Player*>(spectator)) {
+    			spectatorPlayer->sendUpdateTile(this, tilePos);
+			}
 		}
-		
-		static_cast<Player*>(spectator)->postRemoveNotification(thing, newParent, index, LINK_NEAR);
+
+		player->postRemoveNotification(thing, newParent, index, LINK_NEAR);
 	}
 
-	// calling movement scripts
-	Creature* creature = thing->getCreature();
-	if (creature) {
+	if (Creature* creature = thing->getCreature()) {
 		g_moveEvents->onCreatureMove(creature, this, MOVE_EVENT_STEP_OUT);
-	} else {
-		Item* item = thing->getItem();
-		if (item) {
-			g_moveEvents->onItemMove(item, this, false);
-		}
+	} else if (Item* item = thing->getItem()) {
+		g_moveEvents->onItemMove(item, this, false);
 	}
 }
 
