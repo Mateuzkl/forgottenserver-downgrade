@@ -48,7 +48,6 @@ Direction getDirectionTo(const Position& from, const Position& to, bool extended
 std::string getFirstLine(std::string_view str);
 std::string getStringLine(std::string_view str, const int lineNumber);
 
-std::string formatDate(time_t time);
 std::string formatDateShort(time_t time);
 std::string convertIPToString(uint32_t ip);
 

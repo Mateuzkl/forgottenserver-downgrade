@@ -55,8 +55,8 @@ bool IOBan::isAccountBanned(uint32_t accountId, BanInfo& banInfo)
 		return false;
 	}
 
-	int64_t expiresAt = result->getNumber<int64_t>("expires_at");
-	if (expiresAt != 0 && time(nullptr) > expiresAt) {
+	time_t expiresAt = result->getNumber<time_t>("expires_at");
+	if (expiresAt != 0 && std::chrono::system_clock::now() > std::chrono::system_clock::from_time_t(expiresAt)) {
 		// Move the ban to history if it has expired
 		g_databaseTasks.addTask(fmt::format(
 		    "INSERT INTO `account_ban_history` (`account_id`, `reason`, `banned_at`, `expired_at`, `banned_by`) VALUES ({:d}, {:s}, {:d}, {:d}, {:d})",
@@ -87,8 +87,8 @@ bool IOBan::isIpBanned(const uint32_t clientIP, BanInfo& banInfo)
 		return false;
 	}
 
-	int64_t expiresAt = result->getNumber<int64_t>("expires_at");
-	if (expiresAt != 0 && time(nullptr) > expiresAt) {
+	time_t expiresAt = result->getNumber<time_t>("expires_at");
+	if (expiresAt != 0 && std::chrono::system_clock::now() > std::chrono::system_clock::from_time_t(expiresAt)) {
 		g_databaseTasks.addTask(fmt::format("DELETE FROM `ip_bans` WHERE `ip` = {:d}", clientIP));
 		return false;
 	}
