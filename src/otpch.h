@@ -57,5 +57,7 @@
 #include <vector>
 #include <span>
 #include <ranges>
+#include <semaphore>
+#include <chrono>
 
 #endif // FS_OTPCH_H

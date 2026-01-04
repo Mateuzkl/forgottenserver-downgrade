@@ -9,7 +9,13 @@
 #include "iologindata.h"
 #include "scheduler.h"
 
+using namespace std::chrono;
+
 extern Game g_game;
+
+static constexpr uint32_t REGEN_INTERVAL_SECONDS = 30;
+static constexpr uint32_t REGEN_TICKS_PER_INTERVAL = 30000;
+static constexpr uint32_t SOUL_REGEN_INTERVAL_SECONDS = 60 * 15;
 
 BedItem::BedItem(uint16_t id) : Item(id) { internalRemoveSleeper(); }
 
@@ -23,8 +29,7 @@ Attr_ReadValue BedItem::readAttr(AttrTypes_t attr, PropStream& propStream)
 			}
 
 			if (guid != 0) {
-				auto name = IOLoginData::getNameByGuid(guid);
-				if (!name.empty()) {
+				if (auto name = IOLoginData::getNameByGuid(guid); !name.empty()) {
 					setSpecialDescription(fmt::format("{} is sleeping there.", name));
 					g_game.setBedSleeper(this, guid);
 					sleeperGUID = guid;
@@ -65,10 +70,10 @@ void BedItem::serializeAttr(PropWriteStream& propWriteStream) const
 
 BedItem* BedItem::getNextBedItem() const
 {
-	Direction dir = Item::items[id].bedPartnerDir;
-	Position targetPos = getNextPosition(dir, getPosition());
+	const auto dir = Item::items[id].bedPartnerDir;
+	const auto targetPos = getNextPosition(dir, getPosition());
 
-	Tile* tile = g_game.map.getTile(targetPos);
+	auto* tile = g_game.map.getTile(targetPos);
 	if (!tile) {
 		return nullptr;
 	}
@@ -94,10 +99,7 @@ bool BedItem::canUse(Player* player)
 		return false;
 	}
 
-	if (house->getHouseAccessLevel(&sleeper) > house->getHouseAccessLevel(player)) {
-		return false;
-	}
-	return true;
+	return house->getHouseAccessLevel(&sleeper) <= house->getHouseAccessLevel(player);
 }
 
 bool BedItem::trySleep(Player* player)
@@ -107,7 +109,8 @@ bool BedItem::trySleep(Player* player)
 	}
 
 	if (sleeperGUID != 0) {
-		if (Item::items[id].transformToFree != 0 && house->getOwner() == player->getGUID()) {
+		const auto& itemType = Item::items[id];
+		if (itemType.transformToFree != 0 && house->getOwner() == player->getGUID()) {
 			wakeUp(nullptr);
 		}
 
@@ -119,15 +122,11 @@ bool BedItem::trySleep(Player* player)
 
 bool BedItem::sleep(Player* player)
 {
-	if (!house) {
+	if (!house || sleeperGUID != 0) {
 		return false;
 	}
 
-	if (sleeperGUID != 0) {
-		return false;
-	}
-
-	BedItem* nextBedItem = getNextBedItem();
+	auto* nextBedItem = getNextBedItem();
 
 	internalSetSleeper(player);
 
@@ -180,7 +179,7 @@ void BedItem::wakeUp(Player* player)
 	// update the bedSleepersMap
 	g_game.removeBedSleeper(sleeperGUID);
 
-	BedItem* nextBedItem = getNextBedItem();
+	auto* nextBedItem = getNextBedItem();
 
 	// unset sleep info
 	internalRemoveSleeper();
@@ -199,42 +198,57 @@ void BedItem::wakeUp(Player* player)
 
 void BedItem::regeneratePlayer(Player* player) const
 {
-	const uint32_t sleptTime = time(nullptr) - sleepStart;
+	const auto now = system_clock::now();
+	const auto currentTime = static_cast<uint64_t>(
+		duration_cast<seconds>(now.time_since_epoch()).count());
 
-	Condition* condition = player->getCondition(CONDITION_REGENERATION, CONDITIONID_DEFAULT);
+	if (currentTime <= sleepStart) {
+		return;
+	}
+
+	const auto sleptTime = static_cast<uint32_t>(currentTime - sleepStart);
+
+	auto* condition = player->getCondition(CONDITION_REGENERATION, CONDITIONID_DEFAULT);
 	if (condition) {
 		uint32_t regen;
+
 		if (condition->getTicks() != -1) {
-			regen = std::min<int32_t>((condition->getTicks() / 1000), sleptTime) / 30;
-			const int32_t newRegenTicks = condition->getTicks() - (regen * 30000);
+			const auto ticksInSeconds = static_cast<uint32_t>(condition->getTicks() / 1000);
+			regen = std::min(ticksInSeconds, sleptTime) / REGEN_INTERVAL_SECONDS;
+
+			const auto newRegenTicks = condition->getTicks() -
+				static_cast<int32_t>(regen * REGEN_TICKS_PER_INTERVAL);
+
 			if (newRegenTicks <= 0) {
 				player->removeCondition(condition);
 			} else {
 				condition->setTicks(newRegenTicks);
 			}
 		} else {
-			regen = sleptTime / 30;
+			regen = sleptTime / REGEN_INTERVAL_SECONDS;
 		}
 
 		player->changeHealth(regen, false);
 		player->changeMana(regen);
 	}
 
-	const int32_t soulRegen = sleptTime / (60 * 15);
+	const int32_t soulRegen = static_cast<int32_t>(
+		sleptTime / SOUL_REGEN_INTERVAL_SECONDS
+	);
 	player->changeSoul(soulRegen);
 }
 
 void BedItem::updateAppearance(const Player* player)
 {
-	const ItemType& it = Item::items[id];
+	const auto& it = Item::items[id];
 	if (it.type == ITEM_TYPE_BED) {
 		if (player && it.transformToOnUse[player->getSex()] != 0) {
-			const ItemType& newType = Item::items[it.transformToOnUse[player->getSex()]];
+			const auto& newType = Item::items[it.transformToOnUse[player->getSex()]];
 			if (newType.type == ITEM_TYPE_BED) {
 				g_game.transformItem(this, it.transformToOnUse[player->getSex()]);
 			}
 		} else if (it.transformToFree != 0) {
-			const ItemType& newType = Item::items[it.transformToFree];
+			const auto& newType = Item::items[it.transformToFree];
 			if (newType.type == ITEM_TYPE_BED) {
 				g_game.transformItem(this, it.transformToFree);
 			}
@@ -245,13 +259,20 @@ void BedItem::updateAppearance(const Player* player)
 void BedItem::internalSetSleeper(const Player* player)
 {
 	sleeperGUID = player->getGUID();
-	sleepStart = time(nullptr);
+	sleepStart = static_cast<uint64_t>(
+		duration_cast<seconds>(system_clock::now().time_since_epoch()).count());
+
 	setSpecialDescription(fmt::format("{} is sleeping there.", player->getName()));
 }
 
-void BedItem::internalRemoveSleeper()
+void BedItem::internalRemoveSleeper() noexcept
 {
 	sleeperGUID = 0;
 	sleepStart = 0;
+
+	if (isRemoved() || !getParent()) {
+		return;
+	}
+
 	setSpecialDescription("Nobody is sleeping there.");
 }

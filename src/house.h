@@ -195,7 +195,7 @@ private:
 	std::tuple<uint32_t, uint32_t, std::string, uint32_t, std::string> initializeOwnerDataFromDatabase(uint32_t guid_guild, HouseType_t type);
 	bool transferToDepot() const;
 	bool transferToDepot(Player* player) const;
-	void updateDoorDescription();
+	void updateDoorDescription() const;
 
 	AccessList guestList;
 	AccessList subOwnerList;

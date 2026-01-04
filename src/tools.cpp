@@ -8,7 +8,6 @@
 #include "configmanager.h"
 
 #include <chrono>
-#include <fmt/chrono.h>
 
 #include <iomanip>
 #include <openssl/evp.h>
@@ -344,26 +343,9 @@ std::string convertIPToString(uint32_t ip)
 	return buffer;
 }
 
-std::string formatDate(time_t time)
-{
-	std::tm t;
-#if defined(_WIN32)
-	localtime_s(&t, &time);
-#else
-	localtime_r(&time, &t);
-#endif
-	return fmt::format("{:%d/%m/%Y %H:%M:%S}", t);
-}
-
 std::string formatDateShort(time_t time)
 {
-	std::tm t;
-#if defined(_WIN32)
-	localtime_s(&t, &time);
-#else
-	localtime_r(&time, &t);
-#endif
-	return fmt::format("{:%d %b %Y}", t);
+	return std::format("{:%d %b %Y}", std::chrono::system_clock::from_time_t(time));
 }
 
 Position getNextPosition(Direction direction, Position pos)

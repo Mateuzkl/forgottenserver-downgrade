@@ -13,48 +13,74 @@ extern Scheduler g_scheduler;
 
 namespace {
 
-const uint16_t OUTPUTMESSAGE_FREE_LIST_CAPACITY = 2048;
-const std::chrono::milliseconds OUTPUTMESSAGE_AUTOSEND_DELAY{10};
+using namespace std::chrono_literals;
 
-void sendAll(const std::vector<Protocol_ptr>& bufferedProtocols);
+// Inline constexpr constants avoid ODR issues and are friendly to headers/optimizations
+inline constexpr uint16_t OUTPUTMESSAGE_FREE_LIST_CAPACITY = 2048;
+inline constexpr auto	 OUTPUTMESSAGE_AUTOSEND_DELAY = 10ms;
 
-void scheduleSendAll(const std::vector<Protocol_ptr>& bufferedProtocols)
+	/**
+	 * Sends all buffered messages to the protocols
+	 *
+	 * @param bufferedProtocols Pointer to the protocol vector (non-null)
+	 * @note Must be called only from the dispatcher thread
+	 * @note Marked as noexcept - failures will cause std::terminate
+	 */
+void sendAll(std::vector<Protocol_ptr>* bufferedProtocols) noexcept;
+
+	/**
+	 * Schedules the next automatic sending of messages
+	 *
+	 * @param bufferedProtocols Pointer to the protocol vector
+	 * @note Must be called only from the dispatcher thread
+	 */
+void scheduleSendAll(std::vector<Protocol_ptr>* bufferedProtocols) noexcept
 {
-	g_scheduler.addEvent(
-	    createSchedulerTask(OUTPUTMESSAGE_AUTOSEND_DELAY.count(), [&]() { sendAll(bufferedProtocols); }));
-}
+		g_scheduler.addEvent(createSchedulerTask(
+			static_cast<int>(OUTPUTMESSAGE_AUTOSEND_DELAY.count()),
+			[bufferedProtocols]() { sendAll(bufferedProtocols); }
+		));
+	}
 
-void sendAll(const std::vector<Protocol_ptr>& bufferedProtocols)
+void sendAll(std::vector<Protocol_ptr>* bufferedProtocols) noexcept
 {
-	// dispatcher thread
-	for (auto& protocol : bufferedProtocols) {
-		auto& msg = protocol->getCurrentBuffer();
-		if (msg) {
-			protocol->send(std::move(msg));
+		// dispatcher thread
+		if (!bufferedProtocols || bufferedProtocols->empty()) [[unlikely]] {
+			return;
+		}
+
+		// Sends the current buffer of each protocol, if present
+		for (auto& protocol : *bufferedProtocols) {
+			auto& msg = protocol->getCurrentBuffer();
+			if (msg) [[likely]] {
+				protocol->send(std::move(msg));
+			}
+		}
+
+		// Reschedule only if there are still buffered protocols
+		if (!bufferedProtocols->empty()) [[likely]] {
+			scheduleSendAll(bufferedProtocols);
 		}
 	}
-
-	if (!bufferedProtocols.empty()) {
-		scheduleSendAll(bufferedProtocols);
-	}
-}
-
 } // namespace
 
 void OutputMessagePool::addProtocolToAutosend(Protocol_ptr protocol)
 {
+	// THREAD-SAFETY: Must be called from dispatcher thread only
 	// dispatcher thread
-	if (bufferedProtocols.empty()) {
-		scheduleSendAll(bufferedProtocols);
+	if (bufferedProtocols.empty()) [[unlikely]] {
+		scheduleSendAll(&bufferedProtocols);
 	}
-	bufferedProtocols.emplace_back(protocol);
+	bufferedProtocols.emplace_back(std::move(protocol));
 }
 
 void OutputMessagePool::removeProtocolFromAutosend(const Protocol_ptr& protocol)
 {
+	// THREAD-SAFETY: Must be called from dispatcher thread only
 	// dispatcher thread
 	auto it = std::find(bufferedProtocols.begin(), bufferedProtocols.end(), protocol);
-	if (it != bufferedProtocols.end()) {
+	if (it != bufferedProtocols.end()) [[likely]] {
+		// Swap-and-pop for O(1) removal - does not preserve order
 		std::swap(*it, bufferedProtocols.back());
 		bufferedProtocols.pop_back();
 	}
@@ -62,7 +88,15 @@ void OutputMessagePool::removeProtocolFromAutosend(const Protocol_ptr& protocol)
 
 OutputMessage_ptr OutputMessagePool::getOutputMessage()
 {
-	// LockfreePoolingAllocator<void,...> will leave (void* allocate) ill-formed because of sizeof(T), so this
-	// guarantees that only one list will be initialized
+	/**
+	 * Uses the fixed lock-free allocator to create messages
+	 *
+	 * The fixed allocator guarantees:
+	 * - Single allocations (n=1) use the lock-free pool
+	 * - Block allocations (n>1) use the standard operator new
+	 * - Works correctly with std::allocate_shared
+	 *
+	 * Pool capacity: 2048 messages
+	 */
 	return std::allocate_shared<OutputMessage>(LockfreePoolingAllocator<void, OUTPUTMESSAGE_FREE_LIST_CAPACITY>());
 }

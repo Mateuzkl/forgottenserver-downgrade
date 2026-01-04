@@ -274,6 +274,17 @@ int luaConditionSetConstant(lua_State* L)
 	}
 	return 1;
 }
+
+int luaConditionDelete(lua_State* L)
+{
+	// __gc metamethod - destructor called by Lua's garbage collector
+	Condition** conditionPtr = getRawUserdata<Condition>(L, 1);
+	if (conditionPtr && *conditionPtr) {
+		delete *conditionPtr;
+		*conditionPtr = nullptr;
+	}
+	return 0;
+}
 } // namespace
 
 void LuaScriptInterface::registerCondition()
@@ -281,6 +292,7 @@ void LuaScriptInterface::registerCondition()
 	// Condition
 	registerClass("Condition", "", luaConditionCreate);
 	registerMetaMethod("Condition", "__eq", LuaScriptInterface::luaUserdataCompare);
+	registerMetaMethod("Condition", "__gc", luaConditionDelete);
 
 	registerMethod("Condition", "getId", luaConditionGetId);
 	registerMethod("Condition", "getSubId", luaConditionGetSubId);

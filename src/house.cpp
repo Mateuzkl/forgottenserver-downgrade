@@ -222,7 +222,12 @@ bool House::kickPlayer(Player* player, Player* target) const
 		return false;
 	}
 
-	HouseTile* houseTile = dynamic_cast<HouseTile*>(target->getTile());
+	const auto tile = target->getTile();
+	if (!tile) {
+		return false;
+	}
+
+	const auto houseTile = tile->getHouseTile();
 	if (!houseTile || houseTile->getHouse() != this) {
 		return false;
 	}
@@ -666,15 +671,28 @@ void Door::onRemoved()
 	}
 }
 
-void House::updateDoorDescription()
+void House::updateDoorDescription() const
 {
-	for (Door* door : doorSet) {
-		if (ownerName.empty()) {
-			door->setSpecialDescription("");
-		} else {
-			// Description will be personalized in Lua script based on player
-			door->setSpecialDescription(fmt::format("This house belongs to {:s}.", ownerName));
+	const bool isGuildHall = (type == HOUSE_TYPE_GUILDHALL);
+	const std::string_view houseType = isGuildHall ? "guildhall" : "house";
+
+	std::ostringstream description;
+	description << "It belongs to " << houseType << " '" << houseName << "'. ";
+
+	if (owner != 0) {
+		description << ownerName << " owns this " << houseType << ".";
+	}
+	else {
+		description << "Nobody owns this " << houseType << ".";
+
+		const int32_t housePrice = getInteger(ConfigManager::HOUSE_PRICE);
+		if (housePrice != -1 && getBoolean(ConfigManager::HOUSE_DOOR_SHOW_PRICE)) {
+			description << " It costs " << (houseTiles.size() * housePrice) << " gold coins.";
 		}
+	}
+
+	for (Door* door : doorSet) {
+		door->setSpecialDescription(description.str());
 	}
 }
 

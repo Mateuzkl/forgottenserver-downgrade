@@ -416,10 +416,12 @@ ReturnValue Actions::internalUseItem(Player* player, const Position& pos, uint8_
 
 	if (Container* container = item->getContainer()) {
 		if (!item->getDoor()) {
-			if (const HouseTile* const houseTile = dynamic_cast<const HouseTile*>(item->getTile())) {
-				House* house = houseTile->getHouse();
-				if (house && house->getProtected() && !item->getTopParent()->getCreature() && !house->canModifyItems(player)) {
-					return RETURNVALUE_CANNOTMOVEITEMISPROTECTED;
+			if (const auto tile = item->getTile()) {
+				if (const auto houseTile = tile->getHouseTile()) {
+					const auto house = houseTile->getHouse();
+					if (house && house->getProtected() && !item->getTopParent()->getCreature() && !house->canModifyItems(player)) {
+						return RETURNVALUE_CANNOTMOVEITEMISPROTECTED;
+					}
 				}
 			}
 		}
@@ -557,21 +559,24 @@ bool Actions::useItem(Player* player, const Position& pos, uint8_t index, Item* 
 	}
 
 	if (!item->getDoor()) {
-		if (const HouseTile* const houseTile = dynamic_cast<const HouseTile*>(item->getTile())) {
-			House* house = houseTile->getHouse();
-			if (house && house->getProtected() && !item->getTopParent()->getCreature() && !house->canModifyItems(player)) {
-				player->sendCancelMessage(RETURNVALUE_CANNOTMOVEITEMISPROTECTED);
-				return false;
+		if (const auto tile = item->getTile()) {
+			if (const auto houseTile = tile->getHouseTile()) {
+				const auto house = houseTile->getHouse();
+				if (house && house->getProtected() && !item->getTopParent()->getCreature() && !house->canModifyItems(player)) {
+					player->sendCancelMessage(RETURNVALUE_CANNOTMOVEITEMISPROTECTED);
+					return false;
+				}
 			}
 		}
 	}
 
 	if (getBoolean(ConfigManager::ONLY_INVITED_CAN_MOVE_HOUSE_ITEMS)) {
-		if (HouseTile* houseTile = dynamic_cast<HouseTile*>(item->getTile())) {
-			House* house = houseTile->getHouse();
-			if (house && !house->isInvited(player)) {
-				player->sendCancelMessage(RETURNVALUE_PLAYERISNOTINVITED);
-				return false;
+		if (const auto tile = item->getTile()) {
+			if (const auto houseTile = tile->getHouseTile()) {
+				if (!item->getTopParent()->getCreature() && !houseTile->getHouse()->isInvited(player)) {
+					player->sendCancelMessage(RETURNVALUE_PLAYERISNOTINVITED);
+					return false;
+				}
 			}
 		}
 	}

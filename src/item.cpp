@@ -330,7 +330,18 @@ uint16_t Item::getSubType() const
 	return count;
 }
 
-const Player* Item::getHoldingPlayer() const { return dynamic_cast<const Player*>(getTopParent()); }
+const Player* Item::getHoldingPlayer() const
+{
+	const auto topParent = getTopParent();
+	if (!topParent) {
+		return nullptr;
+	}
+
+	if (const auto creature = topParent->getCreature()) {
+		return creature->getPlayer();
+	}
+	return nullptr;
+}
 
 void Item::setSubType(uint16_t n)
 {
@@ -930,12 +941,6 @@ uint32_t Item::getWeight() const
 		return weight * std::max<uint32_t>(1, getItemCount());
 	}
 	return weight;
-}
-
-std::string Item::getDescription(int32_t) const
-{
-	// item descriptions moved to lua
-	return "";
 }
 
 std::string Item::getNameDescription(const ItemType& it, const Item* item /*= nullptr*/, int32_t subType /*= -1*/,

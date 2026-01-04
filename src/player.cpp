@@ -40,7 +40,7 @@ void trimString(std::string& str) { boost::algorithm::trim(str); }
 MuteCountMap Player::muteCountMap;
 
 uint32_t Player::playerAutoID = 0x10000000;
-std::forward_list<Condition*> Player::storedConditionList;
+std::forward_list<std::unique_ptr<Condition>> Player::storedConditionList;
 
 Player::Player(ProtocolGame_ptr p) : Creature(), lastPing(OTSYS_TIME()), lastPong(lastPing), client(std::move(p))
 {
@@ -1016,8 +1016,8 @@ void Player::onCreatureAppear(Creature* creature, bool isLogin)
 			}
 		}
 
-		for (auto condition : storedConditionList) {
-			addCondition(condition);
+		for (auto& condition : storedConditionList) {
+			addCondition(std::move(condition));
 		}
 		storedConditionList.clear();
 
@@ -1266,7 +1266,7 @@ void Player::onCreatureMove(Creature* creature, const Tile* newTile, const Posit
 		const int64_t ticks = getInteger(ConfigManager::STAIRHOP_DELAY);
 		if (ticks > 0) {
 			if (auto condition = Condition::createCondition(CONDITIONID_DEFAULT, CONDITION_PACIFIED, ticks, 0)) {
-				addCondition(condition);
+				addCondition(std::unique_ptr<Condition>(condition));
 			}
 		}
 	}
@@ -1492,7 +1492,7 @@ void Player::removeMessageBuffer()
 			uint32_t muteTime = 5 * muteCount * muteCount;
 			muteCountMap[guid] = muteCount + 1;
 			auto condition = Condition::createCondition(CONDITIONID_DEFAULT, CONDITION_MUTED, muteTime * 1000, 0);
-			addCondition(condition);
+			addCondition(std::unique_ptr<Condition>(condition));
 
 			sendTextMessage(MESSAGE_STATUS_SMALL, fmt::format("You are muted for {:d} seconds.", muteTime));
 		}
@@ -1899,7 +1899,7 @@ BlockType_t Player::blockHit(Creature* attacker, CombatType_t combatType, int32_
 
 			const int16_t& absorbPercent = it.abilities->absorbPercent[combatTypeToIndex(combatType)];
 			if (absorbPercent != 0) {
-				damage -= std::round(damage * (absorbPercent / 100.));
+				damage -= std::ceil(damage * (absorbPercent / 100.));
 
 				uint16_t charges = item->getCharges();
 				if (charges != 0) {
@@ -1912,7 +1912,7 @@ BlockType_t Player::blockHit(Creature* attacker, CombatType_t combatType, int32_
 			if (field) {
 				const int16_t& fieldAbsorbPercent = it.abilities->fieldAbsorbPercent[combatTypeToIndex(combatType)];
 				if (fieldAbsorbPercent != 0) {
-					damage -= std::round(damage * (fieldAbsorbPercent / 100.));
+					damage -= std::ceil(damage * (fieldAbsorbPercent / 100.));
 
 					uint16_t charges = item->getCharges();
 					if (charges != 0) {
@@ -2037,12 +2037,13 @@ void Player::death(Creature* lastHitCreature)
 
 		auto it = conditions.begin(), end = conditions.end();
 		while (it != end) {
-			auto& condition = *it;
+			Condition* condition = it->get();
 			if (condition->isPersistent() && !condition->isConstant()) {
+				std::unique_ptr<Condition> removedCondition = std::move(*it);
+				it = conditions.erase(it);
+
 				condition->endCondition(this);
 				onEndCondition(condition->getType());
-				it = conditions.erase(it);
-				// unique_ptr deletes automatically
 			} else {
 				++it;
 			}
@@ -2052,12 +2053,13 @@ void Player::death(Creature* lastHitCreature)
 
 		auto it = conditions.begin(), end = conditions.end();
 		while (it != end) {
-			auto& condition = *it;
+			Condition* condition = it->get();
 			if (condition->isPersistent() && !condition->isConstant()) {
+				std::unique_ptr<Condition> removedCondition = std::move(*it);
+				it = conditions.erase(it);
+
 				condition->endCondition(this);
 				onEndCondition(condition->getType());
-				it = conditions.erase(it);
-				// unique_ptr deletes automatically
 			} else {
 				++it;
 			}
@@ -2087,29 +2089,26 @@ Item* Player::getCorpse(Creature* lastHitCreature, Creature* mostDamageCreature)
 {
 	Item* corpse = Creature::getCorpse(lastHitCreature, mostDamageCreature);
 	if (corpse && corpse->getContainer()) {
-		std::unordered_map<std::string, uint16_t> names;
-		for (const auto& killer : getKillers()) {
-			++names[killer->getName()];
-		}
+		size_t killersSize = getKillers().size();
 
 		if (lastHitCreature) {
 			if (!mostDamageCreature) {
 				corpse->setSpecialDescription(
 				    fmt::format("You recognize {:s}. {:s} was killed by {:s}{:s}", getNameDescription(),
 				                getSex() == PLAYERSEX_FEMALE ? "She" : "He", lastHitCreature->getNameDescription(),
-				                names.size() > 1 ? " and others." : "."));
-			} else if (lastHitCreature != mostDamageCreature && names[lastHitCreature->getName()] == 1) {
+				                killersSize > 1 ? " and others." : "."));
+			} else if (lastHitCreature != mostDamageCreature) {
 				corpse->setSpecialDescription(
 				    fmt::format("You recognize {:s}. {:s} was killed by {:s}, {:s}{:s}", getNameDescription(),
 				                getSex() == PLAYERSEX_FEMALE ? "She" : "He", mostDamageCreature->getNameDescription(),
-				                lastHitCreature->getNameDescription(), names.size() > 2 ? " and others." : "."));
+				                lastHitCreature->getNameDescription(), killersSize > 2 ? " and others." : "."));
 			} else {
 				corpse->setSpecialDescription(
 				    fmt::format("You recognize {:s}. {:s} was killed by {:s} and others.", getNameDescription(),
 				                getSex() == PLAYERSEX_FEMALE ? "She" : "He", mostDamageCreature->getNameDescription()));
 			}
 		} else if (mostDamageCreature) {
-			if (names.size() > 1) {
+			if (killersSize > 1) {
 				corpse->setSpecialDescription(fmt::format(
 				    "You recognize {:s}. {:s} was killed by something evil, {:s}, and others", getNameDescription(),
 				    getSex() == PLAYERSEX_FEMALE ? "She" : "He", mostDamageCreature->getNameDescription()));
@@ -2121,7 +2120,7 @@ Item* Player::getCorpse(Creature* lastHitCreature, Creature* mostDamageCreature)
 		} else {
 			corpse->setSpecialDescription(fmt::format("You recognize {:s}. {:s} was killed by something evil {:s}",
 			                                          getNameDescription(), getSex() == PLAYERSEX_FEMALE ? "She" : "He",
-			                                          names.size() ? " and others." : "."));
+			                                          killersSize ? " and others." : "."));
 		}
 	}
 	return corpse;
@@ -2130,13 +2129,13 @@ Item* Player::getCorpse(Creature* lastHitCreature, Creature* mostDamageCreature)
 void Player::addCombatExhaust(uint32_t ticks)
 {
 	auto condition = Condition::createCondition(CONDITIONID_DEFAULT, CONDITION_EXHAUST_COMBAT, ticks, 0);
-	addCondition(condition);
+	addCondition(std::unique_ptr<Condition>(condition));
 }
 
 void Player::addHealExhaust(uint32_t ticks)
 {
 	auto condition = Condition::createCondition(CONDITIONID_DEFAULT, CONDITION_EXHAUST_HEAL, ticks, 0);
-	addCondition(condition);
+	addCondition(std::unique_ptr<Condition>(condition));
 }
 
 void Player::addInFightTicks(bool pzlock /*= false*/)
@@ -2151,7 +2150,7 @@ void Player::addInFightTicks(bool pzlock /*= false*/)
 
 	auto condition =
 	    Condition::createCondition(CONDITIONID_DEFAULT, CONDITION_INFIGHT, getInteger(ConfigManager::PZ_LOCKED), 0);
-	addCondition(condition);
+	addCondition(std::unique_ptr<Condition>(condition));
 }
 
 // Account Manager functionality removed
@@ -3576,7 +3575,7 @@ bool Player::onKilledCreature(Creature* target, bool lastHit /* = true*/)
 				pzLocked = true;
 				auto condition = Condition::createCondition(CONDITIONID_DEFAULT, CONDITION_INFIGHT,
 				                                            getInteger(ConfigManager::WHITE_SKULL_TIME) * 1000, 0);
-				addCondition(condition);
+				addCondition(std::unique_ptr<Condition>(condition));
 			}
 		}
 	}
@@ -4194,12 +4193,8 @@ bool Player::toggleMount(bool mount)
 
 bool Player::tameMount(uint16_t mountId)
 {
-	if (!g_game.mounts.getMountByID(mountId)) {
-		return false;
-	}
-
 	Mount* mount = g_game.mounts.getMountByID(mountId);
-	if (hasMount(mount)) {
+	if (!mount || hasMount(mount)) {
 		return false;
 	}
 
@@ -4209,12 +4204,8 @@ bool Player::tameMount(uint16_t mountId)
 
 bool Player::untameMount(uint16_t mountId)
 {
-	if (!g_game.mounts.getMountByID(mountId)) {
-		return false;
-	}
-
 	Mount* mount = g_game.mounts.getMountByID(mountId);
-	if (!hasMount(mount)) {
+	if (!mount || hasMount(mount)) {
 		return false;
 	}
 
@@ -4350,7 +4341,8 @@ size_t Player::getMaxDepotItems() const
 std::forward_list<Condition*> Player::getMuteConditions() const
 {
 	std::forward_list<Condition*> muteConditions;
-	for (const auto& condition : conditions) {
+	for (const auto& conditionPtr : conditions) {
+		Condition* condition = conditionPtr.get();
 		if (condition->getTicks() <= 0) {
 			continue;
 		}
@@ -4360,7 +4352,7 @@ std::forward_list<Condition*> Player::getMuteConditions() const
 			continue;
 		}
 
-		muteConditions.push_front(condition.get());
+		muteConditions.push_front(condition);
 	}
 	return muteConditions;
 }

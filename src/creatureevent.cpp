@@ -65,7 +65,7 @@ bool CreatureEvents::registerEvent(Event_ptr event, const pugi::xml_node&)
 	}
 
 	// if not, register it normally
-	creatureEvents.emplace(creatureEvent->getName(), std::move(*creatureEvent));
+	creatureEvents.emplace(boost::algorithm::to_lower_copy(creatureEvent->getName()), std::move(*creatureEvent));
 	return true;
 }
 
@@ -88,13 +88,15 @@ bool CreatureEvents::registerLuaEvent(CreatureEvent* event)
 	}
 
 	// if not, register it normally
-	creatureEvents.emplace(creatureEvent->getName(), std::move(*creatureEvent));
+	creatureEvents.emplace(boost::algorithm::to_lower_copy(creatureEvent->getName()), std::move(*creatureEvent));
 	return true;
 }
 
 CreatureEvent* CreatureEvents::getEventByName(std::string_view name, bool forceLoaded /*= true*/)
 {
-	auto it = creatureEvents.find(std::string{name});
+	std::string key = boost::algorithm::to_lower_copy(std::string{name});
+
+	auto it = creatureEvents.find(key);
 	if (it != creatureEvents.end()) {
 		if (!forceLoaded || it->second.isLoaded()) {
 			return &it->second;
@@ -127,6 +129,16 @@ bool CreatureEvents::playerLogout(Player* player) const
 		}
 	}
 	return true;
+}
+
+void CreatureEvents::playerReconnect(Player* player) const
+{
+	// fire global event if is registered
+	for (const auto& it : creatureEvents) {
+		if (it.second.getEventType() == CREATURE_EVENT_RECONNECT) {
+			it.second.executeOnReconnect(player);
+		}
+	}
 }
 
 bool CreatureEvents::playerAdvance(Player* player, skills_t skill, uint32_t oldLevel, uint32_t newLevel)
@@ -169,6 +181,8 @@ bool CreatureEvent::configureEvent(const pugi::xml_node& node)
 		type = CREATURE_EVENT_LOGIN;
 	} else if (tmpStr == "logout") {
 		type = CREATURE_EVENT_LOGOUT;
+	} else if (tmpStr == "reconnect") {
+		type = CREATURE_EVENT_RECONNECT;
 	} else if (tmpStr == "think") {
 		type = CREATURE_EVENT_THINK;
 	} else if (tmpStr == "preparedeath") {
@@ -207,6 +221,9 @@ std::string_view CreatureEvent::getScriptEventName() const
 
 		case CREATURE_EVENT_LOGOUT:
 			return "onLogout";
+
+		case CREATURE_EVENT_RECONNECT:
+			return "onReconnect";
 
 		case CREATURE_EVENT_THINK:
 			return "onThink";
@@ -296,6 +313,25 @@ bool CreatureEvent::executeOnLogout(Player* player) const
 	Lua::pushUserdata(L, player);
 	Lua::setMetatable(L, -1, "Player");
 	return scriptInterface->callFunction(1);
+}
+
+void CreatureEvent::executeOnReconnect(Player* player) const
+{
+	// onReconnect(player)
+	if (!scriptInterface->reserveScriptEnv()) {
+		LOG_ERROR("[Error - CreatureEvent::executeOnReconnect] Call stack overflow");
+		return;
+	}
+
+	ScriptEnvironment* env = scriptInterface->getScriptEnv();
+	env->setScriptId(scriptId, scriptInterface);
+
+	lua_State* L = scriptInterface->getLuaState();
+
+	scriptInterface->pushFunction(scriptId);
+	Lua::pushUserdata(L, player);
+	Lua::setMetatable(L, -1, "Player");
+	scriptInterface->callFunction(1);
 }
 
 bool CreatureEvent::executeOnThink(Creature* creature, uint32_t interval)

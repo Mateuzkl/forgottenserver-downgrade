@@ -303,6 +303,7 @@ bool ConfigManager::load()
 	booleans[Boolean::START_CHOOSEVOC] = getGlobalBoolean(L, "newPlayerChooseVoc", false);
 	booleans[Boolean::GENERATE_ACCOUNT_NUMBER] = getGlobalBoolean(L, "generateAccountNumber", false);
 	booleans[Boolean::CHECK_DUPLICATE_STORAGE_KEYS] = getGlobalBoolean(L, "checkDuplicateStorageKeys", false);
+	booleans[Boolean::PACKET_COMPRESSION] = getGlobalBoolean(L, "packetCompression", true);
 
 	strings[String::DEFAULT_PRIORITY] = getGlobalString(L, "defaultPriority", "high");
 	strings[String::SERVER_NAME] = getGlobalString(L, "serverName", "");
@@ -336,6 +337,7 @@ bool ConfigManager::load()
 	integers[Integer::PROTECTION_LEVEL] = getGlobalInteger(L, "protectionLevel", 1);
 	integers[Integer::DEATH_LOSE_PERCENT] = getGlobalInteger(L, "deathLosePercent", -1);
 	integers[Integer::STATUSQUERY_TIMEOUT] = getGlobalInteger(L, "statusTimeout", 5000);
+	integers[Integer::STATUS_COUNT_MAX_PLAYERS_PER_IP] = getGlobalInteger(L, "statusCountMaxPlayersPerIp", 0);
 	integers[Integer::FRAG_TIME] = getGlobalInteger(L, "timeToDecreaseFrags", 24 * 60 * 60);
 	integers[Integer::WHITE_SKULL_TIME] = getGlobalInteger(L, "whiteSkullTime", 15 * 60);
 	integers[Integer::STAIRHOP_DELAY] = getGlobalInteger(L, "stairJumpExhaustion", 2000);

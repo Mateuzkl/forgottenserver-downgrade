@@ -642,36 +642,6 @@ do
 		-- empty fluid container suffix
 		if itemGroup == ITEM_GROUP_FLUID and subType < 1 then response[#response + 1] = " It is empty." end
 
-		-- house door
-		if isDoor and not isVirtual then
-			local tile = item:getTile()
-			if tile then
-				local house = tile:getHouse()
-				if house then
-					local houseName = house:getName()
-					local houseOwnerName = house:getOwnerName()
-					local isForSale = false
-
-					if not houseOwnerName or houseOwnerName:len() == 0 then
-						houseOwnerName = "Nobody"
-						isForSale = true
-					end
-
-					local houseType = house:getType()
-					if houseType == HOUSE_TYPE_GUILDHALL then
-						response[#response + 1] = fmt(" It belongs to guildhall '%s'. %s owns this guildhall.", houseName,
-														  houseOwnerName)
-					else
-						response[#response + 1] = fmt(" It belongs to house '%s'. %s owns this house.", houseName,
-														  houseOwnerName)
-					end
-					if housePriceVisible and isForSale and pricePerSQM > 0 then
-						response[#response + 1] = fmt(" It costs %d gold coins.", pricePerSQM * house:getTileCount())
-					end
-				end
-			end
-		end
-
 		-- item count (will be reused later)
 		local count = isVirtual and 1 or item:getCount()
 

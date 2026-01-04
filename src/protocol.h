@@ -6,12 +6,13 @@
 
 #include "connection.h"
 #include "xtea.h"
+#include <zlib.h>
 
 class Protocol : public std::enable_shared_from_this<Protocol>
 {
 public:
 	explicit Protocol(Connection_ptr connection) : connection(connection) {}
-	virtual ~Protocol() = default;
+	virtual ~Protocol();
 
 	// non-copyable
 	Protocol(const Protocol&) = delete;
@@ -58,12 +59,15 @@ protected:
 
 	void setRawMessages(bool value) { rawMessages = value; }
 
+	void enableCompression();
+
 	virtual void release() {}
 
 	static constexpr size_t RSA_BUFFER_LENGTH = 128;
 
 private:
 	friend class Connection;
+	void compress(OutputMessage& msg) const;
 
 	OutputMessage_ptr outputBuffer;
 
@@ -72,6 +76,8 @@ private:
 	bool encryptionEnabled = false;
 	bool checksumEnabled = true;
 	bool rawMessages = false;
+	bool compression = false;
+	mutable z_stream zstream = {};
 };
 
 #endif

@@ -102,6 +102,12 @@ public:
 
 	uint64_t getMaxPacketSize() const { return maxPacketSize; }
 
+	/**
+	 * Shutdown the database connection and cleanup MySQL library.
+	 * Should be called before program termination.
+	 */
+	static void shutdown();
+
 private:
 	/**
 	 * Transaction related methods.
