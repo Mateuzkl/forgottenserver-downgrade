@@ -12,10 +12,10 @@ inline constexpr int32_t SCHEDULER_MINTICKS = 50;
 class SchedulerTask : public Task
 {
 public:
-	void setEventId(uint32_t id) { eventId = id; }
-	uint32_t getEventId() const { return eventId; }
+	void setEventId(uint32_t id) noexcept { eventId = id; }
+	[[nodiscard]] constexpr uint32_t getEventId() const noexcept { return eventId; }
 
-	uint32_t getDelay() const { return delay; }
+	[[nodiscard]] constexpr uint32_t getDelay() const noexcept { return delay; }
 
 private:
 	SchedulerTask(uint32_t delay, TaskFunc&& f) : Task(std::move(f)), delay(delay) {}
@@ -32,9 +32,9 @@ class Scheduler : public ThreadHolder<Scheduler>
 {
 public:
 	uint32_t addEvent(SchedulerTask* task);
-	void stopEvent(uint32_t eventId);
+	void stopEvent(uint32_t eventId) noexcept;
 
-	void shutdown();
+	void shutdown() noexcept;
 
 	void threadMain() { io_context.run(); }
 

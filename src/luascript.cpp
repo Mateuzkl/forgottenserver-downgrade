@@ -280,6 +280,17 @@ bool LuaScriptInterface::reInitState()
 	return initState();
 }
 
+void LuaEnvironment::shutdown()
+{
+    // Force garbage collection before closing
+    if (g_luaEnvironment.luaState) {
+        lua_gc(g_luaEnvironment.luaState, LUA_GCCOLLECT, 0);
+    }
+
+    // Close the main Lua state
+    g_luaEnvironment.closeState();
+}
+
 /// Same as lua_pcall, but adds stack trace to error strings in called function.
 int LuaScriptInterface::protectedCall(lua_State* L, int nargs, int nresults)
 {
@@ -1541,6 +1552,7 @@ void LuaScriptInterface::registerFunctions()
 	registerEnum(CREATURE_EVENT_NONE);
 	registerEnum(CREATURE_EVENT_LOGIN);
 	registerEnum(CREATURE_EVENT_LOGOUT);
+	registerEnum(CREATURE_EVENT_RECONNECT);
 	registerEnum(CREATURE_EVENT_THINK);
 	registerEnum(CREATURE_EVENT_PREPAREDEATH);
 	registerEnum(CREATURE_EVENT_DEATH);
@@ -3393,6 +3405,10 @@ bool LuaEnvironment::closeState()
 		return false;
 	}
 
+    // Force full garbage collection before cleanup to release Lua-managed memory
+    lua_gc(luaState, LUA_GCCOLLECT, 0);
+    lua_gc(luaState, LUA_GCCOLLECT, 0); 
+
 	for (const auto& combatEntry : combatIdMap) {
 		clearCombatObjects(combatEntry.first);
 	}
@@ -3413,6 +3429,12 @@ bool LuaEnvironment::closeState()
 	areaIdMap.clear();
 	timerEvents.clear();
 	cacheFiles.clear();
+
+    // Release event table reference
+    if (eventTableRef != -1) {
+        luaL_unref(luaState, LUA_REGISTRYINDEX, eventTableRef);
+        eventTableRef = -1;
+    }
 
 	lua_close(luaState);
 	luaState = nullptr;

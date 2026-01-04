@@ -14,36 +14,36 @@ class BedItem final : public Item
 public:
 	explicit BedItem(uint16_t id);
 
-	BedItem* getBed() override { return this; }
-	const BedItem* getBed() const override { return this; }
+	[[nodiscard]] BedItem* getBed() override { return this; }
+	[[nodiscard]] const BedItem* getBed() const override { return this; }
 
 	Attr_ReadValue readAttr(AttrTypes_t attr, PropStream& propStream) override;
 	void serializeAttr(PropWriteStream& propWriteStream) const override;
 
-	bool canRemove() const override { return house == nullptr; }
+	[[nodiscard]] bool canRemove() const override { return house == nullptr; }
 
-	uint32_t getSleeper() const { return sleeperGUID; }
+	[[nodiscard]] uint32_t getSleeper() const noexcept { return sleeperGUID; }
 
-	House* getHouse() const { return house; }
-	void setHouse(House* h) { house = h; }
+	[[nodiscard]] House* getHouse() const noexcept { return house; }
+	void setHouse(House* h) noexcept { house = h; }
 
-	bool canUse(Player* player);
+	[[nodiscard]] bool canUse(Player* player);
 
 	bool trySleep(Player* player);
 	bool sleep(Player* player);
 	void wakeUp(Player* player);
 
-	BedItem* getNextBedItem() const;
+	[[nodiscard]] BedItem* getNextBedItem() const;
 
 private:
 	void updateAppearance(const Player* player);
 	void regeneratePlayer(Player* player) const;
 	void internalSetSleeper(const Player* player);
-	void internalRemoveSleeper();
+	void internalRemoveSleeper() noexcept;
 
 	House* house = nullptr;
-	uint64_t sleepStart;
-	uint32_t sleeperGUID;
+	uint64_t sleepStart = 0;
+	uint32_t sleeperGUID = 0;
 };
 
 #endif

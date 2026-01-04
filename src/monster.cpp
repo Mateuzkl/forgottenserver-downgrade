@@ -767,20 +767,12 @@ void Monster::updateIdleStatus()
 	setIdle(idle);
 }
 
-void Monster::onAddCondition(ConditionType_t type)
-{
-	if (type == CONDITION_FIRE || type == CONDITION_ENERGY || type == CONDITION_POISON) {
-		updateMapCache();
-	}
-
-	updateIdleStatus();
-}
+void Monster::onAddCondition(ConditionType_t) { updateIdleStatus(); }
 
 void Monster::onEndCondition(ConditionType_t type)
 {
 	if (type == CONDITION_FIRE || type == CONDITION_ENERGY || type == CONDITION_POISON) {
 		ignoreFieldDamage = false;
-		updateMapCache();
 	}
 
 	updateIdleStatus();
@@ -1328,7 +1320,6 @@ bool Monster::getNextStep(Direction& direction, uint32_t& flags)
 			} else {
 				if (ignoreFieldDamage) {
 					ignoreFieldDamage = false;
-					updateMapCache();
 				}
 				// target dancing
 				if (attackedCreature && attackedCreature == followCreature) {
@@ -1454,7 +1445,6 @@ bool Monster::getDanceStep(const Position& creaturePos, Direction& direction, bo
 	}
 
 	if (!dirList.empty()) {
-		std::shuffle(dirList.begin(), dirList.end(), getRandomGenerator());
 		direction = dirList[uniform_random(0, dirList.size() - 1)];
 		return true;
 	}
@@ -1964,10 +1954,6 @@ bool Monster::canWalkTo(Position pos, Direction direction) const
 {
 	pos = getNextPosition(direction, pos);
 	if (isInSpawnRange(pos)) {
-		if (getWalkCache(pos) == 0) {
-			return false;
-		}
-
 		Tile* tile = g_game.map.getTile(pos);
 		if (tile && tile->getTopVisibleCreature(this) == nullptr &&
 		    tile->queryAdd(0, *this, 1, FLAG_PATHFINDING) == RETURNVALUE_NOERROR) {
@@ -2192,7 +2178,6 @@ void Monster::drainHealth(Creature* attacker, int32_t damage)
 
 	if (damage > 0 && randomStepping) {
 		ignoreFieldDamage = true;
-		updateMapCache();
 	}
 
 	if (isInvisible()) {

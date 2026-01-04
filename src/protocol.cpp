@@ -8,6 +8,15 @@
 #include "outputmessage.h"
 #include "rsa.h"
 #include "xtea.h"
+#include "logger.h"
+#include <fmt/format.h>
+
+Protocol::~Protocol()
+{
+	if (!compression) {
+		deflateEnd(&zstream);
+	}
+}
 
 namespace {
 
@@ -46,11 +55,17 @@ bool XTEA_decrypt(NetworkMessage& msg, const xtea::round_keys& key)
 void Protocol::onSendMessage(const OutputMessage_ptr& msg) const
 {
 	if (!rawMessages) {
+		bool compressed = false;
+		if (compression && msg->getLength() > 64) {
+			compress(*msg);
+			compressed = true;
+		}
+
 		msg->writeMessageLength();
 
 		if (encryptionEnabled) {
 			XTEA_encrypt(*msg, key);
-			msg->addCryptoHeader(checksumEnabled);
+			msg->addCryptoHeader(checksumEnabled, compressed);
 		}
 	}
 }
@@ -103,4 +118,35 @@ uint32_t Protocol::getIP(std::string_view s) const
 	}
 
 	return 0;
+}
+
+void Protocol::enableCompression()
+{
+	if (compression)
+		return;
+	if (deflateInit2(&zstream, 6, Z_DEFLATED, -15, 8, Z_DEFAULT_STRATEGY) != Z_OK) {
+		LOG_WARN(fmt::format("ZLIB initialization error: {}", zstream.msg ? zstream.msg : "unknown"));
+	}
+	compression = true;
+}
+
+void Protocol::compress(OutputMessage& msg) const
+{
+	static thread_local std::vector<uint8_t> buffer(NETWORKMESSAGE_MAXSIZE);
+	zstream.next_in = msg.getOutputBuffer();
+	zstream.avail_in = msg.getLength();
+	zstream.next_out = buffer.data();
+	zstream.avail_out = buffer.size();
+	if (deflate(&zstream, Z_SYNC_FLUSH) != Z_OK) {
+		LOG_WARN(fmt::format("ZLIB deflate error: {}", zstream.msg ? zstream.msg : "unknown"));
+		return;
+	}
+	int finalSize = buffer.size() - zstream.avail_out - 4;
+	if (finalSize < 0) {
+		LOG_WARN(fmt::format("Packet compression error: {}", zstream.msg ? zstream.msg : "unknown"));
+		return;
+	}
+
+	msg.reset();
+	msg.addBytes((const char*)buffer.data(), finalSize);
 }

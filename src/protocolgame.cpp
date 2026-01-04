@@ -314,6 +314,8 @@ void ProtocolGame::connect(uint32_t playerId, OperatingSystem_t operatingSystem)
 	player->lastLoginSaved = std::max<time_t>(time(nullptr), player->lastLoginSaved + 1);
 	player->resetIdleTime();
 	acceptPackets = true;
+
+	g_creatureEvents->playerReconnect(player);
 }
 
 void ProtocolGame::logout(bool displayEffect, bool forced)
@@ -2839,15 +2841,25 @@ void ProtocolGame::sendFeatures()
 	features[GameBaseSkillU16] = true;
 	features[GameAdditionalSkills] = true;
 	features[GameExtendedClientPing] = true;
+	features[GameSequencedPackets] = true;
+
+	// packet compression
+	// we don't send feature, because feature assumes all packets are compressed
+	// if adler32 is enabled then compression can be detected automatically,
+	// just adler32 must be 0
+	if (getBoolean(ConfigManager::PACKET_COMPRESSION)) {
+		enableCompression();
+	}
 
 	if (features.empty()) return;
 
-	NetworkMessage msg;
-	msg.addByte(0x43);
-	msg.add<uint16_t>(features.size());
+	auto msg = getOutputBuffer(1024);
+	msg->addByte(0x43);
+	msg->add<uint16_t>(features.size());
 	for (auto& feature : features) {
-		msg.addByte((uint8_t)feature.first);
-		msg.addByte(feature.second ? 1 : 0);
+		msg->addByte((uint8_t)feature.first);
+		msg->addByte(feature.second ? 1 : 0);
 	}
-	writeToOutputBuffer(msg);
+
+	send(std::move(getCurrentBuffer())); // send this packet immediately
 }

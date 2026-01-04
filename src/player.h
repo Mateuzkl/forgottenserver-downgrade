@@ -1105,8 +1105,8 @@ private:
 	std::forward_list<uint32_t> modalWindows;
 	std::forward_list<std::string> learnedInstantSpellList;
 
-	static std::forward_list<Condition*>
-	    storedConditionList; // TODO: This variable is only temporarily used when logging in, get rid of it somehow
+	static std::forward_list<std::unique_ptr<Condition>> storedConditionList;
+	// TODO: This variable is only temporarily used when logging in, get rid of it somehow
 
 	std::string name;
 	std::string guildNick;

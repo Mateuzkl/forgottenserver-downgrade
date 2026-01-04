@@ -188,8 +188,6 @@ public:
 	 * \param index points to the destination index (inventory slot/container position)
 	 */
 	virtual void internalAddThing(uint32_t index, Thing* thing);
-
-	virtual void startDecaying();
 };
 
 class VirtualCylinder final : public Cylinder
@@ -224,7 +222,6 @@ public:
 
 	bool isPushable() const override { return false; }
 	int32_t getThrowRange() const override { return 1; }
-	std::string getDescription(int32_t) const override { return {}; }
 	bool isRemoved() const override { return false; }
 };
 

@@ -1,11 +1,11 @@
 // Copyright 2023 The Forgotten Server Authors. All rights reserved.
 // Use of this source code is governed by the GPL-2.0 License that can be found in the LICENSE file.
+// Modern C++20 version with performance improvements
 
 #include "otpch.h"
 
 #include "tasks.h"
 
-#include "enums.h"
 #include "game.h"
 
 extern Game g_game;
@@ -16,24 +16,32 @@ Task* createTask(uint32_t expiration, TaskFunc&& f) { return new Task(expiration
 
 void Dispatcher::threadMain()
 {
+	// C++20: Pre-allocate with reserve to reduce reallocations
 	std::vector<Task*> tmpTaskList;
-	// NOTE: second argument defer_lock is to prevent from immediate locking
-	std::unique_lock<std::mutex> taskLockUnique(taskLock, std::defer_lock);
+	tmpTaskList.reserve(32);
 
 	while (getState() != THREAD_STATE_TERMINATED) {
-		// check if there are tasks waiting
-		taskLockUnique.lock();
-		if (taskList.empty()) {
-			// if the list is empty wait for signal
-			taskSignal.wait(taskLockUnique);
-		}
-		tmpTaskList.swap(taskList);
-		taskLockUnique.unlock();
+		// C++20: Use semaphore acquire instead of condition_variable wait
+		taskSignal.acquire();
 
+		// Check termination after waking up
+		if (getState() == THREAD_STATE_TERMINATED) {
+			break;
+		}
+
+		// Critical section: move tasks to the temporary list
+		{
+			std::lock_guard<std::mutex> lockGuard(taskLock);
+			if (!taskList.empty()) {
+				tmpTaskList.swap(taskList);
+			}
+		}
+
+		// Process all available tasks
 		for (Task* task : tmpTaskList) {
 			if (!task->hasExpired()) {
 				++dispatcherCycle;
-				// execute it
+				// execute task
 				(*task)();
 			}
 			delete task;
@@ -46,32 +54,38 @@ void Dispatcher::addTask(Task* task)
 {
 	bool do_signal = false;
 
-	taskLock.lock();
+	// C++20: Use lock_guard with explicit scope for better RAII and clarity
+	{
+		std::lock_guard<std::mutex> lockGuard(taskLock);
 
-	if (getState() == THREAD_STATE_RUNNING) {
-		do_signal = taskList.empty();
-		taskList.push_back(task);
-	} else {
-		delete task;
+		if (getState() == THREAD_STATE_RUNNING) {
+			do_signal = taskList.empty();
+			taskList.push_back(task);
+		} else {
+			delete task;
+		}
 	}
 
-	taskLock.unlock();
-
-	// send a signal if the list was empty
+	// C++20: Use semaphore release instead of condition_variable notify
+	// This is more efficient and has lower overhead
 	if (do_signal) {
-		taskSignal.notify_one();
+		taskSignal.release();
 	}
 }
 
 void Dispatcher::shutdown()
 {
+	// Create shutdown task
 	Task* task = createTask([this]() {
 		setState(THREAD_STATE_TERMINATED);
-		taskSignal.notify_one();
 	});
 
-	std::lock_guard<std::mutex> lockClass(taskLock);
-	taskList.push_back(task);
+	// Add task to queue
+	{
+		std::lock_guard<std::mutex> lockGuard(taskLock);
+		taskList.push_back(task);
+	}
 
-	taskSignal.notify_one();
+	// C++20: Signal with semaphore release
+	taskSignal.release();
 }

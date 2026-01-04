@@ -35,15 +35,6 @@ Item* Container::clone() const
 	return clone;
 }
 
-Container* Container::getParentContainer() const
-{
-	Thing* thing = getParent();
-	if (!thing) {
-		return nullptr;
-	}
-	return thing->getContainer();
-}
-
 std::string Container::getName(bool addArticle /* = false*/) const
 {
 	const ItemType& it = items[id];
@@ -107,9 +98,13 @@ bool Container::unserializeItemNode(OTB::Loader& loader, const OTB::Node& node, 
 void Container::updateItemWeight(int32_t diff)
 {
 	totalWeight += diff;
-	Container* parentContainer = this;
-	while ((parentContainer = parentContainer->getParentContainer()) != nullptr) {
-		parentContainer->totalWeight += diff;
+
+	if (const auto parent = getParent()) {
+		if (const auto item = parent->getItem()) {
+			if (const auto parentContainer = item->getContainer()) {
+				parentContainer->updateItemWeight(diff);
+			}
+		}
 	}
 }
 
@@ -244,14 +239,16 @@ ReturnValue Container::queryAdd(int32_t index, const Thing& thing, uint32_t coun
 	}
 
 	const Cylinder* const topParent = getTopParent();
-	if (const HouseTile* const houseTile = dynamic_cast<const HouseTile*>(topParent->getTile())) {
-		House* house = houseTile->getHouse();
-		if (house && house->getProtected() && actor && !topParent->getCreature() && !house->canModifyItems(actor->getPlayer())) {
-			return RETURNVALUE_CANNOTMOVEITEMISPROTECTED;
+	if (const auto tile = topParent->getTile()) {
+		if (const auto houseTile = tile->getHouseTile()) {
+			const auto house = houseTile->getHouse();
+			if (house && house->getProtected() && actor && !topParent->getCreature() && !house->canModifyItems(actor->getPlayer())) {
+				return RETURNVALUE_CANNOTMOVEITEMISPROTECTED;
 		}
 		if (actor && getBoolean(ConfigManager::ONLY_INVITED_CAN_MOVE_HOUSE_ITEMS)) {
 			if (!topParent->getCreature() && !house->isInvited(actor->getPlayer())) {
 				return RETURNVALUE_PLAYERISNOTINVITED;
+				}
 			}
 		}
 	}
@@ -336,14 +333,16 @@ ReturnValue Container::queryRemove(const Thing& thing, uint32_t count, uint32_t 
 	}
 
 	const Cylinder* const topParent = getTopParent();
-	if (const HouseTile* const houseTile = dynamic_cast<const HouseTile*>(topParent->getTile())) {
-		House* house = houseTile->getHouse();
-		if (house && house->getProtected() && actor && !topParent->getCreature() && !house->canModifyItems(actor->getPlayer())) {
-			return RETURNVALUE_CANNOTMOVEITEMISPROTECTED;
+	if (const auto tile = topParent->getTile()) {
+		if (const auto houseTile = tile->getHouseTile()) {
+			const auto house = houseTile->getHouse();
+			if (house && house->getProtected() && actor && !topParent->getCreature() && !house->canModifyItems(actor->getPlayer())) {
+				return RETURNVALUE_CANNOTMOVEITEMISPROTECTED;
 		}
 		if (actor && getBoolean(ConfigManager::ONLY_INVITED_CAN_MOVE_HOUSE_ITEMS)) {
 			if (!topParent->getCreature() && !house->isInvited(actor->getPlayer())) {
 				return RETURNVALUE_PLAYERISNOTINVITED;
+				}
 			}
 		}
 	}

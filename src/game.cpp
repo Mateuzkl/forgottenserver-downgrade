@@ -1753,7 +1753,7 @@ Item* Game::transformItem(Item* item, uint16_t newId, int32_t newCount /*= -1*/)
 					newItemId = curType.decayTo;
 				}
 
-				if (newItemId < 0) {
+				if (newItemId <= 0) {
 					internalRemoveItem(item);
 					return nullptr;
 				} else if (newItemId != newId) {
@@ -2645,11 +2645,12 @@ void Game::playerRequestTrade(uint32_t playerId, const Position& pos, uint8_t st
 	}
 
 	if (getBoolean(ConfigManager::ONLY_INVITED_CAN_MOVE_HOUSE_ITEMS)) {
-		if (HouseTile* houseTile = dynamic_cast<HouseTile*>(tradeItem->getTile())) {
-			House* house = houseTile->getHouse();
-			if (house && !house->isInvited(player)) {
+		if (const auto tile = tradeItem->getTile()) {
+			if (const auto houseTile = tile->getHouseTile()) {
+			if (!tradeItem->getTopParent()->getCreature() && !houseTile->getHouse()->isInvited(player)) {
 				player->sendCancelMessage(RETURNVALUE_PLAYERISNOTINVITED);
 				return;
+				}
 			}
 		}
 	}
@@ -3546,7 +3547,7 @@ bool Game::playerYell(Player* player, std::string_view text)
 		}
 
 		Condition* condition = Condition::createCondition(CONDITIONID_DEFAULT, CONDITION_YELLTICKS, 30000, 0);
-		player->addCondition(condition);
+		player->addCondition(std::unique_ptr<Condition>(condition));
 	}
 
 	internalCreatureSay(player, TALKTYPE_YELL, boost::algorithm::to_upper_copy(std::string{text}), false);
@@ -3699,7 +3700,6 @@ void Game::checkCreatureWalk(uint32_t creatureId)
 	Creature* creature = getCreatureByID(creatureId);
 	if (creature && !creature->isDead()) {
 		creature->onWalk();
-		cleanup();
 	}
 }
 
@@ -5087,15 +5087,14 @@ void Game::parsePlayerExtendedOpcode(uint32_t playerId, uint8_t opcode, std::str
 	}
 }
 
-void Game::forceAddCondition(uint32_t creatureId, Condition* condition)
+void Game::forceAddCondition(uint32_t creatureId, std::unique_ptr<Condition> condition)
 {
 	Creature* creature = getCreatureByID(creatureId);
 	if (!creature) {
-		delete condition;
 		return;
 	}
 
-	creature->addCondition(condition, true);
+	creature->addCondition(std::move(condition));
 }
 
 void Game::forceRemoveCondition(uint32_t creatureId, ConditionType_t type)

@@ -12,49 +12,90 @@ class OutputMessage : public NetworkMessage
 {
 public:
 	OutputMessage() = default;
+	~OutputMessage() = default;
 
 	// non-copyable
 	OutputMessage(const OutputMessage&) = delete;
 	OutputMessage& operator=(const OutputMessage&) = delete;
 
-	uint8_t* getOutputBuffer() { return &buffer[outputBufferStart]; }
+	// movable (allows efficient ownership transfer)
+	OutputMessage(OutputMessage&&) noexcept = default;
+	OutputMessage& operator=(OutputMessage&&) noexcept = default;
 
-	void writeMessageLength() { add_header(info.length); }
+	[[nodiscard]] uint8_t* getOutputBuffer() noexcept { return &buffer[outputBufferStart]; }
 
-	void addCryptoHeader(const bool addChecksum)
+	void writeMessageLength() noexcept { add_header(info.length); }
+
+	void addCryptoHeader(bool addChecksum, bool compression = false) noexcept
 	{
-		if (addChecksum) {
+		if (compression) {
+			add_header<uint32_t>(0);
+		} else if (addChecksum) {
 			add_header(adlerChecksum(&buffer[outputBufferStart], info.length));
 		}
-
 		writeMessageLength();
 	}
 
-	void append(const NetworkMessage& msg)
+	void append(const NetworkMessage& msg) noexcept
 	{
-		auto msgLen = msg.getLength();
+		const auto msgLen = msg.getLength();
+
+		if (info.position + msgLen > buffer.size()) [[unlikely]] {
+			// In debug, assert fails. In release, behavior is undefined.
+			assert(false && "Buffer overflow in OutputMessage::append");
+			return;
+		}
+
 		std::memcpy(buffer.data() + info.position, msg.getBuffer() + 8, msgLen);
 		info.length += msgLen;
 		info.position += msgLen;
 	}
 
-	void append(const OutputMessage_ptr& msg)
+	void append(const OutputMessage_ptr& msg) noexcept
 	{
-		auto msgLen = msg->getLength();
+		const auto msgLen = msg->getLength();
+
+		if (info.position + msgLen > buffer.size()) [[unlikely]] {
+			assert(false && "Buffer overflow in OutputMessage::append");
+			return;
+		}
+
 		std::memcpy(buffer.data() + info.position, msg->getBuffer() + 8, msgLen);
 		info.length += msgLen;
 		info.position += msgLen;
 	}
 
+	void append(std::span<const uint8_t> bytes) noexcept
+	{
+		if (bytes.empty()) [[unlikely]] {
+			return;
+		}
+
+		if (info.position + bytes.size() > buffer.size()) [[unlikely]] {
+			assert(false && "Buffer overflow in OutputMessage::append");
+			return;
+		}
+
+		std::memcpy(buffer.data() + info.position, bytes.data(), bytes.size());
+		info.length += static_cast<MsgSize_t>(bytes.size());
+		info.position += static_cast<MsgSize_t>(bytes.size());
+	}
+
 private:
 	template <typename T>
-	void add_header(T add)
+	void add_header(T add) noexcept
 	{
-		assert(outputBufferStart >= sizeof(T));
-		outputBufferStart -= sizeof(T);
+		static_assert(std::is_trivially_copyable_v<T>,
+			"Header type must be trivially copyable");
+
+		if (outputBufferStart < sizeof(T)) [[unlikely]] {
+			assert(false && "Not enough space for header");
+			return;
+		}
+
+		outputBufferStart -= static_cast<MsgSize_t>(sizeof(T));
 		std::memcpy(buffer.data() + outputBufferStart, &add, sizeof(T));
-		// added header size to the message size
-		info.length += sizeof(T);
+		info.length += static_cast<MsgSize_t>(sizeof(T));
 	}
 
 	MsgSize_t outputBufferStart = INITIAL_BUFFER_POSITION;
@@ -76,12 +117,12 @@ public:
 	static OutputMessage_ptr getOutputMessage();
 
 	void addProtocolToAutosend(Protocol_ptr protocol);
+
 	void removeProtocolFromAutosend(const Protocol_ptr& protocol);
 
 private:
 	OutputMessagePool() = default;
-	// NOTE: A vector is used here because this container is mostly read and relatively rarely modified (only when a
-	// client connects/disconnects)
+
 	std::vector<Protocol_ptr> bufferedProtocols;
 };
 

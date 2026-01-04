@@ -93,6 +93,13 @@ bool Database::connect()
 	return true;
 }
 
+void Database::shutdown()
+{
+    Database& db = getInstance();
+    db.handle.reset();
+    mysql_library_end();
+}
+
 bool Database::beginTransaction()
 {
 	databaseLock.lock();

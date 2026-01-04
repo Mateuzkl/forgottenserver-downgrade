@@ -17,6 +17,7 @@
 #include "script.h"
 #include "scriptmanager.h"
 #include "server.h"
+#include "luascript.h"	
 
 #include <fmt/format.h>
 #include <fmt/color.h>
@@ -288,6 +289,12 @@ void startServer()
 		g_databaseTasks.shutdown();
 		g_dispatcher.shutdown();
 	}
+
+	// Cleanup Lua environment before shutting down threads
+	LuaEnvironment::shutdown();
+
+	// Cleanup MySQL connection and library
+	Database::shutdown();
 
 	g_scheduler.join();
 	g_databaseTasks.join();

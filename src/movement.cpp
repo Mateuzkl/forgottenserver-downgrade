@@ -719,13 +719,13 @@ ReturnValue MoveEvent::EquipItem(MoveEvent* moveEvent, Player* player, Item* ite
 
 	if (it.abilities->invisible) {
 		Condition* condition = Condition::createCondition(static_cast<ConditionId_t>(slot), CONDITION_INVISIBLE, -1, 0);
-		player->addCondition(condition);
+		player->addCondition(std::unique_ptr<Condition>(condition));
 	}
 
 	if (it.abilities->manaShield) {
 		Condition* condition =
 		    Condition::createCondition(static_cast<ConditionId_t>(slot), CONDITION_MANASHIELD, -1, 0);
-		player->addCondition(condition);
+		player->addCondition(std::unique_ptr<Condition>(condition));
 	}
 
 	if (it.abilities->speed != 0) {
@@ -765,7 +765,7 @@ ReturnValue MoveEvent::EquipItem(MoveEvent* moveEvent, Player* player, Item* ite
 			condition->setParam(CONDITION_PARAM_MANATICKS, it.abilities->manaTicks);
 		}
 
-		player->addCondition(condition);
+		player->addCondition(std::unique_ptr<Condition>(condition));
 	}
 
 	// skill modifiers

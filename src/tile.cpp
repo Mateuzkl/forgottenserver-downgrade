@@ -116,8 +116,6 @@ uint32_t Tile::getDownItemCount() const
 	return 0;
 }
 
-std::string Tile::getDescription(int32_t) const { return "You dont know why, but you cant see anything!"; }
-
 Teleport* Tile::getTeleportItem() const
 {
 	if (!hasFlag(TILESTATE_TELEPORT)) {
@@ -361,14 +359,9 @@ void Tile::onAddTileItem(Item* item)
 		}
 	}
 
-	// event methods
-	for (Creature* spectator : spectators) {
-		spectator->onAddTileItem(this, cylinderMapPos);
-	}
-
 	if ((!hasFlag(TILESTATE_PROTECTIONZONE) || getBoolean(ConfigManager::CLEAN_PROTECTION_ZONES)) &&
 	    item->isCleanable()) {
-		if (!dynamic_cast<HouseTile*>(this)) {
+		if (!getHouseTile()) {
 			g_game.addTileToClean(this);
 		}
 	}
@@ -432,17 +425,6 @@ void Tile::onRemoveTileItem(const SpectatorVec& spectators, const std::vector<in
 		if (!ret) {
 			g_game.removeTileToClean(this);
 		}
-	}
-}
-
-void Tile::onUpdateTile(const SpectatorVec& spectators)
-{
-	const Position& cylinderMapPos = getPosition();
-
-	// send to clients
-	for (Creature* spectator : spectators) {
-		assert(dynamic_cast<Player*>(spectator) != nullptr);
-		static_cast<Player*>(spectator)->sendUpdateTile(this, cylinderMapPos);
 	}
 }
 
@@ -866,7 +848,7 @@ void Tile::addThing(int32_t, Thing* thing)
 			if (items) {
 				for (auto it = items->getBeginTopItem(), end = items->getEndTopItem(); it != end; ++it) {
 					// Note: this is different from internalAddThing
-					if (itemType.alwaysOnTopOrder <= Item::items[(*it)->getID()].alwaysOnTopOrder) {
+					if (itemType.alwaysOnTopOrder < Item::items[(*it)->getID()].alwaysOnTopOrder) {
 						items->insert(it, item);
 						isInserted = true;
 						break;
@@ -1298,8 +1280,9 @@ void Tile::postAddNotification(Thing* thing, const Cylinder* oldParent, int32_t 
 	SpectatorVec spectators;
 	g_game.map.getSpectators(spectators, getPosition(), true, true);
 	for (Creature* spectator : spectators) {
-		assert(dynamic_cast<Player*>(spectator) != nullptr);
-		static_cast<Player*>(spectator)->postAddNotification(thing, oldParent, index, LINK_NEAR);
+		Player* player = spectator->getPlayer();
+		if (!player) { continue; }
+		player->postAddNotification(thing, oldParent, index, LINK_NEAR);
 	}
 
 	// add a reference to this item, it may be deleted after being added (mailbox for example)
@@ -1351,27 +1334,30 @@ void Tile::postAddNotification(Thing* thing, const Cylinder* oldParent, int32_t 
 
 void Tile::postRemoveNotification(Thing* thing, const Cylinder* newParent, int32_t index, cylinderlink_t)
 {
-	SpectatorVec spectators;
-	g_game.map.getSpectators(spectators, getPosition(), true, true);
+	const auto thingCount = getThingCount();
 
-	if (getThingCount() > 8) {
-		onUpdateTile(spectators);
-	}
+	SpectatorVec spectators;
+	g_game.map.getSpectators(spectators, tilePos, true, true);
 
 	for (Creature* spectator : spectators) {
-		assert(dynamic_cast<Player*>(spectator) != nullptr);
-		static_cast<Player*>(spectator)->postRemoveNotification(thing, newParent, index, LINK_NEAR);
+		Player* player = spectator->getPlayer();
+		if (!player) { continue; }
+	
+		if (thingCount > TILE_UPDATE_THRESHOLD) {
+			// If the tile contains more than the defined threshold of things,
+			// send a full tile update to the player to keep the client’s view in sync
+			if (Player* spectatorPlayer = dynamic_cast<Player*>(spectator)) {
+    			spectatorPlayer->sendUpdateTile(this, tilePos);
+			}
+		}
+
+		player->postRemoveNotification(thing, newParent, index, LINK_NEAR);
 	}
 
-	// calling movement scripts
-	Creature* creature = thing->getCreature();
-	if (creature) {
+	if (Creature* creature = thing->getCreature()) {
 		g_moveEvents->onCreatureMove(creature, this, MOVE_EVENT_STEP_OUT);
-	} else {
-		Item* item = thing->getItem();
-		if (item) {
-			g_moveEvents->onItemMove(item, this, false);
-		}
+	} else if (Item* item = thing->getItem()) {
+		g_moveEvents->onItemMove(item, this, false);
 	}
 }
 
@@ -1413,7 +1399,7 @@ void Tile::internalAddThing(uint32_t, Thing* thing)
 		if (itemType.alwaysOnTop) {
 			bool isInserted = false;
 			for (auto it = items->getBeginTopItem(), end = items->getEndTopItem(); it != end; ++it) {
-				if (Item::items[(*it)->getID()].alwaysOnTopOrder > itemType.alwaysOnTopOrder) {
+				if (Item::items[(*it)->getID()].alwaysOnTopOrder >= itemType.alwaysOnTopOrder) {
 					items->insert(it, item);
 					isInserted = true;
 					break;
@@ -1558,13 +1544,32 @@ bool Tile::isMoveableBlocking() const { return !ground || hasFlag(TILESTATE_BLOC
 Item* Tile::getUseItem(int32_t index) const
 {
 	const TileItemVector* items = getItemList();
+
+	// no items, get ground
 	if (!items || items->size() == 0) {
 		return ground;
 	}
 
+	// try getting thing by index
 	if (Thing* thing = getThing(index)) {
-		return thing->getItem();
+		Item* thingItem = thing->getItem();
+		if (thingItem) {
+			return thingItem;
+		}
 	}
 
-	return nullptr;
+	// try getting top movable item
+	Item* topDownItem = getTopDownItem();
+	if (topDownItem) {
+		return topDownItem;
+	}
+
+	// try getting door
+	for (auto it = items->rbegin(), end = items->rend(); it != end; ++it) {
+		if ((*it)->getDoor()) {
+			return (*it)->getItem();
+		}
+	}
+
+	return *items->begin();
 }

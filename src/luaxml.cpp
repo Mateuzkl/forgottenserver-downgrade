@@ -38,7 +38,7 @@ int luaDeleteXmlDocument(lua_State* L)
 		delete *document;
 		*document = nullptr;
 	}
-	return 1;
+	return 0;
 }
 
 int luaXmlDocumentChild(lua_State* L)
