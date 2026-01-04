@@ -13,28 +13,7 @@ struct BanInfo
 	time_t expiresAt;
 };
 
-struct ConnectBlock
-{
-	constexpr ConnectBlock(uint64_t lastAttempt, uint64_t blockTime, uint32_t count) :
-	    lastAttempt(lastAttempt), blockTime(blockTime), count(count)
-	{}
 
-	uint64_t lastAttempt;
-	uint64_t blockTime;
-	uint32_t count;
-};
-
-using IpConnectMap = std::map<uint32_t, ConnectBlock>;
-
-class Ban
-{
-public:
-	bool acceptConnection(const uint32_t clientIP);
-
-private:
-	IpConnectMap ipConnectMap;
-	std::recursive_mutex lock;
-};
 
 class IOBan
 {
