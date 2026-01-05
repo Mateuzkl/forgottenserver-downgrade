@@ -108,6 +108,9 @@ void Game::setGameState(GameState_t newState)
 				it = players.begin();
 			}
 
+			// Clear all spawns and release monster memory
+			map.spawns.clear();
+
 			saveMotdNum();
 			saveGameState();
 
