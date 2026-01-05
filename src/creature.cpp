@@ -29,6 +29,11 @@ Creature::~Creature()
 		// unique_ptr deletes automatically
 	}
 	conditions.clear();
+
+	// Clear registered creature events to prevent memory leak
+	// Note: We don't delete the events as they're owned by g_creatureEvents
+	eventsList.clear();
+	scriptEventsBitField = 0;
 }
 
 bool Creature::canSee(const Position& myPos, const Position& pos, int32_t viewRangeX, int32_t viewRangeY)
