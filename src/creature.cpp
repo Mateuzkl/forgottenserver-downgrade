@@ -29,6 +29,11 @@ Creature::~Creature()
 		// unique_ptr deletes automatically
 	}
 	conditions.clear();
+
+	// Clear registered creature events to prevent memory leak
+	// Note: We don't delete the events as they're owned by g_creatureEvents
+	eventsList.clear();
+	scriptEventsBitField = 0;
 }
 
 bool Creature::canSee(const Position& myPos, const Position& pos, int32_t viewRangeX, int32_t viewRangeY)
@@ -1105,11 +1110,10 @@ void Creature::removeCondition(ConditionType_t type, ConditionId_t conditionId, 
 			}
 		}
 
-
-		it = conditions.erase(it);
-		// unique_ptr handles deletion automatically
+		ConditionType_t condType = condition->getType();
 		condition->endCondition(this);
-		onEndCondition(type);
+		onEndCondition(condType);
+		it = conditions.erase(it);
 	}
 }
 
@@ -1197,9 +1201,10 @@ void Creature::executeConditions(uint32_t interval)
 				[condition](const std::unique_ptr<Condition>& ptr) { return ptr.get() == condition;});
 			
 			if (it != conditions.end()) {
-				conditions.erase(it);
+				ConditionType_t type = condition->getType();
 				condition->endCondition(this);
-				onEndCondition(condition->getType());
+				onEndCondition(type);
+				conditions.erase(it);
 			}
 		}
 	}

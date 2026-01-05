@@ -43,8 +43,8 @@ public:
 	void startSpawnCheck();
 	void stopEvent();
 
-	bool isInSpawnZone(const Position& pos);
 	void cleanup();
+	void clearMonsters();
 
 	uint32_t getSpawnedCount() const { return spawnedMap.size(); }
 	size_t getMonsterCount() const { return spawnMap.size(); }

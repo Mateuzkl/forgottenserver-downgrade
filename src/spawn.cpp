@@ -210,6 +210,7 @@ void Spawns::startup()
 void Spawns::clear()
 {
 	for (Spawn& spawn : spawnList) {
+		spawn.clearMonsters();
 		spawn.stopEvent();
 	}
 	spawnList.clear();
@@ -382,6 +383,16 @@ void Spawn::cleanup()
 			++it;
 		}
 	}
+}
+
+void Spawn::clearMonsters()
+{
+	for (const auto& it : spawnedMap) {
+		Monster* monster = it.second;
+		monster->setSpawn(nullptr);
+		monster->decrementReferenceCounter();
+	}
+	spawnedMap.clear();
 }
 
 bool Spawn::addBlock(spawnBlock_t sb)
