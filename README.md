@@ -88,6 +88,26 @@ To use the extended sprites feature, you need to extract the sprite files from t
 
 **Important**: The `.spr` and `.dat` files must match the client version (860) for proper functionality.
 
+## 🧩 Client With DLL (Extensions & Mounts)
+
+**[📥 Download Client (v8.60 with DLL & Mounts)](https://github.com/Mateuzkl/Client-cip-8.60-with-DLL-Mount)**
+
+If you are using the custom Client with DLL injection (for Mounts and other extensions), **you MUST configure your server correctly** to avoid player disconnections (kicks).
+
+The DLL requires the server to send a periodic verification packet ("DLL Check"). If disabled, the client will disconnect.
+
+**Required `config.lua` settings:**
+
+```lua
+-- DLL Check Configuration
+-- Sends the DLL verification packet. REQUIRED 'true' for the DLL Client to work.
+dllCheckKick = true
+
+-- Time in seconds between checks.
+-- CRITICAL: Must be set to 5 seconds to match the DLL's internal heartbeat.
+dllCheckKickTime = 5
+```
+
 ## 🎮 New Systems & Features
 
 This custom version includes several enhanced systems and features:

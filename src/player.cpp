@@ -1419,7 +1419,25 @@ void Player::onThink(uint32_t interval)
 {
 	Creature::onThink(interval);
 
-	sendPing();
+	int64_t timeNow = OTSYS_TIME();
+	if (timeNow - lastPing >= 5000) {
+		lastPing = timeNow;
+		if (client) {
+			client->sendPing();
+		}
+	}
+
+	if (client && !client->isOTCv8 && getBoolean(ConfigManager::DLL_CHECK_KICK)) {
+		int64_t checkInterval = getInteger(ConfigManager::DLL_CHECK_KICK_TIME) * 1000;
+		if (timeNow - lastDllCheck >= checkInterval) {
+			lastDllCheck = timeNow;
+			client->sendDllCheck();
+		}
+	} else if (ConfigManager::getBoolean(ConfigManager::DLL_CHECK_KICK)) {
+		// Debug why it's NOT entering if enabled
+		// std::cout << "[Debug] Player::onThink - Skipping DLL Check. Client: " << (client ? "Yes" : "No") 
+		//           << ", isOTCv8: " << (client && client->isOTCv8 ? "Yes" : "No") << std::endl;
+	}
 
 	MessageBufferTicks += interval;
 	if (MessageBufferTicks >= 1500) {
@@ -1431,6 +1449,7 @@ void Player::onThink(uint32_t interval)
 		idleTime += interval;
 		const int32_t kickAfterMinutes = getInteger(ConfigManager::KICK_AFTER_MINUTES);
 		if (idleTime > (kickAfterMinutes * 60000) + 60000) {
+			std::cout << "[Debug] KICKING PLAYER " << getName() << " DUE TO IDLE TIME (" << idleTime << ")" << std::endl;
 			kickPlayer(true);
 		} else if (client && idleTime == 60000 * kickAfterMinutes) {
 			client->sendTextMessage(TextMessage(

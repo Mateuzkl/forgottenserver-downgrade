@@ -56,6 +56,7 @@ enum Boolean
 	GENERATE_ACCOUNT_NUMBER,
 	CHECK_DUPLICATE_STORAGE_KEYS,
 	PACKET_COMPRESSION,
+	DLL_CHECK_KICK,
 
 	LAST_BOOLEAN /* this must be the last one */
 };
@@ -161,6 +162,7 @@ enum Integer
 	NEW_PLAYER_CAP,
 	MAX_ALLOWED_ON_A_DUMMY,
 	RATE_EXERCISE_TRAINING_SPEED,
+	DLL_CHECK_KICK_TIME,
 
 	LAST_INTEGER /* this must be the last one */
 };

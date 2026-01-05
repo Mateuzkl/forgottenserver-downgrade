@@ -310,9 +310,11 @@ void ProtocolGame::connect(uint32_t playerId, OperatingSystem_t operatingSystem)
 
 	player->client = getThis();
 	sendAddCreature(player, player->getPosition(), 0);
+	sendDllCheck();
 	player->lastIP = player->getIP();
 	player->lastLoginSaved = std::max<time_t>(time(nullptr), player->lastLoginSaved + 1);
 	player->resetIdleTime();
+	player->lastPing = OTSYS_TIME();
 	acceptPackets = true;
 
 	g_creatureEvents->playerReconnect(player);
@@ -1027,7 +1029,11 @@ void ProtocolGame::parseSetOutfit(NetworkMessage& msg)
 	newOutfit.lookLegs = msg.getByte();
 	newOutfit.lookFeet = msg.getByte();
 	newOutfit.lookAddons = msg.getByte();
-	newOutfit.lookMount = isOTCv8 ? msg.get<uint16_t>() : 0;
+	if (getVersion() != 861) {
+		newOutfit.lookMount = msg.get<uint16_t>();
+	} else {
+		newOutfit.lookMount = 0;
+	}
 	g_dispatcher.addTask([=, playerID = player->getID()]() { g_game.playerChangeOutfit(playerID, newOutfit); });
 }
 
@@ -1917,6 +1923,98 @@ void ProtocolGame::sendPing()
 	writeToOutputBuffer(msg);
 }
 
+static const std::string base64_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+static inline bool is_base64(unsigned char c) { return (isalnum(c) || (c == '+') || (c == '/')); }
+std::string dllCheckKey = "QP14kLGdTzMXygW9zhEsex7D8WAMtGgyCGFxdCDCbZ7t9A5";
+
+std::string base64Encode(const std::string& decoded_string)
+{
+	std::string ret;
+	int i = 0;
+	int j = 0;
+	uint8_t char_array_3[3];
+	uint8_t char_array_4[4];
+	int pos = 0;
+	int len = decoded_string.size();
+
+	while(len--)
+	{
+		char_array_3[i++] = decoded_string[pos++];
+		if(i == 3)
+		{
+			char_array_4[0] = (char_array_3[0] & 0xfc) >> 2;
+			char_array_4[1] = ((char_array_3[0] & 0x03) << 4) + ((char_array_3[1] & 0xf0) >> 4);
+			char_array_4[2] = ((char_array_3[1] & 0x0f) << 2) + ((char_array_3[2] & 0xc0) >> 6);
+			char_array_4[3] = char_array_3[2] & 0x3f;
+
+			for(i = 0; (i < 4); i++)
+				ret += base64_chars[char_array_4[i]];
+			i = 0;
+		}
+	}
+
+	if(i)
+	{
+		for(j = i; j < 3; j++)
+			char_array_3[j] = '\0';
+
+		char_array_4[0] = (char_array_3[0] & 0xfc) >> 2;
+		char_array_4[1] = ((char_array_3[0] & 0x03) << 4) + ((char_array_3[1] & 0xf0) >> 4);
+		char_array_4[2] = ((char_array_3[1] & 0x0f) << 2) + ((char_array_3[2] & 0xc0) >> 6);
+		char_array_4[3] = char_array_3[2] & 0x3f;
+
+		for(j = 0; (j < i + 1); j++)
+			ret += base64_chars[char_array_4[j]];
+
+		while ((i++ < 3))
+			ret += '=';
+	}
+
+	return ret;
+}
+
+void xorCrypt(std::string& buffer, const std::string& key)
+{
+	size_t strLen = buffer.length();
+	size_t keyLen = key.length();
+	for(int i = 0; i < (int)strLen; ++i)
+		buffer[i] = (char)(((char)buffer[i]) ^ ((char)key[i % keyLen]));
+}
+
+void ProtocolGame::sendDllCheck()
+{
+	if (!player) {
+		return;
+	}
+
+	if (isOTCv8) {
+		return;
+	}
+
+	if (!getBoolean(ConfigManager::DLL_CHECK_KICK)) {
+		return;
+	}
+
+	if (getVersion() != 860) {
+		return;
+	}
+
+	std::string cryptStr;
+	cryptStr.reserve(48);
+	cryptStr.append(std::to_string(OTSYS_TIME()));
+	cryptStr.append(";");
+	cryptStr.append(std::to_string(dllCheckSequence++));
+	cryptStr.append(";3puZ8qrriHA");
+
+	xorCrypt(cryptStr, dllCheckKey);
+	cryptStr = base64Encode(cryptStr);
+
+	NetworkMessage msg;
+	msg.addByte(0xBB);
+	msg.addString(cryptStr);
+	writeToOutputBuffer(msg);
+}
+
 void ProtocolGame::sendDistanceShoot(const Position& from, const Position& to, uint8_t type)
 {
 	NetworkMessage msg;
@@ -2141,11 +2239,19 @@ void ProtocolGame::sendAddCreature(const Creature* creature, const Position& pos
 	sendStats();
 	sendSkills();
 
-	// gameworld light-settings
-	sendWorldLight(g_game.getWorldLightInfo());
+	// World Light (Missing in FS, present in Baiak)
+	// Default to Daylight (250, 215) if no system exists.
+	LightInfo worldLight;
+	worldLight.level = 250;
+	worldLight.color = 215; // White/Sun
+	NetworkMessage lightMsg;
+	AddWorldLight(lightMsg, worldLight);
+	writeToOutputBuffer(lightMsg);
 
 	// player light level
 	sendCreatureLight(creature);
+
+	player->sendIcons();
 
 	const std::forward_list<VIPEntry>& vipEntries = IOLoginData::getVIPEntries(player->getAccount());
 	for (const VIPEntry& entry : vipEntries) {
@@ -2155,7 +2261,6 @@ void ProtocolGame::sendAddCreature(const Creature* creature, const Position& pos
 		        static_cast<VipStatus_t>((vipPlayer && (!vipPlayer->isInGhostMode() || player->isAccessPlayer()))));
 	}
 
-	player->sendIcons();
 }
 
 void ProtocolGame::sendMoveCreature(const Creature* creature, const Position& newPos, int32_t newStackPos,
@@ -2362,7 +2467,7 @@ void ProtocolGame::sendHouseWindow(uint32_t windowTextId, std::string_view text)
 void ProtocolGame::sendOutfitWindow()
 {
 	const auto& outfits = Outfits::getInstance().getOutfits(player->getSex());
-	if (outfits.size() == 0) {
+	if (outfits.empty()) {
 		return;
 	}
 
@@ -2371,22 +2476,14 @@ void ProtocolGame::sendOutfitWindow()
 
 	Outfit_t currentOutfit = player->getDefaultOutfit();
 	if (currentOutfit.lookType == 0) {
-		Outfit_t newOutfit;
-		newOutfit.lookType = outfits.front()->lookType;
-		currentOutfit = newOutfit;
+		currentOutfit = {};
+		currentOutfit.lookType = outfits.front()->lookType;
 	}
 
 	Mount* currentMount = g_game.mounts.getMountByID(player->getCurrentMount());
 	if (currentMount) {
 		currentOutfit.lookMount = currentMount->clientId;
 	}
-
-	/*bool mounted;
-	if (player->wasMounted) {
-	    mounted = currentOutfit.lookMount != 0;
-	} else {
-	    mounted = player->isMounted();
-	}*/
 
 	AddOutfit(msg, currentOutfit);
 
@@ -2407,31 +2504,34 @@ void ProtocolGame::sendOutfitWindow()
 		}
 
 		protocolOutfits.emplace_back(outfit->name, outfit->lookType, addons);
-		if (protocolOutfits.size() == maxProtocolOutfits) {
+		if (protocolOutfits.size() >= maxProtocolOutfits) {
 			break;
 		}
 	}
 
-	msg.addByte(protocolOutfits.size());
+	if (isOTCv8) {
+		msg.addByte(static_cast<uint8_t>(protocolOutfits.size()));
+	} else {
+		msg.add<uint16_t>(static_cast<uint16_t>(protocolOutfits.size()));
+	}
+
 	for (const ProtocolOutfit& outfit : protocolOutfits) {
 		msg.add<uint16_t>(outfit.lookType);
 		msg.addString(outfit.name);
 		msg.addByte(outfit.addons);
 	}
 
-	if (isOTCv8) {
-		std::vector<const Mount*> mounts;
-		for (const Mount& mount : g_game.mounts.getMounts()) {
-			if (player->hasMount(&mount)) {
-				mounts.push_back(&mount);
-			}
+	std::vector<const Mount*> mounts;
+	for (const Mount& mount : g_game.mounts.getMounts()) {
+		if (player->hasMount(&mount)) {
+			mounts.push_back(&mount);
 		}
+	}
 
-		msg.addByte(mounts.size());
-		for (const Mount* mount : mounts) {
-			msg.add<uint16_t>(mount->clientId);
-			msg.addString(mount->name);
-		}
+	msg.addByte(static_cast<uint8_t>(mounts.size()));
+	for (const Mount* mount : mounts) {
+		msg.add<uint16_t>(mount->clientId);
+		msg.addString(mount->name);
 	}
 
 	writeToOutputBuffer(msg);
@@ -2649,7 +2749,7 @@ void ProtocolGame::AddOutfit(NetworkMessage& msg, const Outfit_t& outfit)
 		msg.addItemId(outfit.lookTypeEx);
 	}
 
-	if (isOTCv8) {
+	if (isOTCv8 || getVersion() != 861) {
 		msg.add<uint16_t>(outfit.lookMount);
 	}
 }
