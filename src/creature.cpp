@@ -1110,11 +1110,10 @@ void Creature::removeCondition(ConditionType_t type, ConditionId_t conditionId, 
 			}
 		}
 
-
-		it = conditions.erase(it);
-		// unique_ptr handles deletion automatically
+		ConditionType_t type = condition->getType();
 		condition->endCondition(this);
 		onEndCondition(type);
+		it = conditions.erase(it);
 	}
 }
 
@@ -1202,9 +1201,10 @@ void Creature::executeConditions(uint32_t interval)
 				[condition](const std::unique_ptr<Condition>& ptr) { return ptr.get() == condition;});
 			
 			if (it != conditions.end()) {
-				conditions.erase(it);
+				ConditionType_t type = condition->getType();
 				condition->endCondition(this);
-				onEndCondition(condition->getType());
+				onEndCondition(type);
+				conditions.erase(it);
 			}
 		}
 	}
