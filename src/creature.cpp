@@ -1110,9 +1110,9 @@ void Creature::removeCondition(ConditionType_t type, ConditionId_t conditionId, 
 			}
 		}
 
-		ConditionType_t type = condition->getType();
+		ConditionType_t condType = condition->getType();
 		condition->endCondition(this);
-		onEndCondition(type);
+		onEndCondition(condType);
 		it = conditions.erase(it);
 	}
 }
