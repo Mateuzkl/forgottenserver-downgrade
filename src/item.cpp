@@ -130,6 +130,15 @@ Item* Item::CreateItem(PropStream& propStream)
 	return Item::CreateItem(id, 0);
 }
 
+std::unique_ptr<Item> Item::CreateItemSafe(const uint16_t type, uint16_t count)
+{
+    return std::unique_ptr<Item>(CreateItem(type, count));
+}
+std::unique_ptr<Item> Item::CreateItemSafe(PropStream& propStream)
+{
+    return std::unique_ptr<Item>(CreateItem(propStream));
+}
+
 Item::Item(const uint16_t type, uint16_t count /*= 0*/) : id(type)
 {
 	const ItemType& it = items[id];

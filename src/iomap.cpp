@@ -291,34 +291,37 @@ bool IOMap::parseTileArea(OTB::Loader& loader, const OTB::Node& tileAreaNode, Ma
 				}
 
 				case OTBM_ATTR_ITEM: {
-					Item* item = Item::CreateItem(propStream);
+					std::unique_ptr<Item> item(Item::CreateItem(propStream));
 					if (!item) {
 						setLastErrorString(fmt::format("[x:{:d}, y:{:d}, z:{:d}] Failed to create item.", x, y, z));
+						delete ground_item;
 						return false;
 					}
 
 					if (isHouseTile && item->isMoveable()) {
 						g_logger().warn("Moveable item with ID: {} in house: {} at position [x: {}, y: {}, z: {}].",
 									item->getID(), house->getId(), x, y, z);
-						delete item;
+						// unique_ptr auto-deletes
 					} else {
 						if (item->getItemCount() == 0) {
 							item->setItemCount(1);
 						}
 
 						if (tile) {
-							tile->internalAddThing(item);
+							tile->internalAddThing(item.get());
 							item->startDecaying();
 							item->setLoadedFromMap(true);
+							item.release(); // Tile owns the item now
 						} else if (item->isGroundTile()) {
 							delete ground_item;
-							ground_item = item;
+							ground_item = item.release();
 						} else {
-							tilePtr = createTile(ground_item, item, x, y, z);
+							tilePtr = createTile(ground_item, item.get(), x, y, z);
 							tile = tilePtr.get();
-							tile->internalAddThing(item);
+							tile->internalAddThing(item.get());
 							item->startDecaying();
 							item->setLoadedFromMap(true);
+							item.release(); // Tile owns the item now
 						}
 					}
 					break;
@@ -326,6 +329,7 @@ bool IOMap::parseTileArea(OTB::Loader& loader, const OTB::Node& tileAreaNode, Ma
 
 				default:
 					setLastErrorString(fmt::format("[x:{:d}, y:{:d}, z:{:d}] Unknown tile attribute.", x, y, z));
+					delete ground_item;
 					return false;
 			}
 		}
@@ -342,41 +346,44 @@ bool IOMap::parseTileArea(OTB::Loader& loader, const OTB::Node& tileAreaNode, Ma
 				return false;
 			}
 
-			Item* item = Item::CreateItem(stream);
+			std::unique_ptr<Item> item(Item::CreateItem(stream));
 			if (!item) {
 				setLastErrorString(fmt::format("[x:{:d}, y:{:d}, z:{:d}] Failed to create item.", x, y, z));
+				delete ground_item;
 				return false;
 			}
 
 			if (!item->unserializeItemNode(loader, itemNode, stream)) {
 				setLastErrorString(
 				    fmt::format("[x:{:d}, y:{:d}, z:{:d}] Failed to load item {:d}.", x, y, z, item->getID()));
-				delete item;
+				delete ground_item;
 				return false;
 			}
 
 			if (isHouseTile && item->isMoveable()) {
 				g_logger().warn("Moveable item with ID: {} in house: {} at position [x: {}, y: {}, z: {}].",
 								item->getID(), house->getId(), x, y, z);
-				delete item;
+				// unique_ptr auto-deletes when going out of scope
 			} else {
 				if (item->getItemCount() == 0) {
 					item->setItemCount(1);
 				}
 
 				if (tile) {
-					tile->internalAddThing(item);
+					tile->internalAddThing(item.get());
 					item->startDecaying();
 					item->setLoadedFromMap(true);
+					item.release(); // Tile owns the item now
 				} else if (item->isGroundTile()) {
 					delete ground_item;
-					ground_item = item;
+					ground_item = item.release();
 				} else {
-					tilePtr = createTile(ground_item, item, x, y, z);
+					tilePtr = createTile(ground_item, item.get(), x, y, z);
 					tile = tilePtr.get();
-					tile->internalAddThing(item);
+					tile->internalAddThing(item.get());
 					item->startDecaying();
 					item->setLoadedFromMap(true);
+					item.release(); // Tile owns the item now
 				}
 			}
 		}
