@@ -25225,7 +25225,7 @@
 		<attribute key="attack" value="33" />
 		<attribute key="weaponType" value="ammunition" />
 		<attribute key="ammoType" value="arrow" />
-		<attribute key="shootType" value="tarsalarrow" />
+
 		<attribute key="maxHitChance" value="94" />
 		
 	</item>
@@ -25235,7 +25235,7 @@
 		<attribute key="attack" value="36" />
 		<attribute key="weaponType" value="ammunition" />
 		<attribute key="ammoType" value="bolt" />
-		<attribute key="shootType" value="vortexbolt" />
+
 		<attribute key="maxHitChance" value="89" />
 		
 	</item>
@@ -26059,7 +26059,7 @@
 		<attribute key="attack" value="65" />
 		<attribute key="weaponType" value="ammunition" />
 		<attribute key="ammoType" value="arrow" />
-		<attribute key="shootType" value="crystallinearrow" />
+
 		<attribute key="maxHitChance" value="95" />
 		
 	</item>
@@ -26484,7 +26484,7 @@
 		<attribute key="attack" value="66" />
 		<attribute key="weaponType" value="ammunition" />
 		<attribute key="ammoType" value="bolt" />
-		<attribute key="shootType" value="prismaticbolt" />
+
 		<attribute key="maxHitChance" value="90" />
 		
 	</item>
@@ -26494,7 +26494,7 @@
 		<attribute key="attack" value="56" />
 		<attribute key="weaponType" value="ammunition" />
 		<attribute key="ammoType" value="bolt" />
-		<attribute key="shootType" value="drillbolt" />
+
 		<attribute key="maxHitChance" value="90" />
 		
 	</item>
@@ -26505,7 +26505,7 @@
 		<attribute key="elementEarth" value="27" />
 		<attribute key="weaponType" value="ammunition" />
 		<attribute key="ammoType" value="arrow" />
-		<attribute key="shootType" value="envenomedarrow" />
+
 		<attribute key="maxHitChance" value="93" />
 		
 	</item>
@@ -33260,7 +33260,7 @@
 	<item id="23529" article="a" name="glooth spear">
 		<attribute key="attack" value="55" />
 		<attribute key="weaponType" value="distance" />
-		<attribute key="shootType" value="gloothspear" />
+
 		<attribute key="range" value="3" />
 		<attribute key="maxHitChance" value="80" />
 		<attribute key="weight" value="2600" />
@@ -33908,7 +33908,7 @@
 		<attribute key="attack" value="20" />
 		<attribute key="weaponType" value="ammunition" />
 		<attribute key="ammoType" value="arrow" />
-		<attribute key="shootType" value="simplearrow" />
+
 		<attribute key="maxHitChance" value="91" />
 		
 	</item>
@@ -38412,7 +38412,7 @@
 		<attribute key="attack" value="48" />
 		<attribute key="range" value="4" />
 		<attribute key="elementEarth" value="2" />
-		<attribute key="shootType" value="leafstar" />
+
 	</item>
 	<item id="28392" name="swan feathers" />
 	<item id="28393" article="a" name="rainbow quartz" />
@@ -38437,7 +38437,7 @@
 		<attribute key="weaponType" value="ammunition" />
 		<attribute key="ammoType" value="arrow" />
 		<attribute key="attack" value="37" />
-		<attribute key="shootType" value="diamondarrow" />
+
 		
 	</item>
 	<item id="28414" article="a" name="spectral bolt">
@@ -38445,7 +38445,7 @@
 		<attribute key="weaponType" value="ammunition" />
 		<attribute key="ammoType" value="bolt" />
 		<attribute key="attack" value="78" />
-		<attribute key="shootType" value="spectralbolt" />
+
 		
 	</item>
 	<item id="28415" article="a" name="royal star">
@@ -38454,7 +38454,7 @@
 		<attribute key="attack" value="64" />
 		<attribute key="range" value="4" />
 		<attribute key="elementFire" value="2" />
-		<attribute key="shootType" value="royalstar" />
+
 		
 	</item>
 	<item id="28416" article="a" name="wand of darkness">
@@ -42031,7 +42031,7 @@
 		<attribute key="weaponType" value="ammunition" />
 		<attribute key="ammoType" value="arrow" />
 		<attribute key="attack" value="37" />
-		<attribute key="shootType" value="diamondarrow" />
+
 		
 	</item>
 	<item id="38558" article="a" name="spectral bolt">
@@ -42039,7 +42039,7 @@
 		<attribute key="weaponType" value="ammunition" />
 		<attribute key="ammoType" value="bolt" />
 		<attribute key="attack" value="78" />
-		<attribute key="shootType" value="spectralbolt" />
+
 		
 	</item>
 	<item id="38564" article="a" name="rope-ladder" />
