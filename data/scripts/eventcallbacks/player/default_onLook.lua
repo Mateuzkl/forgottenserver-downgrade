@@ -11,7 +11,10 @@ event.onLook = function(self, thing, position, distance, description)
 
 	if self:getGroup():getAccess() then
 		if thing:isItem() then
-			description = string.format("%s\nItem ID: %d", description, thing:getId())
+			local itemType = thing:getType()
+			local clientId = itemType:getClientId()
+			
+			description = string.format("%s\nItem ID: %d, Client ID: %d", description, thing:getId(), clientId)
 
 			local actionId = thing:getActionId()
 			if actionId ~= 0 then
@@ -22,8 +25,6 @@ event.onLook = function(self, thing, position, distance, description)
 			if uniqueId > 0 and uniqueId < 65536 then
 				description = string.format("%s, Unique ID: %d", description, uniqueId)
 			end
-
-			local itemType = thing:getType()
 
 			local transformEquipId = itemType:getTransformEquipId()
 			local transformDeEquipId = itemType:getTransformDeEquipId()

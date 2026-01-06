@@ -9,16 +9,6 @@ combat:setArea(createCombatArea(AREA_WALLFIELD, AREADIAGONAL_WALLFIELD))
 
 local spell = Spell("rune")
 function spell.onCastSpell(creature, variant, isHotkey)
-	local player = creature:getPlayer()
-	if player then
-		-- Verificar se o player realmente tem a runa
-		if player:getItemCount(2279) == 0 then
-			print("[ANTI-BUG] Player " .. player:getName() .. " tentou usar Energy Wall Rune sem ter!")
-			player:sendCancelMessage("You don't have this rune.")
-			return false
-		end
-	end
-	
 	return combat:execute(creature, variant)
 end
 
