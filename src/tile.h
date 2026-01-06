@@ -124,7 +124,7 @@ class Tile : public Cylinder
 public:
 	static Tile& nullptr_tile;
 	Tile(uint16_t x, uint16_t y, uint8_t z) : tilePos(x, y, z) {}
-	virtual ~Tile() { delete ground; };
+	virtual ~Tile() = default;
 
 	// non-copyable
 	Tile(const Tile&) = delete;
@@ -243,8 +243,8 @@ public:
 
 	Item* getUseItem(int32_t index) const;
 
-	Item* getGround() const { return ground; }
-	void setGround(Item* item) { ground = item; }
+	Item* getGround() const { return ground.get(); }
+	void setGround(Item* item) { ground.reset(item); }
 
 private:
 	void onAddTileItem(Item* item);
@@ -254,7 +254,7 @@ private:
 	void setTileFlags(const Item* item);
 	void resetTileFlags(const Item* item);
 
-	Item* ground = nullptr;
+	std::unique_ptr<Item> ground;
 	Position tilePos;
 	uint32_t flags = 0;
 };

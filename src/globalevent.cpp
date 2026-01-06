@@ -145,6 +145,12 @@ void GlobalEvents::timer()
 		++it;
 	}
 
+	 // FIX: Cancel previous event before scheduling a new one
+    if (timerEventId != 0) {
+        g_scheduler.stopEvent(timerEventId);
+        timerEventId = 0;
+    }
+
 	if (nextScheduledTime != std::numeric_limits<int64_t>::max()) {
 		timerEventId = g_scheduler.addEvent(createSchedulerTask(nextScheduledTime, [this]() { timer(); }));
 	}
@@ -176,6 +182,12 @@ void GlobalEvents::think()
 
 		globalEvent.setNextExecution(now + nextExecutionTime);
 	}
+
+		// FIX: Cancel thinkEventId before scheduling a new one
+		if (thinkEventId != 0) {
+			g_scheduler.stopEvent(thinkEventId);
+			thinkEventId = 0;
+		}
 
 	if (nextScheduledTime != std::numeric_limits<int64_t>::max()) {
 		timerEventId = g_scheduler.addEvent(createSchedulerTask(nextScheduledTime, [this]() { think(); }));

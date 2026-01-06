@@ -45,6 +45,7 @@ public:
 
 	bool loadFromXml();
 	bool startup();
+	void shutdown();
 
 	void clear();
 	bool reload();
