@@ -376,9 +376,8 @@ void Spawn::cleanup()
 	while (it != spawnedMap.end()) {
 		Monster* monster = it->second;
 		if (monster->isRemoved()) {
-
-			monster->decrementReferenceCounter();
 			it = spawnedMap.erase(it);
+			monster->decrementReferenceCounter();
 		} else {
 			++it;
 		}

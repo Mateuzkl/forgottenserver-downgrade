@@ -41,7 +41,7 @@ bool Tile::hasProperty(const Item* exclude, ITEMPROPERTY prop) const
 {
 	assert(exclude);
 
-	if (ground && exclude != ground && ground->hasProperty(prop)) {
+	if (ground && exclude != ground.get() && ground->hasProperty(prop)) {
 		return true;
 	}
 
@@ -340,7 +340,7 @@ Thing* Tile::getTopVisibleThing(const Creature* creature)
 		}
 	}
 
-	return ground;
+	return ground.get();
 }
 
 void Tile::onAddTileItem(Item* item)
@@ -811,15 +811,15 @@ void Tile::addThing(int32_t, Thing* thing)
 		const ItemType& itemType = Item::items[item->getID()];
 		if (itemType.isGroundTile()) {
 			if (ground == nullptr) {
-				ground = item;
+				ground.reset(item);
 				onAddTileItem(item);
 			} else {
 				const ItemType& oldType = Item::items[ground->getID()];
 
-				Item* oldGround = ground;
+				Item* oldGround = ground.get();
 				ground->setParent(nullptr);
-				g_game.ReleaseItem(ground);
-				ground = item;
+				g_game.ReleaseItem(ground.release());
+				ground.reset(item);
 				resetTileFlags(oldGround);
 				setTileFlags(item);
 				onUpdateTileItem(oldGround, oldType, item, itemType);
@@ -932,8 +932,8 @@ void Tile::replaceThing(uint32_t index, Thing* thing)
 
 	if (ground) {
 		if (pos == 0) {
-			oldItem = ground;
-			ground = item;
+			oldItem = ground.get();
+			ground.reset(item);
 			isInserted = true;
 		}
 
@@ -1019,9 +1019,9 @@ void Tile::removeThing(Thing* thing, uint32_t count)
 		return;
 	}
 
-	if (item == ground) {
+	if (item == ground.get()) {
 		ground->setParent(nullptr);
-		ground = nullptr;
+		ground.reset();
 
 		SpectatorVec spectators;
 		g_game.map.getSpectators(spectators, getPosition(), true);
@@ -1102,7 +1102,7 @@ int32_t Tile::getThingIndex(const Thing* thing) const
 {
 	int32_t n = -1;
 	if (ground) {
-		if (ground == thing) {
+		if (ground.get() == thing) {
 			return 0;
 		}
 		++n;
@@ -1181,7 +1181,7 @@ int32_t Tile::getStackposOfItem(const Player* player, const Item* item) const
 {
 	int32_t n = 0;
 	if (ground) {
-		if (ground == item) {
+		if (ground.get() == item) {
 			return n;
 		}
 		++n;
@@ -1228,7 +1228,7 @@ uint32_t Tile::getItemTypeCount(uint16_t itemId, int32_t subType /*= -1*/) const
 {
 	uint32_t count = 0;
 	if (ground && ground->getID() == itemId) {
-		count += Item::countByType(ground, subType);
+		count += Item::countByType(ground.get(), subType);
 	}
 
 	const TileItemVector* items = getItemList();
@@ -1246,7 +1246,7 @@ Thing* Tile::getThing(size_t index) const
 {
 	if (ground) {
 		if (index == 0) {
-			return ground;
+			return ground.get();
 		}
 
 		--index;
@@ -1385,7 +1385,7 @@ void Tile::internalAddThing(uint32_t, Thing* thing)
 		const ItemType& itemType = Item::items[item->getID()];
 		if (itemType.isGroundTile()) {
 			if (ground == nullptr) {
-				ground = item;
+				ground.reset(item);
 				setTileFlags(item);
 			}
 			return;
@@ -1547,7 +1547,7 @@ Item* Tile::getUseItem(int32_t index) const
 
 	// no items, get ground
 	if (!items || items->size() == 0) {
-		return ground;
+		return ground.get();
 	}
 
 	// try getting thing by index

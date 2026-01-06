@@ -35,6 +35,12 @@ void Decay::scheduleNextCheck(DecayTimestamp nextTimestamp) noexcept
 {
 	const auto currentTime = OTSYS_TIME();
 	const auto delay = clampSchedulerDuration(static_cast<int32_t>(nextTimestamp - currentTime));
+
+	// FIX: Cancel previous event before creating a new one.
+	if (eventId != 0) {
+		g_scheduler.stopEvent(eventId);
+	}
+
 	eventId = g_scheduler.addEvent(createSchedulerTask(delay, [this] { checkDecay(); }));
 }
 

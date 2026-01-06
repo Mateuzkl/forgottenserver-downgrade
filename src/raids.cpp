@@ -99,11 +99,40 @@ bool Raids::startup()
 
 	setLastRaidEnd(OTSYS_TIME());
 
+	// Make sure not to duplicate the event.
+    if (checkRaidsEvent != 0) {
+        g_scheduler.stopEvent(checkRaidsEvent);
+        checkRaidsEvent = 0;
+    }
+
 	checkRaidsEvent =
 	    g_scheduler.addEvent(createSchedulerTask(CHECK_RAIDS_INTERVAL * 1000, [this]() { checkRaids(); }));
 
 	started = true;
 	return started;
+}
+
+void Raids::shutdown()
+{
+    // Cancel the recursive verification event.
+    if (checkRaidsEvent != 0) {
+        g_scheduler.stopEvent(checkRaidsEvent);
+        checkRaidsEvent = 0;
+    }
+    
+    // For any running RAID
+    if (running) {
+        running->stopEvents();
+        running = nullptr;
+    }
+    
+    // Clear the raid list.
+    for (Raid* raid : raidList) {
+        delete raid;
+    }
+    raidList.clear();
+    
+    std::cout << "[Raids] Shutdown completed" << std::endl;
 }
 
 void Raids::checkRaids()
@@ -127,6 +156,12 @@ void Raids::checkRaids()
 			}
 		}
 	}
+
+	// FIX: Cancel previous event before scheduling a new one
+    if (checkRaidsEvent != 0) {
+        g_scheduler.stopEvent(checkRaidsEvent);
+        checkRaidsEvent = 0;
+    }
 
 	checkRaidsEvent =
 	    g_scheduler.addEvent(createSchedulerTask(CHECK_RAIDS_INTERVAL * 1000, [this]() { checkRaids(); }));
