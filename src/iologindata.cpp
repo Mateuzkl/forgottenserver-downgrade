@@ -1,6 +1,7 @@
 // Copyright 2023 The Forgotten Server Authors. All rights reserved.
 // Use of this source code is governed by the GPL-2.0 License that can be found in the LICENSE file.
 
+
 #include "otpch.h"
 
 #include "iologindata.h"
@@ -198,6 +199,18 @@ uint32_t IOLoginData::getAccountIdByPlayerId(uint32_t playerId)
 	return result->getNumber<uint32_t>("account_id");
 }
 
+std::vector<std::string> IOLoginData::liveCastAuthentication(const std::string& password)
+{
+	std::vector<std::string> casts;
+
+	for(Player* caster : g_game.getLiveCasters(password)) {
+		casts.push_back(caster->getName());
+	}
+
+	std::sort(casts.begin(), casts.end());
+	return casts;
+}
+
 AccountType_t IOLoginData::getAccountType(uint32_t accountId)
 {
 	DBResult_ptr result =
@@ -225,7 +238,7 @@ void IOLoginData::updateOnlineStatus(uint32_t guid, bool login)
 	}
 
 	if (login) {
-		Database::getInstance().executeQuery(fmt::format("INSERT INTO `players_online` VALUES ({:d})", guid));
+		Database::getInstance().executeQuery(fmt::format("INSERT INTO `players_online` (`player_id`) VALUES ({:d})", guid));
 	} else {
 		Database::getInstance().executeQuery(
 		    fmt::format("DELETE FROM `players_online` WHERE `player_id` = {:d}", guid));
@@ -808,6 +821,10 @@ bool IOLoginData::addRewardItems(uint32_t playerId, const ItemBlockList& itemLis
 
 bool IOLoginData::savePlayer(Player* player)
 {
+	if(player->isSpectator) {
+		return false;
+	}
+	
 	if (player->isDead()) {
 		player->changeHealth(1);
 	}
