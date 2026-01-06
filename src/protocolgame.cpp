@@ -2492,10 +2492,7 @@ void ProtocolGame::sendOutfitWindow()
 		protocolOutfits.emplace_back("Gamemaster", 75, 0);
 	}
 
-	size_t maxProtocolOutfits = static_cast<size_t>(getInteger(ConfigManager::MAX_PROTOCOL_OUTFITS));
-	if (isOTCv8) {
-		maxProtocolOutfits = std::numeric_limits<uint8_t>::max();
-	}
+	size_t maxProtocolOutfits = 65535; // Both OTCv8 and CipSoft client support uint16_t
 
 	for (const Outfit* outfit : outfits) {
 		uint8_t addons;
@@ -2509,11 +2506,7 @@ void ProtocolGame::sendOutfitWindow()
 		}
 	}
 
-	if (isOTCv8) {
-		msg.addByte(static_cast<uint8_t>(protocolOutfits.size()));
-	} else {
-		msg.add<uint16_t>(static_cast<uint16_t>(protocolOutfits.size()));
-	}
+	msg.add<uint16_t>(static_cast<uint16_t>(protocolOutfits.size()));
 
 	for (const ProtocolOutfit& outfit : protocolOutfits) {
 		msg.add<uint16_t>(outfit.lookType);
@@ -2732,14 +2725,9 @@ void ProtocolGame::AddPlayerSkills(NetworkMessage& msg)
 
 void ProtocolGame::AddOutfit(NetworkMessage& msg, const Outfit_t& outfit)
 {
-	uint16_t lookType = outfit.lookType;
-	if (!isOTCv8 && lookType >= 367) {
-		lookType = 128;
-	}
+	msg.add<uint16_t>(outfit.lookType);
 
-	msg.add<uint16_t>(lookType);
-
-	if (lookType != 0) {
+	if (outfit.lookType != 0) {
 		msg.addByte(outfit.lookHead);
 		msg.addByte(outfit.lookBody);
 		msg.addByte(outfit.lookLegs);

@@ -1449,7 +1449,6 @@ void Player::onThink(uint32_t interval)
 		idleTime += interval;
 		const int32_t kickAfterMinutes = getInteger(ConfigManager::KICK_AFTER_MINUTES);
 		if (idleTime > (kickAfterMinutes * 60000) + 60000) {
-			std::cout << "[Debug] KICKING PLAYER " << getName() << " DUE TO IDLE TIME (" << idleTime << ")" << std::endl;
 			kickPlayer(true);
 		} else if (client && idleTime == 60000 * kickAfterMinutes) {
 			client->sendTextMessage(TextMessage(

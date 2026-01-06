@@ -1,6 +1,6 @@
 -- Protocol things
 -- NOTE: The maximum number of outfits only applies to cip client, OTC will use 255
-maxProtocolOutfits = 50
+maxProtocolOutfits = 255
 
 -- true = kick enabled, false = kick disabled (default)
 dllCheckKick = true 
