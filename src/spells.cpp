@@ -1140,6 +1140,11 @@ ReturnValue RuneSpell::canExecuteAction(const Player* player, const Position& to
 bool RuneSpell::executeUse(Player* player, Item* item, const Position&, Thing* target, const Position& toPosition,
                            bool isHotkey)
 {
+	if (item->getID() != runeId) {
+		player->sendCancelMessage(RETURNVALUE_CANNOTUSETHISOBJECT);
+		return false;
+	}
+	
 	if (!playerRuneSpellCheck(player, toPosition)) {
 		return false;
 	}
@@ -1213,7 +1218,6 @@ bool RuneSpell::internalCastSpell(Creature* creature, const LuaVariant& var, boo
 
 bool RuneSpell::executeCastSpell(Creature* creature, const LuaVariant& var, bool isHotkey)
 {
-	// onCastSpell(creature, var, isHotkey)
 	if (!scriptInterface->reserveScriptEnv()) {
 		LOG_ERROR("[Error - RuneSpell::executeCastSpell] Call stack overflow");
 		return false;
