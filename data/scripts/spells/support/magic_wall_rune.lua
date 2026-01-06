@@ -21,5 +21,5 @@ spell:needLearn(false)
 spell:allowFarUse(true)
 spell:magicLevel(9)
 spell:charges(3)
-spell:blockType("all")
+spell:isBlocking(true, true) -- blockType("all") - bloqueia solid e creature
 spell:register()

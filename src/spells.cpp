@@ -700,10 +700,26 @@ bool Spell::playerRuneSpellCheck(Player* player, const Position& toPos)
 		player->sendCancelMessage(RETURNVALUE_NOTENOUGHROOM);
 		g_game.addMagicEffect(player->getPosition(), CONST_ME_POFF);
 		return false;
-	} else if (blockingSolid && tile->hasFlag(TILESTATE_BLOCKSOLID)) {
-		player->sendCancelMessage(RETURNVALUE_NOTENOUGHROOM);
-		g_game.addMagicEffect(player->getPosition(), CONST_ME_POFF);
-		return false;
+	}
+	
+	if (blockingSolid) {
+		if (tile->hasFlag(TILESTATE_BLOCKSOLID)) {
+			player->sendCancelMessage(RETURNVALUE_NOTENOUGHROOM);
+			g_game.addMagicEffect(player->getPosition(), CONST_ME_POFF);
+			return false;
+		}
+		
+		const TileItemVector* items = tile->getItemList();
+		if (items) {
+			for (const Item* item : *items) {
+				const ItemType& itemType = Item::items[item->getID()];
+				if (itemType.blockSolid || itemType.type == ITEM_TYPE_MAGICFIELD) {
+					player->sendCancelMessage(RETURNVALUE_NOTENOUGHROOM);
+					g_game.addMagicEffect(player->getPosition(), CONST_ME_POFF);
+					return false;
+				}
+			}
+		}
 	}
 
 	if (needTarget && !topVisibleCreature) {

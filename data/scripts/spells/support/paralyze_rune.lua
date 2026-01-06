@@ -30,6 +30,6 @@ spell:needLearn(false)
 spell:allowFarUse(true)
 spell:magicLevel(18)
 spell:charges(1)
-spell:blockType("solid")
+spell:isBlocking(true) -- True = Solid / False = Creature
 spell:vocation("druid", "elder druid")
 spell:register()

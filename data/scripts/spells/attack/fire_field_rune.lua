@@ -10,7 +10,6 @@ function spell.onCastSpell(creature, variant, isHotkey)
 	return combat:execute(creature, variant)
 end
 
-
 spell:group("attack")
 spell:id(2301)
 spell:runeId(2301)
@@ -22,5 +21,5 @@ spell:needLearn(false)
 spell:allowFarUse(true)
 spell:magicLevel(1)
 spell:charges(3)
-spell:blockType("solid")
+spell:isBlocking(true) -- True = Solid / False = Creature
 spell:register()

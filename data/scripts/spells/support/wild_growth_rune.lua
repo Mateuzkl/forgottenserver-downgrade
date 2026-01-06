@@ -21,6 +21,6 @@ spell:needLearn(false)
 spell:allowFarUse(true)
 spell:magicLevel(8)
 spell:charges(2)
-spell:blockType("all")
+spell:isBlocking(true, true) -- blockType("all") - bloqueia solid e creature
 spell:vocation("druid", "elder druid")
 spell:register()

@@ -32,5 +32,5 @@ spell:needLearn(false)
 spell:allowFarUse(true)
 spell:magicLevel(6)
 spell:charges(6)
-spell:blockType("solid")
+spell:isBlocking(true) -- True = Solid / False = Creature
 spell:register()
