@@ -303,7 +303,6 @@ bool ConfigManager::load()
 	booleans[Boolean::START_CHOOSEVOC] = getGlobalBoolean(L, "newPlayerChooseVoc", false);
 	booleans[Boolean::GENERATE_ACCOUNT_NUMBER] = getGlobalBoolean(L, "generateAccountNumber", false);
 	booleans[Boolean::CHECK_DUPLICATE_STORAGE_KEYS] = getGlobalBoolean(L, "checkDuplicateStorageKeys", false);
-	booleans[Boolean::PACKET_COMPRESSION] = getGlobalBoolean(L, "packetCompression", true);
 	booleans[Boolean::DLL_CHECK_KICK] = getGlobalBoolean(L, "dllCheckKick", false);
 
 	strings[String::DEFAULT_PRIORITY] = getGlobalString(L, "defaultPriority", "high");
