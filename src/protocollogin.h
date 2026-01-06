@@ -35,6 +35,7 @@ private:
 	void disconnectClient(std::string_view message);
 
 	void getCharacterList(std::string_view accountName, std::string_view password);
+	void getCasterList(const std::string& accountName, const std::string& password, uint16_t version);
 };
 
 #endif

@@ -227,6 +227,7 @@ bool ConfigManager::load()
 	if (!loaded) { // info that must be loaded one time (unless we reset the modules involved)
 		booleans[Boolean::BIND_ONLY_GLOBAL_ADDRESS] = getGlobalBoolean(L, "bindOnlyGlobalAddress", false);
 		booleans[Boolean::OPTIMIZE_DATABASE] = getGlobalBoolean(L, "startupDatabaseOptimization", true);
+		booleans[Boolean::LIVE_CAST_ENABLED] = getGlobalBoolean(L, "liveCastEnabled", true);
 
 		if (strings[String::IP] == "") {
 			strings[String::IP] = getGlobalString(L, "ip", "127.0.0.1");
@@ -253,6 +254,7 @@ bool ConfigManager::load()
 		}
 
 		integers[Integer::STATUS_PORT] = getGlobalInteger(L, "statusProtocolPort", 7171);
+		integers[Integer::LIVE_CAST_PORT] = getGlobalInteger(L, "liveCastProtocolPort", 7173);
 
 		integers[Integer::MARKET_OFFER_DURATION] = getGlobalInteger(L, "marketOfferDuration", 30 * 24 * 60 * 60);
 	}
@@ -345,6 +347,7 @@ bool ConfigManager::load()
 	integers[Integer::EXP_SHARE_FLOORS] = getGlobalInteger(L, "experienceShareFloors", 1);
 	integers[Integer::EXP_FROM_PLAYERS_LEVEL_RANGE] = getGlobalInteger(L, "expFromPlayersLevelRange", 75);
 	integers[Integer::MAX_PACKETS_PER_SECOND] = getGlobalInteger(L, "maxPacketsPerSecond", 25);
+	integers[Integer::LIVE_CAST_MAX] = getGlobalInteger(L, "liveCastMaxSpectators", 25);
 	integers[Integer::SERVER_SAVE_NOTIFY_DURATION] = getGlobalInteger(L, "serverSaveNotifyDuration", 5);
 	integers[Integer::YELL_MINIMUM_LEVEL] = getGlobalInteger(L, "yellMinimumLevel", 2);
 	integers[Integer::MINIMUM_LEVEL_TO_SEND_PRIVATE] = getGlobalInteger(L, "minimumLevelToSendPrivate", 1);

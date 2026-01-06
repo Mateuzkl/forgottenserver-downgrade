@@ -1,6 +1,7 @@
 // Copyright 2023 The Forgotten Server Authors. All rights reserved.
 // Use of this source code is governed by the GPL-2.0 License that can be found in the LICENSE file.
 
+
 #ifndef FS_IOLOGINDATA_H
 #define FS_IOLOGINDATA_H
 
@@ -19,6 +20,7 @@ public:
 	static std::pair<uint32_t, uint32_t> gameworldAuthentication(std::string_view accountName,
 	                                                             std::string_view password,
 	                                                             std::string_view characterName);
+	static std::vector<std::string> liveCastAuthentication(const std::string& password);
 	static uint32_t getAccountIdByPlayerName(std::string_view playerName);
 	static uint32_t getAccountIdByPlayerId(uint32_t playerId);
 

@@ -15,7 +15,7 @@
 #include "guild.h"
 #include "outfit.h"
 #include "party.h"
-#include "protocolgame.h"
+#include "protocolspectator.h"
 #include "rewardchest.h"
 #include "town.h"
 #include "vocation.h"
@@ -591,10 +591,10 @@ public:
 		}
 	}
 
-	void sendChannelMessage(std::string_view author, std::string_view text, SpeakClasses type, uint16_t channel)
+	void sendChannelMessage(std::string_view author, std::string_view text, SpeakClasses type, uint16_t channel, bool broadcast = true)
 	{
 		if (client) {
-			client->sendChannelMessage(author, text, type, channel);
+			client->sendChannelMessage(author, text, type, channel, broadcast);
 		}
 	}
 	void sendCreatureAppear(const Creature* creature, const Position& pos,
@@ -985,6 +985,42 @@ public:
 	void forgetInstantSpell(const std::string& spellName);
 	bool hasLearnedInstantSpell(std::string_view spellName) const;
 
+		void addSpectator(ProtocolSpectator* spectator) {
+			spectators.push_back(spectator);
+			spectatorCount++;
+			std::ostringstream query;
+			query << "UPDATE `players_online` SET `cast_spectators` = '" << spectatorCount << "' WHERE `player_id` = '" << getGUID() << "';";
+			Database::getInstance().executeQuery(query.str());
+		}
+
+		void removeSpectator(ProtocolSpectator* spectator) {
+			spectators.erase(std::remove(spectators.begin(), spectators.end(), spectator), spectators.end());
+			spectatorCount--;
+			std::ostringstream query;
+			query << "UPDATE `players_online` SET `cast_spectators` = '" << spectatorCount << "' WHERE `player_id` = '" << getGUID() << "';";
+			Database::getInstance().executeQuery(query.str());
+		}
+
+		std::vector<ProtocolSpectator*> getSpectators() {
+			return spectators;
+		}
+
+		uint32_t getSpectatorCount() {
+			return spectatorCount;
+		}
+
+		bool isLiveCasting() {
+			return liveCasting;
+		}
+
+		bool stopLiveCasting();
+
+		bool startLiveCasting(const std::string& password);
+
+		bool isSpectating() {
+			return isSpectator;
+		}
+
 	void updateRegeneration();
 
 	void manageAccount(const std::string& text);
@@ -1096,6 +1132,9 @@ private:
 	std::map<uint32_t, DepotChest*> depotChests;
 
 	std::unordered_map<uint16_t, uint8_t> outfits;
+	std::vector<ProtocolSpectator*> spectators;
+	std::vector<Player*> spectatorMutes;
+	std::unordered_map<std::string, uint32_t> spectatorBans;
 	std::unordered_set<uint16_t> mounts;
 	GuildWarVector guildWarVector;
 
@@ -1110,6 +1149,7 @@ private:
 
 	std::string name;
 	std::string guildNick;
+	std::string castPassword;
 
 	Skill skills[SKILL_LAST + 1];
 	LightInfo itemsLight;
@@ -1182,6 +1222,7 @@ private:
 	int32_t offlineTrainingSkill = -1;
 	int32_t offlineTrainingTime = 0;
 	int32_t idleTime = 0;
+	uint32_t spectatorCount = 0;
 
 	uint16_t lastStatsTrainingTime = 0;
 	uint16_t staminaMinutes = 2520;
@@ -1209,6 +1250,9 @@ private:
 	bool addAttackSkillPoint = false;
 	bool randomizeMount = false;
 	bool inventoryAbilities[CONST_SLOT_LAST + 1] = {};
+	bool isSpectator = false;
+	bool liveCasting = false;
+	bool liveChatDisabled = false;
 
 	AccountManagerMode accountManager{ACCOUNT_MANAGER_NONE};
 	std::array<bool, 15> managerTalkState{};
@@ -1266,6 +1310,7 @@ private:
 	friend class Actions;
 	friend class IOLoginData;
 	friend class ProtocolGame;
+	friend class ProtocolSpectator;
 };
 
 #endif

@@ -3,7 +3,7 @@
 
 #include "otpch.h"
 
-#include "protocolgame.h"
+#include "protocolspectator.h"
 
 #include "actions.h"
 #include "ban.h"
@@ -13,10 +13,12 @@
 #include "outputmessage.h"
 #include "player.h"
 #include "scheduler.h"
+#include "spells.h"
 #include <unordered_set>
 
 extern CreatureEvents* g_creatureEvents;
 extern Chat* g_chat;
+extern Spells* g_spells;
 
 namespace {
 
@@ -105,6 +107,9 @@ void ProtocolGame::release()
 {
 	// dispatcher thread
 	if (player && player->client == shared_from_this()) {
+		if(player->isLiveCasting()) {
+			player->stopLiveCasting();
+		}
 		player->client.reset();
 		player->decrementReferenceCounter();
 		player = nullptr;
@@ -486,8 +491,13 @@ void ProtocolGame::disconnectClient(std::string_view message) const
 	disconnect();
 }
 
-void ProtocolGame::writeToOutputBuffer(const NetworkMessage& msg)
+void ProtocolGame::writeToOutputBuffer(const NetworkMessage& msg, bool broadcast/* = true*/)
 {
+	if(player && broadcast && player->isLiveCasting()) {
+		for(auto& spectator : player->spectators) {
+				spectator->writeToOutputBuffer(msg);
+		}
+	}
 	auto out = getOutputBuffer(msg.getLength());
 	out->append(msg);
 }
@@ -1066,7 +1076,6 @@ void ProtocolGame::parseUseItemEx(NetworkMessage& msg)
 	Position toPos = msg.getPosition();
 	uint16_t toSpriteId = msg.get<uint16_t>();
 	uint8_t toStackPos = msg.getByte();
-	
 	g_dispatcher.addTask(DISPATCHER_TASK_EXPIRATION, [=, playerID = player->getID()]() {
 		g_game.playerUseItemEx(playerID, fromPos, fromStackPos, fromSpriteId, toPos, toStackPos, toSpriteId);
 	});
@@ -1142,6 +1151,134 @@ void ProtocolGame::parseLookInBattleList(NetworkMessage& msg)
 	                     [=, playerID = player->getID()]() { g_game.playerLookInBattleList(playerID, creatureId); });
 }
 
+void ProtocolGame::parseExecuteCommand(const std::string& text) {
+	size_t pos = text.find(' ');
+	std::string command = text.substr(1, pos - 1);
+	if (command.empty()) {
+		return;
+	}
+
+	if(command == "commands") {
+		player->sendChannelMessage("", "Available commands:", TALKTYPE_CHANNEL_O, CHANNEL_CAST, false);
+		player->sendChannelMessage("", "/kick PLAYERNAME - kick a player from your live cast.", TALKTYPE_CHANNEL_O, CHANNEL_CAST, false);
+		player->sendChannelMessage("", "/(un)mute PLAYERNAME - (un)mute a player in your live cast.", TALKTYPE_CHANNEL_O, CHANNEL_CAST, false);
+		player->sendChannelMessage("", "/mutelist - view current mutes in your live cast.", TALKTYPE_CHANNEL_O, CHANNEL_CAST, false);
+		player->sendChannelMessage("", "/(un)ban PLAYERNAME - (un)ban a player from your live cast.", TALKTYPE_CHANNEL_O, CHANNEL_CAST, false);
+		player->sendChannelMessage("", "/banlist - view current bans in your live cast.", TALKTYPE_CHANNEL_O, CHANNEL_CAST, false);
+		player->sendChannelMessage("", "/togglechat on/off - toggle the chat on or off in your live cast.", TALKTYPE_CHANNEL_O, CHANNEL_CAST, false);
+		player->sendChannelMessage("", "/spectators - view current spectators in your live cast.", TALKTYPE_CHANNEL_O, CHANNEL_CAST, false);
+		player->sendChannelMessage("", "/commands - view available live cast commands.", TALKTYPE_CHANNEL_O, CHANNEL_CAST, false);
+	} else if(command == "spectators") {
+		std::stringstream ss;
+		ss << "Currently spectating your live cast (" << player->getSpectatorCount() << "):";
+		sendChannelMessage("", ss.str(), TALKTYPE_CHANNEL_O, CHANNEL_CAST, false);
+		for(ProtocolSpectator* Spectator : player->getSpectators()) {
+			sendChannelMessage("", Spectator->player->getName(), TALKTYPE_CHANNEL_O, CHANNEL_CAST, false);
+		}
+	} else if(command == "kick") {
+		std::string name = text.substr(pos + 1);
+		for(ProtocolSpectator* Spectator : player->getSpectators()) {
+			Player* spectator = Spectator->player;
+			if(spectator->getName() == name) {
+				std::stringstream ss;
+				ss << spectator->getName() << " have been kicked from this live cast.";
+				sendChannelMessage("", ss.str(), TALKTYPE_CHANNEL_O, CHANNEL_CAST, true);
+				Spectator->logout();
+				return;
+			}
+		}
+		sendChannelMessage("", "Could not find a spectator with that name.", TALKTYPE_CHANNEL_R1, CHANNEL_CAST, false);
+	} else if(command == "ban") {
+		std::string name = text.substr(pos + 1);
+		for(ProtocolSpectator* Spectator : player->getSpectators()) {
+			Player* spectator = Spectator->player;
+			if(spectator->getName() == name) {
+				std::stringstream ss;
+				ss << spectator->getName() << " have been banned from this live cast.";
+				sendChannelMessage("", ss.str(), TALKTYPE_CHANNEL_O, CHANNEL_CAST, true);
+				player->spectatorBans.insert(std::make_pair(name, spectator->getIP()));
+				Spectator->logout();
+				return;
+			}
+		}
+		sendChannelMessage("", "Could not find a spectator with that name.", TALKTYPE_CHANNEL_R1, CHANNEL_CAST, false);
+	} else if(command == "unban") {
+		std::string name = text.substr(pos + 1);
+
+		for(auto it : player->spectatorBans) {
+			if(it.first == name) {
+				std::stringstream ss;
+				ss << name << " have been unbanned from this live cast.";
+				sendChannelMessage("", ss.str(), TALKTYPE_CHANNEL_O, CHANNEL_CAST, true);
+				player->spectatorBans.erase(it.first);
+				return;
+			}
+		}
+		sendChannelMessage("", "Could not find a ban with that name.", TALKTYPE_CHANNEL_R1, CHANNEL_CAST, false);
+	} else if(command == "banlist") {
+		std::stringstream ss;
+		ss << "Currently banned from your live cast (" << player->spectatorBans.size() << "):";
+		sendChannelMessage("", ss.str(), TALKTYPE_CHANNEL_O, CHANNEL_CAST, false);
+
+		for(auto it : player->spectatorBans) {
+			sendChannelMessage("", it.first, TALKTYPE_CHANNEL_O, CHANNEL_CAST, false);
+		}
+	} else if(command == "mute") {
+		std::string name = text.substr(pos + 1);
+		for(ProtocolSpectator* Spectator : player->getSpectators()) {
+			Player* spectator = Spectator->player;
+			if(spectator->getName() == name) {
+				std::stringstream ss;
+				ss << spectator->getName() << " have been muted.";
+				sendChannelMessage("", ss.str(), TALKTYPE_CHANNEL_O, CHANNEL_CAST, true);
+				player->spectatorMutes.push_back(spectator);
+				return;
+			}
+		}
+		sendChannelMessage("", "Could not find a spectator with that name.", TALKTYPE_CHANNEL_R1, CHANNEL_CAST, false);
+	} else if(command == "unmute") {
+		std::string name = text.substr(pos + 1);
+		for(ProtocolSpectator* Spectator : player->getSpectators()) {
+			Player* spectator = Spectator->player;
+			if(spectator->getName() == name) {
+				std::stringstream ss;
+				ss << spectator->getName() << " have been unmuted.";
+				sendChannelMessage("", ss.str(), TALKTYPE_CHANNEL_O, CHANNEL_CAST, true);
+				player->spectatorMutes.erase(std::remove(player->spectatorMutes.begin(), player->spectatorMutes.end(), spectator), player->spectatorMutes.end());
+				return;
+			}
+		}
+		sendChannelMessage("", "Could not find a mute with that name.", TALKTYPE_CHANNEL_R1, CHANNEL_CAST, false);
+	} else if(command == "mutelist") {
+		std::stringstream ss;
+		ss << "Currently muted in your live cast (" << player->spectatorMutes.size() << "):";
+		sendChannelMessage("", ss.str(), TALKTYPE_CHANNEL_O, CHANNEL_CAST, false);
+
+		for(auto it : player->spectatorMutes) {
+			sendChannelMessage("", it->getName(), TALKTYPE_CHANNEL_O, CHANNEL_CAST, false);
+		}
+	} else if(command == "togglechat") {
+		std::string option = text.substr(pos + 1);
+		if(option == "on") {
+			if(player->liveChatDisabled) {
+				player->liveChatDisabled = false;
+				sendChannelMessage("", "Chat has been enabled.", TALKTYPE_CHANNEL_O, CHANNEL_CAST, true);
+			} else {
+				sendChannelMessage("", "Invalid option, chat is already enabled.", TALKTYPE_CHANNEL_R1, CHANNEL_CAST, false);
+			}
+		} else if(option == "off") {
+			if(player->liveChatDisabled == false) {
+				player->liveChatDisabled = true;
+				sendChannelMessage("", "Chat has been disabled.", TALKTYPE_CHANNEL_O, CHANNEL_CAST, true);
+			} else {
+				sendChannelMessage("", "Invalid option, chat is already disabled.", TALKTYPE_CHANNEL_R1, CHANNEL_CAST, false);
+			}
+		} else {
+			sendChannelMessage("", "Invalid option, usage: /togglechat on/off", TALKTYPE_CHANNEL_R1, CHANNEL_CAST, false);
+		}
+	}
+}
+
 void ProtocolGame::parseSay(NetworkMessage& msg)
 {
 	std::string_view receiver;
@@ -1168,6 +1305,21 @@ void ProtocolGame::parseSay(NetworkMessage& msg)
 
 	auto text = msg.getString();
 	if (text.length() > 255) {
+		return;
+	}
+	if(channelId == CHANNEL_CAST && player->isLiveCasting()) {
+		InstantSpell* instantSpell = g_spells->getInstantSpell(text);
+		if (instantSpell) {
+			g_dispatcher.addTask([=, playerID = player->getID(), text = std::string(text)]() {
+				g_game.playerSay(playerID, 0, TALKTYPE_SAY, "", text);
+			});
+		} else {
+			if (!text.empty() && text.front() == '/') {
+				parseExecuteCommand(std::string(text));
+			} else {
+				player->sendChannelMessage(player->getName(), std::string(text), TALKTYPE_CHANNEL_O, CHANNEL_CAST);
+			}
+		}
 		return;
 	}
 
@@ -1490,7 +1642,7 @@ void ProtocolGame::sendTutorial(uint8_t tutorialId)
 	NetworkMessage msg;
 	msg.addByte(0xDC);
 	msg.addByte(tutorialId);
-	writeToOutputBuffer(msg);
+	writeToOutputBuffer(msg, false);
 }
 
 void ProtocolGame::sendAddMarker(const Position& pos, uint8_t markType, std::string_view desc)
@@ -1500,7 +1652,7 @@ void ProtocolGame::sendAddMarker(const Position& pos, uint8_t markType, std::str
 	msg.addPosition(pos);
 	msg.addByte(markType);
 	msg.addString(desc);
-	writeToOutputBuffer(msg);
+	writeToOutputBuffer(msg, false);
 }
 
 void ProtocolGame::sendReLoginWindow()
@@ -1568,7 +1720,7 @@ void ProtocolGame::sendChannel(uint16_t channelId, std::string_view channelName)
 }
 
 void ProtocolGame::sendChannelMessage(std::string_view author, std::string_view text, SpeakClasses type,
-                                      uint16_t channel)
+                                      uint16_t channel, bool broadcast/* = true*/)
 {
 	NetworkMessage msg;
 	msg.addByte(0xAA);
@@ -1578,7 +1730,7 @@ void ProtocolGame::sendChannelMessage(std::string_view author, std::string_view 
 	msg.addByte(type);
 	msg.add<uint16_t>(channel);
 	msg.addString(text);
-	writeToOutputBuffer(msg);
+	writeToOutputBuffer(msg, broadcast);
 }
 
 void ProtocolGame::sendIcons(uint16_t icons)
@@ -1761,7 +1913,7 @@ void ProtocolGame::sendTradeItemRequest(std::string_view traderName, const Item*
 		msg.addByte(0x01);
 		msg.addItem(item);
 	}
-	writeToOutputBuffer(msg);
+	writeToOutputBuffer(msg, false);
 }
 
 void ProtocolGame::sendCloseTrade()
@@ -2439,7 +2591,7 @@ void ProtocolGame::sendTextWindow(uint32_t windowTextId, Item* item, uint16_t ma
 		msg.add<uint16_t>(0x00);
 	}
 
-	writeToOutputBuffer(msg);
+	writeToOutputBuffer(msg, false);
 }
 
 void ProtocolGame::sendTextWindow(uint32_t windowTextId, uint16_t itemId, std::string_view text)
@@ -2462,7 +2614,7 @@ void ProtocolGame::sendHouseWindow(uint32_t windowTextId, std::string_view text)
 	msg.addByte(0x00);
 	msg.add<uint32_t>(windowTextId);
 	msg.addString(text);
-	writeToOutputBuffer(msg);
+	writeToOutputBuffer(msg, false);
 }
 
 void ProtocolGame::sendOutfitWindow()
@@ -2528,7 +2680,7 @@ void ProtocolGame::sendOutfitWindow()
 		msg.addString(mount->name);
 	}
 
-	writeToOutputBuffer(msg);
+	writeToOutputBuffer(msg, false);
 }
 
 void ProtocolGame::sendUpdatedVIPStatus(uint32_t guid, VipStatus_t newStatus)
@@ -2536,7 +2688,7 @@ void ProtocolGame::sendUpdatedVIPStatus(uint32_t guid, VipStatus_t newStatus)
 	NetworkMessage msg;
 	msg.addByte(newStatus == VIPSTATUS_ONLINE ? 0xD3 : 0xD4);
 	msg.add<uint32_t>(guid);
-	writeToOutputBuffer(msg);
+	writeToOutputBuffer(msg, false);
 }
 
 void ProtocolGame::sendVIP(uint32_t guid, std::string_view name, VipStatus_t status)
@@ -2921,7 +3073,7 @@ void ProtocolGame::sendFeatures()
 
 	std::map<GameFeature, bool> features;
 	// place for non-standard OTCv8 features
-	features[GameExtendedOpcode] = false;
+	features[GameExtendedOpcode] = true;
 	features[GameSkillsBase] = true;
 	features[GamePlayerMounts] = true;
 	features[GameMagicEffectU16] = true;

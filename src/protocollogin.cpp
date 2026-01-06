@@ -90,6 +90,54 @@ void ProtocolLogin::getCharacterList(std::string_view accountName, std::string_v
 	disconnect();
 }
 
+void ProtocolLogin::getCasterList(const std::string& /*accountName*/, const std::string& password, uint16_t)
+{
+	std::vector<std::string> casts = IOLoginData::liveCastAuthentication(password);
+	if (casts.empty()) {
+		if (password != "") {
+			disconnectClient("There are currently no live casts available.\nPlease check your password and try again.");
+		} else {
+			disconnectClient("There are currently no live casts available.");
+		}
+		return;
+	}
+
+	auto output = OutputMessagePool::getOutputMessage();
+
+	std::string_view motd = ConfigManager::getString(ConfigManager::MOTD);
+	if (!motd.empty()) {
+		// Add MOTD
+		output->addByte(0x14);
+		output->addString(fmt::format("{:d}\n{:s}", g_game.getMotdNum(), motd));
+	}
+
+	// Add char list
+	output->addByte(0x64);
+
+	uint8_t size = std::min<size_t>(std::numeric_limits<uint8_t>::max(), casts.size());
+	output->addByte(size);
+
+	auto serverName = ConfigManager::getString(ConfigManager::SERVER_NAME);
+	auto ipStr = ConfigManager::getString(ConfigManager::IP);
+	uint32_t ip = getIP(ipStr);
+	uint16_t port = ConfigManager::getInteger(ConfigManager::LIVE_CAST_PORT);
+
+	std::cout << "[DEBUG] ProtocolLogin::getCasterList - IP String: " << ipStr << ", IP Int: " << ip << ", Port: " << port << std::endl;
+
+	for (const std::string& name : casts) {
+		output->addString(name);
+		output->addString(serverName);
+		output->add<uint32_t>(ip);
+		output->add<uint16_t>(port);
+	}
+
+	// Add premium days
+	output->add<uint16_t>(0xFFFF);
+
+	send(output);
+	disconnect();
+}
+
 void ProtocolLogin::onRecvFirstMessage(NetworkMessage& msg)
 {
 	if (g_game.getGameState() == GAME_STATE_SHUTDOWN) {
@@ -158,13 +206,22 @@ void ProtocolLogin::onRecvFirstMessage(NetworkMessage& msg)
 	}
 
 	auto accountName = msg.getString();
+	auto password = msg.getString();
+
+	auto thisPtr = std::static_pointer_cast<ProtocolLogin>(shared_from_this());
+
 	if (accountName.empty()) {
-		disconnectClient("Invalid account name.");
+		if(ConfigManager::getBoolean(ConfigManager::LIVE_CAST_ENABLED) == false) {
+			disconnectClient("Invalid account name.");
+		} else {
+			g_dispatcher.addTask([=, accountName = std::string(accountName), password = std::string(password)]() {
+				thisPtr->getCasterList(accountName, password, version);
+			});
+		}
 		return;
 	}
 
 	// Read and validate password from the message
-	auto password = msg.getString();
 	if (password.empty()) {
 		disconnectClient("Invalid password.");
 		return;

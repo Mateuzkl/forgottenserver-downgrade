@@ -1,6 +1,7 @@
 // Copyright 2023 The Forgotten Server Authors. All rights reserved.
 // Use of this source code is governed by the GPL-2.0 License that can be found in the LICENSE file.
 
+
 #include "otpch.h"
 
 #include "luascript.h"
@@ -2022,6 +2023,7 @@ void LuaScriptInterface::registerFunctions()
 	registerEnum(RETURNVALUE_CANONLYUSEONESHIELD);
 	registerEnum(RETURNVALUE_NOPARTYMEMBERSINRANGE);
 	registerEnum(RETURNVALUE_YOUARENOTTHEOWNER);
+	registerEnum(CHANNEL_CAST);
 	registerEnum(RETURNVALUE_TRADEPLAYERFARAWAY);
 	registerEnum(RETURNVALUE_YOUDONTOWNTHISHOUSE);
 	registerEnum(RETURNVALUE_TRADEPLAYERALREADYOWNSAHOUSE);
@@ -2229,6 +2231,10 @@ void LuaScriptInterface::registerFunctions()
 	registerGlobalEvents();
 	registerWeapons();
 	registerXML();
+
+	registerMethod("Player", "isLiveCasting", LuaScriptInterface::luaPlayerIsLiveCasting);
+	registerMethod("Player", "startLiveCasting", LuaScriptInterface::luaPlayerStartLiveCasting);
+	registerMethod("Player", "stopLiveCasting", LuaScriptInterface::luaPlayerStopLiveCasting);
 }
 
 #undef registerEnum
@@ -3580,4 +3586,31 @@ void LuaEnvironment::executeTimerEvent(uint32_t eventIndex)
 	for (auto parameter : timerEventDesc.parameters) {
 		luaL_unref(luaState, LUA_REGISTRYINDEX, parameter);
 	}
+}
+
+int LuaScriptInterface::luaPlayerIsLiveCasting(lua_State* L)
+{
+	// player:isLiveCasting()
+	Player* player = getUserdata<Player>(L, 1);
+	pushBoolean(L, player->isLiveCasting());
+	return 1;
+}
+
+int LuaScriptInterface::luaPlayerStartLiveCasting(lua_State* L)
+{
+	// player:startLiveCasting(password)
+	Player* player = getUserdata<Player>(L, 1);
+	std::string password = getString(L, 2);
+	player->startLiveCasting(password);
+	pushBoolean(L, player->isLiveCasting());
+	return 1;
+}
+
+int LuaScriptInterface::luaPlayerStopLiveCasting(lua_State* L)
+{
+	// player:stopLiveCasting()
+	Player* player = getUserdata<Player>(L, 1);
+	player->stopLiveCasting();
+	pushBoolean(L, player->isLiveCasting() == false);
+	return 1;
 }
