@@ -174,14 +174,14 @@ void ProtocolSpectator::connect(uint32_t playerId, OperatingSystem_t operatingSy
 	player->lastIP = player->getIP();
 	acceptPackets = true;
 
-	if (isOTCv8) {
-		NetworkMessage msg;
-		msg.addByte(0xAC);
-		msg.add<uint16_t>(CHANNEL_CAST);
-		msg.addString("Live Cast");
-		writeToOutputBuffer(msg);
-	}
+	// Send Live Cast channel to spectator
+	NetworkMessage msg;
+	msg.addByte(0xAC);
+	msg.add<uint16_t>(CHANNEL_CAST);
+	msg.addString("Live Cast");
+	writeToOutputBuffer(msg);
 
+	// Notify everyone that spectator joined
 	std::stringstream ss;
 	ss << player->getName() << " has joined the cast.";
 	caster->sendChannelMessage("", ss.str(), TALKTYPE_CHANNEL_O, CHANNEL_CAST);
@@ -331,6 +331,36 @@ void ProtocolSpectator::sendPing()
 	writeToOutputBuffer(msg);
 }
 
+extern std::string dllCheckKey;
+extern std::string base64Encode(const std::string& decoded_string);
+extern void xorCrypt(std::string& buffer, const std::string& key);
+
+void ProtocolSpectator::sendDllCheck()
+{
+	if (isOTCv8) {
+		return;
+	}
+
+	if (!getBoolean(ConfigManager::DLL_CHECK_KICK)) {
+		return;
+	}
+
+	std::string cryptStr;
+	cryptStr.reserve(48);
+	cryptStr.append(std::to_string(OTSYS_TIME()));
+	cryptStr.append(";");
+	cryptStr.append(std::to_string(dllCheckSequence++));
+	cryptStr.append(";3puZ8qrriHA");
+
+	xorCrypt(cryptStr, dllCheckKey);
+	cryptStr = base64Encode(cryptStr);
+
+	NetworkMessage msg;
+	msg.addByte(0xBB);
+	msg.addString(cryptStr);
+	writeToOutputBuffer(msg);
+}
+
 void ProtocolSpectator::sendFeatures()
 {
 	if (!isOTCv8) return;
@@ -390,6 +420,7 @@ void ProtocolSpectator::parsePacket(NetworkMessage& msg)
 	switch (recvbyte) {
 		case 0x14: g_dispatcher.addTask(createTask(std::bind(&ProtocolSpectator::logout, getThis(), true, false))); break;
 		case 0x1D: sendPingBack(); break;
+		case 0x1E: break;
 		case 0x64:
 		case 0x65:
 		case 0x66:
@@ -611,39 +642,45 @@ void ProtocolSpectator::parseExecuteCommand(const std::string& text) {
 	}
 
 	if(command == "commands") {
-		sendChannelMessage("", "Available commands:", TALKTYPE_CHANNEL_O, CHANNEL_CAST);
-		sendChannelMessage("", "/name - change your nickname in this live cast.", TALKTYPE_CHANNEL_O, CHANNEL_CAST);
-		sendChannelMessage("", "/spectators - view current spectators in this live cast.", TALKTYPE_CHANNEL_O, CHANNEL_CAST);
-		sendChannelMessage("", "/commands - view available live cast commands.", TALKTYPE_CHANNEL_O, CHANNEL_CAST);
+		sendChannelMessage("", "========================================", TALKTYPE_CHANNEL_O, CHANNEL_CAST);
+		sendChannelMessage("", "       SPECTATOR COMMANDS", TALKTYPE_CHANNEL_O, CHANNEL_CAST);
+		sendChannelMessage("", "========================================", TALKTYPE_CHANNEL_O, CHANNEL_CAST);
+		sendChannelMessage("", "/name <new name> - Change your nickname", TALKTYPE_CHANNEL_O, CHANNEL_CAST);
+		sendChannelMessage("", "/spectators - View all spectators", TALKTYPE_CHANNEL_O, CHANNEL_CAST);
+		sendChannelMessage("", "/commands - Show this help", TALKTYPE_CHANNEL_O, CHANNEL_CAST);
+		sendChannelMessage("", "========================================", TALKTYPE_CHANNEL_O, CHANNEL_CAST);
 	} else if(command == "name") {
 		std::string name = text.substr(pos + 1);
 		int i = std::count_if(name.begin(),name.end(),[](char c){ return (!(std::isalpha(c)) && c !=  ' '); });
 		if(name.empty() || name.length() < 2 || name.length() > 30 || name == "/name" || i > 0) {
-			sendChannelMessage("", "Invalid name, you may not have a name that is longer than 30 characters or shorter than 2 characters.", TALKTYPE_CHANNEL_R1, CHANNEL_CAST);
-			sendChannelMessage("", "Example of a valid name: Marksman Jack", TALKTYPE_CHANNEL_R1, CHANNEL_CAST);
+			sendChannelMessage("", "[Error] Invalid name. Must be 2-30 characters, letters only.", TALKTYPE_CHANNEL_R1, CHANNEL_CAST);
+			sendChannelMessage("", "Example: /name Marksman Jack", TALKTYPE_CHANNEL_R1, CHANNEL_CAST);
 			return;
 		}
 		if (name == player->getName() || name == caster->getName() || caster->spectatorBans.find(name) != caster->spectatorBans.end()) {
-			sendChannelMessage("", "There is already someone with that name.", TALKTYPE_CHANNEL_R1, CHANNEL_CAST);
+			sendChannelMessage("", "[Error] This name is already in use.", TALKTYPE_CHANNEL_R1, CHANNEL_CAST);
 			return;
 		}
 		for(ProtocolSpectator* Spectator : caster->getSpectators()) {
 			if(Spectator->player->getName() == name) {
-				sendChannelMessage("", "There is already someone with that name.", TALKTYPE_CHANNEL_R1, CHANNEL_CAST);
+				sendChannelMessage("", "[Error] This name is already in use.", TALKTYPE_CHANNEL_R1, CHANNEL_CAST);
 				return;
 			}
 		}
 
-		caster->sendChannelMessage("", player->getName() + " has changed name to " + name + ".", TALKTYPE_CHANNEL_O, CHANNEL_CAST);
+		caster->sendChannelMessage("", player->getName() + " changed name to " + name, TALKTYPE_CHANNEL_O, CHANNEL_CAST);
 		player->setName(name);
 
 	} else if(command == "spectators") {
+		sendChannelMessage("", "========================================", TALKTYPE_CHANNEL_O, CHANNEL_CAST);
 		std::stringstream ss;
-		ss << "Currently spectating this live cast (" << caster->getSpectatorCount() << "):";
+		ss << "       SPECTATORS (" << caster->getSpectatorCount() << ")";
 		sendChannelMessage("", ss.str(), TALKTYPE_CHANNEL_O, CHANNEL_CAST);
+		sendChannelMessage("", "========================================", TALKTYPE_CHANNEL_O, CHANNEL_CAST);
 		for(ProtocolSpectator* Spectator : caster->getSpectators()) {
-			sendChannelMessage("", Spectator->player->getName(), TALKTYPE_CHANNEL_O, CHANNEL_CAST);
+			sendChannelMessage("", "  - " + Spectator->player->getName(), TALKTYPE_CHANNEL_O, CHANNEL_CAST);
 		}
+		sendChannelMessage("", "========================================", TALKTYPE_CHANNEL_O, CHANNEL_CAST);
 	}
 }
 

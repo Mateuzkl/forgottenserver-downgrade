@@ -2,11 +2,18 @@
 -- NOTE: The maximum number of outfits only applies to cip client, OTC will use 255
 maxProtocolOutfits = 255
 
--- true = kick enabled, false = kick disabled (default)
-dllCheckKick = true 
+dllCheckKick = true -- true = kick enabled, false = kick disabled (default)
+dllCheckKickTime = 5 -- time in seconds (optional usage)
 
--- time in seconds (optional usage)
-dllCheckKickTime = 5
+-- Live Cast System
+liveCastEnabled = true
+liveCastProtocolPort = 7173
+liveCastMaxSpectators = 25
+
+-- Cast EXP Bonus System
+-- When enabled, casters receive bonus EXP while they have spectators
+castExpBonus = true -- enable/disable bonus
+castExpBonusPercent = 5 -- percentage bonus (5 = 5%)
 
 -- Account Manager
 accountManager = true

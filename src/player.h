@@ -985,21 +985,8 @@ public:
 	void forgetInstantSpell(const std::string& spellName);
 	bool hasLearnedInstantSpell(std::string_view spellName) const;
 
-		void addSpectator(ProtocolSpectator* spectator) {
-			spectators.push_back(spectator);
-			spectatorCount++;
-			std::ostringstream query;
-			query << "UPDATE `players_online` SET `cast_spectators` = '" << spectatorCount << "' WHERE `player_id` = '" << getGUID() << "';";
-			Database::getInstance().executeQuery(query.str());
-		}
-
-		void removeSpectator(ProtocolSpectator* spectator) {
-			spectators.erase(std::remove(spectators.begin(), spectators.end(), spectator), spectators.end());
-			spectatorCount--;
-			std::ostringstream query;
-			query << "UPDATE `players_online` SET `cast_spectators` = '" << spectatorCount << "' WHERE `player_id` = '" << getGUID() << "';";
-			Database::getInstance().executeQuery(query.str());
-		}
+		void addSpectator(ProtocolSpectator* spectator);
+		void removeSpectator(ProtocolSpectator* spectator);
 
 		std::vector<ProtocolSpectator*> getSpectators() {
 			return spectators;
@@ -1007,6 +994,10 @@ public:
 
 		uint32_t getSpectatorCount() {
 			return spectatorCount;
+		}
+		
+		bool hasCastExpBonus() const {
+			return castExpBonusActive;
 		}
 
 		bool isLiveCasting() {
@@ -1253,6 +1244,7 @@ private:
 	bool isSpectator = false;
 	bool liveCasting = false;
 	bool liveChatDisabled = false;
+	bool castExpBonusActive = false;
 
 	AccountManagerMode accountManager{ACCOUNT_MANAGER_NONE};
 	std::array<bool, 15> managerTalkState{};

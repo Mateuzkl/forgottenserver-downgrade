@@ -1693,6 +1693,15 @@ void ProtocolGame::sendTextMessage(const TextMessage& message)
 	writeToOutputBuffer(msg);
 }
 
+void ProtocolGame::sendTextMessage(const TextMessage& message, bool broadcast)
+{
+	NetworkMessage msg;
+	msg.addByte(0xB4);
+	msg.addByte(message.type);
+	msg.addString(message.text);
+	writeToOutputBuffer(msg, broadcast);
+}
+
 void ProtocolGame::sendClosePrivate(uint16_t channelId)
 {
 	NetworkMessage msg;
@@ -3085,7 +3094,7 @@ void ProtocolGame::parseExtendedOpcode(NetworkMessage& msg)
 
 void ProtocolGame::sendNewPing(uint32_t pingId)
 {
-	if (!isOTCv8) return;
+	//if (!isOTCv8) return;
 
 	NetworkMessage msg;
 	msg.addByte(0x40);

@@ -165,6 +165,7 @@ private:
 	void sendCreatureOutfit(const Creature* creature, const Outfit_t& outfit);
 	void sendStats();
 	void sendTextMessage(const TextMessage& message);
+	void sendTextMessage(const TextMessage& message, bool broadcast);
 	void sendReLoginWindow();
 
 	void sendTutorial(uint8_t tutorialId);

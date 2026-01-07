@@ -2036,10 +2036,6 @@ void Game::playerCloseChannel(uint32_t playerId, uint16_t channelId)
 		return;
 	}
 
-	// Debug logging to catch potential crash
-	std::cout << "[DEBUG] playerCloseChannel: playerId=" << playerId << ", channelId=" << channelId 
-	          << ", player=" << player << std::endl;
-
 	if(channelId == CHANNEL_CAST && (player->isLiveCasting() || player->isSpectating())) {
 		player->sendChannel(CHANNEL_CAST, "Live Cast");
 		return;

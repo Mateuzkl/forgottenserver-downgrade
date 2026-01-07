@@ -65,6 +65,7 @@ class ProtocolSpectator final : public ProtocolGame
 		void writeToOutputBuffer(const NetworkMessage& msg);
 		void sendPingBack();
 		void sendPing();
+		void sendDllCheck();
 
 		void release() final;
 
@@ -153,6 +154,7 @@ class ProtocolSpectator final : public ProtocolGame
 
 		uint32_t eventConnect = 0;
 		uint32_t challengeTimestamp = 0;
+		uint32_t dllCheckSequence = 0;
 		uint16_t version = CLIENT_VERSION_MIN;
 
 		uint8_t challengeRandom = 0;
