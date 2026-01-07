@@ -345,7 +345,7 @@ std::string convertIPToString(uint32_t ip)
 
 std::string formatDateShort(time_t time)
 {
-	return std::format("{:%d %b %Y}", std::chrono::system_clock::from_time_t(time));
+	return fmt::format("{:%d %b %Y}", fmt::localtime(time));
 }
 
 Position getNextPosition(Direction direction, Position pos)

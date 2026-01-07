@@ -64,6 +64,7 @@ class ProtocolSpectator final : public ProtocolGame
 		void disconnectClient(const std::string& message) const;
 		void writeToOutputBuffer(const NetworkMessage& msg);
 		void sendPingBack();
+		void sendPing();
 
 		void release() final;
 
@@ -100,6 +101,7 @@ class ProtocolSpectator final : public ProtocolGame
 
 		void sendCreatureLight(const Creature* creature);
 		void sendWorldLight(const LightInfo& lightInfo);
+		void sendMagicEffect(const Position& pos, uint16_t type);
 
 		//tiles
 		void sendMapDescription(const Position& pos);
@@ -128,6 +130,7 @@ class ProtocolSpectator final : public ProtocolGame
 
 		void AddCreature(NetworkMessage& msg, const Creature* creature, bool known, uint32_t remove);
 		void AddPlayerStats(NetworkMessage& msg);
+		void AddOutfit(NetworkMessage& msg, const Outfit_t& outfit);
 		void AddPlayerSkills(NetworkMessage& msg);
 		void AddCreatureLight(NetworkMessage& msg, const Creature* creature);
 

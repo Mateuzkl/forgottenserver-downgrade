@@ -122,8 +122,6 @@ void ProtocolLogin::getCasterList(const std::string& /*accountName*/, const std:
 	uint32_t ip = getIP(ipStr);
 	uint16_t port = ConfigManager::getInteger(ConfigManager::LIVE_CAST_PORT);
 
-	std::cout << "[DEBUG] ProtocolLogin::getCasterList - IP String: " << ipStr << ", IP Int: " << ip << ", Port: " << port << std::endl;
-
 	for (const std::string& name : casts) {
 		output->addString(name);
 		output->addString(serverName);

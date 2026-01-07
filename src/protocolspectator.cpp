@@ -41,45 +41,20 @@ extern CreatureEvents* g_creatureEvents;
 extern Chat* g_chat;
 extern Spells* g_spells;
 
-static int32_t getStackposOfCreature(Player* player, Tile* tile, Creature* creature) {
-	if (!tile || !creature) return -1;
-	int32_t index = 0;
-	const TileItemVector* items = tile->getItemList();
-	if (items) {
-		for (auto it = items->getBeginTopItem(), end = items->getEndTopItem(); it != end; ++it) {
-			index++;
-			if (index >= 10) return -1;
-		}
-	}
-	const CreatureVector* creatures = tile->getCreatures();
-	if (creatures) {
-		for (auto it = creatures->rbegin(), end = creatures->rend(); it != end; ++it) {
-			if (*it == creature) return index;
-			if (player->canSeeCreature(*it)) {
-				index++;
-			}
-			if (index >= 10) return -1;
-		}
-	}
-	return -1;
-}
-
 void ProtocolSpectator::release()
 {
-	if (player && player->client == shared_from_this()) {
-		// Debug check for caster validity
-		if(caster) {
-			// We can't easily check if caster is valid pointer if it's dangling, 
-			// but we can log before access.
-			// std::cout << "[DEBUG] ProtocolSpectator::release checking caster " << caster->getName() << std::endl; 
-			// (Cannot call getName if invalid)
-		}
-
-		if(caster && caster->isLiveCasting()) {
+	acceptPackets = false;
+	
+	if (caster) {
+		caster->removeSpectator(this);
+		if (player && caster->isLiveCasting()) {
 			std::stringstream ss;
 			ss << player->getName() << " has left the cast.";
 			caster->sendChannelMessage("", ss.str(), TALKTYPE_CHANNEL_O, CHANNEL_CAST);
 		}
+	}
+	
+	if (player && player->client == shared_from_this()) {
 		player->client.reset();
 		player = nullptr;
 	}
@@ -89,19 +64,11 @@ void ProtocolSpectator::release()
 
 void ProtocolSpectator::login(const std::string& name, const std::string& password, OperatingSystem_t operatingSystem)
 {
-	//dispatcher thread
-	std::cout << "[DEBUG] ProtocolSpectator::login - Name: " << name << std::endl;
 	Player* foundPlayer = g_game.getPlayerByName(name);
-	
-	if (foundPlayer) {
-		// Debug logging
-		std::cout << "[DEBUG] ProtocolSpectator::login found player: " << foundPlayer << std::endl;
-	}
 
 	if (foundPlayer && foundPlayer->isLiveCasting()) {
 
 		if(foundPlayer->castPassword != password) {
-			std::cout << "[DEBUG] ProtocolSpectator::login - Password mismatch" << std::endl;
 			disconnectClient("The password you have entered is incorrect.");
 			return;
 		}
@@ -152,25 +119,20 @@ void ProtocolSpectator::login(const std::string& name, const std::string& passwo
 		player->setOperatingSystem(operatingSystem);
 		acceptPackets = true;
 	} else {
-		std::cout << "[DEBUG] ProtocolSpectator::login - Player not found or not casting" << std::endl;
 		disconnectClient("Live cast could not be found.");
 		return;
 	}
 
 	// OTCv8 features and extended opcodes
-	if (isOTCv8 || operatingSystem >= CLIENTOS_OTCLIENT_LINUX) {
-		if (isOTCv8) sendFeatures();
-		
-		if (operatingSystem < CLIENTOS_OTCLIENT_LINUX) {
-			NetworkMessage opcodeMessage;
-			opcodeMessage.addByte(0x32);
-			opcodeMessage.addByte(0x00);
-			opcodeMessage.add<uint16_t>(0x00);
-			writeToOutputBuffer(opcodeMessage);
-		}
+	if (isOTCv8) {
+		sendFeatures();
+		NetworkMessage opcodeMessage;
+		opcodeMessage.addByte(0x32);
+		opcodeMessage.addByte(0x00);
+		opcodeMessage.add<uint16_t>(0x00);
+		writeToOutputBuffer(opcodeMessage);
 	}
 
-	std::cout << "[DEBUG] ProtocolSpectator::login - Connecting to player: " << foundPlayer->getName() << std::endl;
 	connect(foundPlayer->getID(), operatingSystem);
 
 	OutputMessagePool::getInstance().addProtocolToAutosend(shared_from_this());
@@ -196,8 +158,6 @@ void ProtocolSpectator::connect(uint32_t playerId, OperatingSystem_t operatingSy
 	}
 
 	if (isConnectionExpired()) {
-		//ProtocolSpectator::release() has been called at this point and the Connection object
-		//no longer exists, so we return to prevent leakage of the Player.
 		return;
 	}
 
@@ -214,7 +174,14 @@ void ProtocolSpectator::connect(uint32_t playerId, OperatingSystem_t operatingSy
 	player->lastIP = player->getIP();
 	acceptPackets = true;
 
-	sendChannel(CHANNEL_CAST, "Live Cast", nullptr, nullptr);
+	if (isOTCv8) {
+		NetworkMessage msg;
+		msg.addByte(0xAC);
+		msg.add<uint16_t>(CHANNEL_CAST);
+		msg.addString("Live Cast");
+		writeToOutputBuffer(msg);
+	}
+
 	std::stringstream ss;
 	ss << player->getName() << " has joined the cast.";
 	caster->sendChannelMessage("", ss.str(), TALKTYPE_CHANNEL_O, CHANNEL_CAST);
@@ -223,13 +190,11 @@ void ProtocolSpectator::connect(uint32_t playerId, OperatingSystem_t operatingSy
 
 void ProtocolSpectator::logout(bool, bool)
 {
-	caster->removeSpectator(this);
 	disconnect();
 }
 
 void ProtocolSpectator::onRecvFirstMessage(NetworkMessage& msg)
 {
-	std::cout << "[DEBUG] ProtocolSpectator::onRecvFirstMessage" << std::endl;
 	if (g_game.getGameState() == GAME_STATE_SHUTDOWN) {
 		disconnect();
 		return;
@@ -239,7 +204,6 @@ void ProtocolSpectator::onRecvFirstMessage(NetworkMessage& msg)
 	version = msg.get<uint16_t>();
 
 	if (!Protocol::RSA_decrypt(msg)) {
-		std::cout << "[DEBUG] ProtocolSpectator::onRecvFirstMessage - RSA decryption failed. Packet length: " << msg.getLength() << ", Buffer len: " << msg.getBufferPosition() << std::endl;
 		disconnect();
 		return;
 	}
@@ -252,15 +216,11 @@ void ProtocolSpectator::onRecvFirstMessage(NetworkMessage& msg)
 	enableXTEAEncryption();
 	setXTEAKey({key[0], key[1], key[2], key[3]});
 
-
-
 	msg.skipBytes(1); // gamemaster flag
 
 	std::string accountName = std::string(msg.getString());
 	std::string characterName = std::string(msg.getString());
 	std::string password = std::string(msg.getString());
-
-	std::cout << "[DEBUG] ProtocolSpectator::onRecvFirstMessage - Account: " << accountName << ", Character: " << characterName << ", Password: " << password << std::endl;
 
 	uint32_t timeStamp = msg.get<uint32_t>();
 	uint8_t randNumber = msg.getByte();
@@ -273,14 +233,12 @@ void ProtocolSpectator::onRecvFirstMessage(NetworkMessage& msg)
 	if (msg.getBufferPosition() < msg.getLength()) {
 		uint16_t otcV8StringLength = msg.get<uint16_t>();
 		if (otcV8StringLength == 5 && msg.getString(5) == "OTCv8") {
-			isOTCv8 = msg.get<uint16_t>();
+			isOTCv8 = true;
+			msg.get<uint16_t>();
 		}
-	} else if (operatingSystem >= CLIENTOS_OTCLIENT_LINUX) {
-		isOTCv8 = 253; // Default to OTCv8 if OS indicates it, even if no handshake
 	}
 
 	if (version < CLIENT_VERSION_MIN || version > CLIENT_VERSION_MAX) {
-		std::cout << "[DEBUG] ProtocolSpectator::onRecvFirstMessage - Version mismatch: " << version << std::endl;
 		std::ostringstream ss;
 		ss << "Only clients with protocol " << CLIENT_VERSION_STR << " allowed!";
 		disconnectClient(ss.str());
@@ -314,7 +272,6 @@ void ProtocolSpectator::onRecvFirstMessage(NetworkMessage& msg)
 
 void ProtocolSpectator::onConnect()
 {
-	std::cout << "[DEBUG] ProtocolSpectator::onConnect - Sending Challenge" << std::endl;
 	auto output = OutputMessagePool::getOutputMessage();
 	static std::random_device rd;
 	static std::ranlux24 generator(rd());
@@ -351,11 +308,23 @@ void ProtocolSpectator::disconnectClient(const std::string& message) const
 }
 
 void ProtocolSpectator::writeToOutputBuffer(const NetworkMessage& msg) {
+	if (!acceptPackets) {
+		return;
+	}
 	auto out = getOutputBuffer(msg.getLength());
-	out->append(msg);
+	if (out) {
+		out->append(msg);
+	}
 }
 
 void ProtocolSpectator::sendPingBack()
+{
+	NetworkMessage msg;
+	msg.addByte(0x1E);
+	writeToOutputBuffer(msg);
+}
+
+void ProtocolSpectator::sendPing()
 {
 	NetworkMessage msg;
 	msg.addByte(0x1E);
@@ -368,7 +337,7 @@ void ProtocolSpectator::sendFeatures()
 
 	std::map<GameFeature, bool> features;
 	// place for non-standard OTCv8 features
-	features[GameExtendedOpcode] = true;
+	features[GameExtendedOpcode] = false;
 	features[GameSkillsBase] = true;
 	features[GamePlayerMounts] = true;
 	features[GameMagicEffectU16] = true;
@@ -429,18 +398,14 @@ void ProtocolSpectator::parsePacket(NetworkMessage& msg)
 		case 0x6A:
 		case 0x6B:
 		case 0x6C:
-		case 0x6D: 
-			if(recvbyte == 0x64) {
-				sendCancelWalk();
-			}
-			sendMoveCreature(caster, caster->getPosition(), getStackposOfCreature(caster, caster->getTile(), caster->getCreature()), caster->getPosition(), getStackposOfCreature(caster, caster->getTile(), caster->getCreature()), false);
-			sendCreatureTurn(caster, getStackposOfCreature(caster, caster->getTile(), caster->getCreature()));
-		break;
+		case 0x6D:
+			sendCancelWalk();
+			break;
 		case 0x96: parseSay(msg); break;
 		case 0x99: parseCloseChannel(msg); break;
+		case 0xAC: msg.getString(); break;
 
 		default:
-			// std::cout << "Player(spectator): " << player->getName() << " sent an unknown packet header: 0x" << std::hex << static_cast<uint16_t>(recvbyte) << std::dec << "!" << std::endl;
 			break;
 	}
 
@@ -741,6 +706,23 @@ void ProtocolSpectator::sendWorldLight(const LightInfo& lightInfo)
 	writeToOutputBuffer(msg);
 }
 
+void ProtocolSpectator::sendMagicEffect(const Position& pos, uint16_t type)
+{
+	if (!canSee(pos)) {
+		return;
+	}
+
+	NetworkMessage msg;
+	msg.addByte(0x83);
+	msg.addPosition(pos);
+	if (isOTCv8) {
+		msg.add<uint16_t>(type);
+	} else {
+		msg.addByte(type);
+	}
+	writeToOutputBuffer(msg);
+}
+
 void ProtocolSpectator::sendStats()
 {
 	NetworkMessage msg;
@@ -765,6 +747,25 @@ void ProtocolSpectator::sendBasicData()
 		msg.addByte(spellId);
 	}
 	writeToOutputBuffer(msg);
+}
+
+void ProtocolSpectator::AddOutfit(NetworkMessage& msg, const Outfit_t& outfit)
+{
+	msg.add<uint16_t>(outfit.lookType);
+
+	if (outfit.lookType != 0) {
+		msg.addByte(outfit.lookHead);
+		msg.addByte(outfit.lookBody);
+		msg.addByte(outfit.lookLegs);
+		msg.addByte(outfit.lookFeet);
+		msg.addByte(outfit.lookAddons);
+	} else {
+		msg.addItemId(outfit.lookTypeEx);
+	}
+
+	if (isOTCv8 || version != 861) {
+		msg.add<uint16_t>(outfit.lookMount);
+	}
 }
 
 void ProtocolSpectator::sendChannel(uint16_t channelId, const std::string& channelName, const UsersMap* channelUsers, const InvitedMap* invitedUsers)
@@ -815,33 +816,19 @@ void ProtocolSpectator::sendContainer(uint8_t cid, const Container* container, b
 
 	msg.addByte(cid);
 
-	if (false) {
-		msg.addItem(1987, 1);
-		msg.addString("Browse Field");
-	} else {
-		msg.addItem(container);
-		msg.addString(container->getName());
-	}
+	msg.addItem(container);
+	msg.addString(container->getName());
 
-	msg.addByte(container->capacity());
+	msg.addByte(static_cast<uint8_t>(container->capacity()));
 
 	msg.addByte(hasParent ? 0x01 : 0x00);
 
-	msg.addByte(0x00); // Drag and drop
-	msg.addByte(0x00); // Pagination
+	msg.addByte(static_cast<uint8_t>(std::min<uint32_t>(0xFF, container->size())));
 
-	uint32_t containerSize = container->size();
-	msg.add<uint16_t>(containerSize);
-	msg.add<uint16_t>(firstIndex);
-	if (firstIndex < containerSize) {
-		uint8_t itemsToSend = std::min<uint32_t>(std::min<uint32_t>(container->capacity(), containerSize - firstIndex), std::numeric_limits<uint8_t>::max());
-
-		msg.addByte(itemsToSend);
-		for (auto it = container->getItemList().begin() + firstIndex, end = it + itemsToSend; it != end; ++it) {
-			msg.addItem(*it);
-		}
-	} else {
-		msg.addByte(0x00);
+	uint32_t i = 0;
+	const ItemDeque& itemList = container->getItemList();
+	for (ItemDeque::const_iterator cit = itemList.begin() + firstIndex, end = itemList.end(); i < 0xFF && cit != end; ++cit, ++i) {
+		msg.addItem(*cit);
 	}
 	writeToOutputBuffer(msg);
 }
@@ -1036,26 +1023,29 @@ void ProtocolSpectator::AddPlayerStats(NetworkMessage& msg)
 	msg.add<uint16_t>(std::min<int32_t>(caster->getMaxMana(), std::numeric_limits<uint16_t>::max()));
 
 	msg.addByte(std::min<uint32_t>(caster->getMagicLevel(), std::numeric_limits<uint8_t>::max()));
+
+	if (isOTCv8) {
+		msg.addByte(std::min<uint32_t>(caster->getBaseMagicLevel(), std::numeric_limits<uint8_t>::max()));
+	}
+
 	msg.addByte(caster->getMagicLevelPercent());
 
 	msg.addByte(caster->getSoul());
 	
 	msg.add<uint16_t>(caster->getStaminaMinutes());
+
+	if (isOTCv8) {
+		msg.add<uint16_t>(caster->getOfflineTrainingTime() / 60 / 1000);
+	}
+
+	if (isOTCv8) {
+		msg.add<uint16_t>(caster->getBaseSpeed() / 2);
+	}
 }
 
 void ProtocolSpectator::AddPlayerSkills(NetworkMessage& msg)
 {
 	msg.addByte(0xA1);
-
-	// Spectator doesn't support OTCv8 logic yet or assumes false?
-	// ProtocolSpectator::isOTCv8 comes from ProtocolGame.
-	// We can use it.
-	
-	// Wait, ProtocolSpectator overrides writeToOutputBuffer so it might not use ProtocolGame's features?
-	// ProtocolSpectator::login checks version.
-	
-	// Assuming standard client for now or copying logic.
-	// ProtocolGame has isOTCv8 member. ProtocolSpectator inherits it.
 	
 	if (!isOTCv8) {
 		for (uint8_t i = SKILL_FIRST; i <= SKILL_LAST; ++i) {

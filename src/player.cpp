@@ -1462,6 +1462,13 @@ void Player::onThink(uint32_t interval)
 		if (client) {
 			client->sendPing();
 		}
+		if (isLiveCasting()) {
+			for (auto& spectator : spectators) {
+				if (spectator && spectator->acceptPackets) {
+					spectator->sendPing();
+				}
+			}
+		}
 	}
 
 	if (client && !client->isOTCv8 && getBoolean(ConfigManager::DLL_CHECK_KICK)) {
@@ -1471,9 +1478,6 @@ void Player::onThink(uint32_t interval)
 			client->sendDllCheck();
 		}
 	} else if (ConfigManager::getBoolean(ConfigManager::DLL_CHECK_KICK)) {
-		// Debug why it's NOT entering if enabled
-		// std::cout << "[Debug] Player::onThink - Skipping DLL Check. Client: " << (client ? "Yes" : "No") 
-		//           << ", isOTCv8: " << (client && client->isOTCv8 ? "Yes" : "No") << std::endl;
 	}
 
 	MessageBufferTicks += interval;
@@ -1482,7 +1486,7 @@ void Player::onThink(uint32_t interval)
 		addMessageBuffer();
 	}
 
-	if (!getTile()->hasFlag(TILESTATE_NOLOGOUT) && !isAccessPlayer()) {
+	if (!getTile()->hasFlag(TILESTATE_NOLOGOUT) && !isAccessPlayer() && !isSpectator) {
 		idleTime += interval;
 		const int32_t kickAfterMinutes = getInteger(ConfigManager::KICK_AFTER_MINUTES);
 		if (idleTime > (kickAfterMinutes * 60000) + 60000) {

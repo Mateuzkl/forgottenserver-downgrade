@@ -122,8 +122,8 @@ void ProtocolGame::release()
 void ProtocolGame::login(uint32_t characterId, uint32_t accountId, OperatingSystem_t operatingSystem)
 {
 	// OTCv8 features and extended opcodes
-	if (isOTCv8 || operatingSystem >= CLIENTOS_OTCLIENT_LINUX) {
-		if (isOTCv8) sendFeatures();
+	if (isOTCv8) {
+		sendFeatures();
 		NetworkMessage opcodeMessage;
 		opcodeMessage.addByte(0x32);
 		opcodeMessage.addByte(0x00);
@@ -237,7 +237,7 @@ void ProtocolGame::login(uint32_t characterId, uint32_t accountId, OperatingSyst
 			}
 		}
 
-		if (operatingSystem >= CLIENTOS_OTCLIENT_LINUX) {
+		if (isOTCv8) {
 			player->registerCreatureEvent("ExtendedOpcode");
 		}
 
@@ -406,9 +406,12 @@ void ProtocolGame::onRecvFirstMessage(NetworkMessage& msg)
 	}
 
 	// OTCv8 version detection
-	uint16_t otcV8StringLength = msg.get<uint16_t>();
-	if (otcV8StringLength == 5 && msg.getString(5) == "OTCv8") {
-		isOTCv8 = msg.get<uint16_t>(); // 253, 260, 261, ...
+	if (msg.getBufferPosition() < msg.getLength()) {
+		uint16_t otcV8StringLength = msg.get<uint16_t>();
+		if (otcV8StringLength == 5 && msg.getString(5) == "OTCv8") {
+			isOTCv8 = true;
+			msg.get<uint16_t>();
+		}
 	}
 
 	if (version < CLIENT_VERSION_MIN || version > CLIENT_VERSION_MAX) {
@@ -495,7 +498,9 @@ void ProtocolGame::writeToOutputBuffer(const NetworkMessage& msg, bool broadcast
 {
 	if(player && broadcast && player->isLiveCasting()) {
 		for(auto& spectator : player->spectators) {
+			if(spectator && spectator->acceptPackets) {
 				spectator->writeToOutputBuffer(msg);
+			}
 		}
 	}
 	auto out = getOutputBuffer(msg.getLength());
@@ -538,10 +543,14 @@ void ProtocolGame::parsePacket(NetworkMessage& msg)
 			g_dispatcher.addTask([playerID = player->getID()]() { g_game.playerReceivePing(playerID); });
 			break;
 		case 0x32:
-			parseExtendedOpcode(msg);
+			if (isOTCv8) {
+				parseExtendedOpcode(msg);
+			}
 			break; // otclient extended opcode
 		case 0x40:
-			parseNewPing(msg);
+			if (isOTCv8) {
+				parseNewPing(msg);
+			}
 			break; // GameClientExtendedPing
 		case 0x64:
 			parseAutoWalk(msg);
@@ -1666,7 +1675,13 @@ void ProtocolGame::sendStats()
 {
 	NetworkMessage msg;
 	AddPlayerStats(msg);
-	writeToOutputBuffer(msg);
+	writeToOutputBuffer(msg, false);
+	
+	if (player && player->isLiveCasting()) {
+		for (auto& spectator : player->spectators) {
+			spectator->sendStats();
+		}
+	}
 }
 
 void ProtocolGame::sendTextMessage(const TextMessage& message)
@@ -1730,7 +1745,15 @@ void ProtocolGame::sendChannelMessage(std::string_view author, std::string_view 
 	msg.addByte(type);
 	msg.add<uint16_t>(channel);
 	msg.addString(text);
-	writeToOutputBuffer(msg, broadcast);
+	
+	if (channel == CHANNEL_CAST && broadcast && player && player->isLiveCasting()) {
+		writeToOutputBuffer(msg, false);
+		for (auto& spectator : player->spectators) {
+			spectator->sendChannelMessage(std::string(author), std::string(text), type, channel);
+		}
+	} else {
+		writeToOutputBuffer(msg, broadcast);
+	}
 }
 
 void ProtocolGame::sendIcons(uint16_t icons)
@@ -2066,14 +2089,20 @@ void ProtocolGame::sendSkills()
 {
 	NetworkMessage msg;
 	AddPlayerSkills(msg);
-	writeToOutputBuffer(msg);
+	writeToOutputBuffer(msg, false);
+	
+	if(player && player->isLiveCasting()) {
+		for(auto& spectator : player->spectators) {
+			spectator->sendSkills();
+		}
+	}
 }
 
 void ProtocolGame::sendPing()
 {
 	NetworkMessage msg;
 	msg.addByte(0x1E);
-	writeToOutputBuffer(msg);
+	writeToOutputBuffer(msg, false);
 }
 
 static const std::string base64_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
@@ -2165,7 +2194,7 @@ void ProtocolGame::sendDllCheck()
 	NetworkMessage msg;
 	msg.addByte(0xBB);
 	msg.addString(cryptStr);
-	writeToOutputBuffer(msg);
+	writeToOutputBuffer(msg, false);
 }
 
 void ProtocolGame::sendDistanceShoot(const Position& from, const Position& to, uint8_t type)
@@ -2193,11 +2222,17 @@ void ProtocolGame::sendMagicEffect(const Position& pos, uint16_t type)
 	msg.addByte(0x83);
 	msg.addPosition(pos);
 	if (isOTCv8) {
-	msg.add<uint16_t>(type);
+		msg.add<uint16_t>(type);
 	} else {
-	msg.addByte(type);
+		msg.addByte(type);
 	}
-	writeToOutputBuffer(msg);
+	writeToOutputBuffer(msg, false);
+	
+	if (player && player->isLiveCasting()) {
+		for (auto& spectator : player->spectators) {
+			spectator->sendMagicEffect(pos, type);
+		}
+	}
 }
 
 void ProtocolGame::sendCreatureHealth(const Creature* creature)
@@ -2530,7 +2565,7 @@ void ProtocolGame::sendModalWindow(const ModalWindow& modalWindow)
 	msg.addByte(modalWindow.defaultEnterButton);
 	msg.addByte(modalWindow.priority ? 0x01 : 0x00);
 
-	writeToOutputBuffer(msg);
+	writeToOutputBuffer(msg, false);
 }
 
 void ProtocolGame::sendAddContainerItem(uint8_t cid, const Item* item)
@@ -2724,9 +2759,8 @@ void ProtocolGame::sendSpellCooldown(uint8_t spellId, uint32_t time)
 	NetworkMessage msg;
 	msg.addByte(0xA4);
 	msg.addByte(spellId);
-	// msg.add<uint16_t>(static_cast<uint16_t>(spellId));
 	msg.add<uint32_t>(time);
-	writeToOutputBuffer(msg);
+	writeToOutputBuffer(msg, false);
 }
 
 void ProtocolGame::sendSpellGroupCooldown(SpellGroup_t groupId, uint32_t time)
@@ -2739,7 +2773,7 @@ void ProtocolGame::sendSpellGroupCooldown(SpellGroup_t groupId, uint32_t time)
 	msg.addByte(0xA5);
 	msg.addByte(groupId);
 	msg.add<uint32_t>(time);
-	writeToOutputBuffer(msg);
+	writeToOutputBuffer(msg, false);
 }
 
 void ProtocolGame::sendUseItemCooldown(uint32_t time)
@@ -2751,7 +2785,7 @@ void ProtocolGame::sendUseItemCooldown(uint32_t time)
 	NetworkMessage msg;
 	msg.addByte(0xA6);
 	msg.add<uint32_t>(time);
-	writeToOutputBuffer(msg);
+	writeToOutputBuffer(msg, false);
 }
 
 ////////////// Add common messages
@@ -3056,7 +3090,7 @@ void ProtocolGame::sendNewPing(uint32_t pingId)
 	NetworkMessage msg;
 	msg.addByte(0x40);
 	msg.add<uint32_t>(pingId);
-	writeToOutputBuffer(msg);
+	writeToOutputBuffer(msg, false);
 }
 
 void ProtocolGame::parseNewPing(NetworkMessage& msg)
@@ -3070,10 +3104,9 @@ void ProtocolGame::parseNewPing(NetworkMessage& msg)
 void ProtocolGame::sendFeatures()
 {
 	if (!isOTCv8) return;
-
+	
 	std::map<GameFeature, bool> features;
-	// place for non-standard OTCv8 features
-	features[GameExtendedOpcode] = true;
+	features[GameExtendedOpcode] = false;
 	features[GameSkillsBase] = true;
 	features[GamePlayerMounts] = true;
 	features[GameMagicEffectU16] = true;
@@ -3092,5 +3125,5 @@ void ProtocolGame::sendFeatures()
 		msg.addByte((uint8_t)feature.first);
 		msg.addByte(feature.second ? 1 : 0);
 	}
-	writeToOutputBuffer(msg);
+	writeToOutputBuffer(msg, false);
 }
