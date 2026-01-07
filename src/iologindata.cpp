@@ -199,15 +199,21 @@ uint32_t IOLoginData::getAccountIdByPlayerId(uint32_t playerId)
 	return result->getNumber<uint32_t>("account_id");
 }
 
-std::vector<std::string> IOLoginData::liveCastAuthentication(const std::string& password)
+std::vector<LiveCastInfo> IOLoginData::liveCastAuthentication(const std::string& password)
 {
-	std::vector<std::string> casts;
+	std::vector<LiveCastInfo> casts;
 
 	for(Player* caster : g_game.getLiveCasters(password)) {
-		casts.push_back(caster->getName());
+		LiveCastInfo info;
+		info.name = caster->getName();
+		info.level = caster->getLevel();
+		info.spectatorCount = caster->getSpectatorCount();
+		casts.push_back(info);
 	}
 
-	std::sort(casts.begin(), casts.end());
+	std::sort(casts.begin(), casts.end(), [](const LiveCastInfo& a, const LiveCastInfo& b) {
+		return a.name < b.name;
+	});
 	return casts;
 }
 

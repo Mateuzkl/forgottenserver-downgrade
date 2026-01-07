@@ -92,7 +92,7 @@ void ProtocolLogin::getCharacterList(std::string_view accountName, std::string_v
 
 void ProtocolLogin::getCasterList(const std::string& /*accountName*/, const std::string& password, uint16_t)
 {
-	std::vector<std::string> casts = IOLoginData::liveCastAuthentication(password);
+	std::vector<LiveCastInfo> casts = IOLoginData::liveCastAuthentication(password);
 	if (casts.empty()) {
 		if (password != "") {
 			disconnectClient("There are currently no live casts available.\nPlease check your password and try again.");
@@ -122,9 +122,10 @@ void ProtocolLogin::getCasterList(const std::string& /*accountName*/, const std:
 	uint32_t ip = getIP(ipStr);
 	uint16_t port = ConfigManager::getInteger(ConfigManager::LIVE_CAST_PORT);
 
-	for (const std::string& name : casts) {
-		output->addString(name);
-		output->addString(serverName);
+	for (const LiveCastInfo& cast : casts) {
+		std::string displayName = fmt::format("{} (Lv {:d} | {:d} viewers)", cast.name, cast.level, cast.spectatorCount);
+		output->addString(displayName);
+		output->addString("Live Cast");
 		output->add<uint32_t>(ip);
 		output->add<uint16_t>(port);
 	}

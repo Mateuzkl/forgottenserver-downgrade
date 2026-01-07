@@ -64,7 +64,13 @@ void ProtocolSpectator::release()
 
 void ProtocolSpectator::login(const std::string& name, const std::string& password, OperatingSystem_t operatingSystem)
 {
-	Player* foundPlayer = g_game.getPlayerByName(name);
+	std::string realName = name;
+	size_t pos = name.find(" (Lv ");
+	if (pos != std::string::npos) {
+		realName = name.substr(0, pos);
+	}
+
+	Player* foundPlayer = g_game.getPlayerByName(realName);
 
 	if (foundPlayer && foundPlayer->isLiveCasting()) {
 
