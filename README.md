@@ -174,8 +174,8 @@ This custom version includes several enhanced systems and features:
 - Spectators can chat in the Live Cast channel
 - **Cast EXP Bonus**: Earn extra experience while streaming (configurable)
 - Commands:
-  - `!cast` or `!cast on` - Start live casting
-  - `!cast off` - Stop live casting
+  - `!cast` - Start live casting
+  - `!cast` - Stop live casting
   - `/commands` - View spectator commands (in cast channel)
   - `/spectators` - View current spectators
   - `/kick <name>` - Kick a spectator
