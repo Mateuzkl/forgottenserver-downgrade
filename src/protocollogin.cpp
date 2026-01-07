@@ -117,7 +117,6 @@ void ProtocolLogin::getCasterList(const std::string& /*accountName*/, const std:
 	uint8_t size = std::min<size_t>(std::numeric_limits<uint8_t>::max(), casts.size());
 	output->addByte(size);
 
-	auto serverName = ConfigManager::getString(ConfigManager::SERVER_NAME);
 	auto ipStr = ConfigManager::getString(ConfigManager::IP);
 	uint32_t ip = getIP(ipStr);
 	uint16_t port = ConfigManager::getInteger(ConfigManager::LIVE_CAST_PORT);

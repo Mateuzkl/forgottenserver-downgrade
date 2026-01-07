@@ -382,6 +382,7 @@ void ProtocolSpectator::sendFeatures()
 	features[GameBaseSkillU16] = true;
 	features[GameAdditionalSkills] = true;
 	features[GameExtendedClientPing] = true;
+	features[GameChangeMapAwareRange] = true;
 
 	if (features.empty()) return;
 
@@ -392,6 +393,50 @@ void ProtocolSpectator::sendFeatures()
 		msg.addByte((uint8_t)feature.first);
 		msg.addByte(feature.second ? 1 : 0);
 	}
+	writeToOutputBuffer(msg);
+}
+
+void ProtocolSpectator::parseChangeAwareRange(NetworkMessage& msg)
+{
+	uint8_t width = msg.get<uint8_t>();
+	uint8_t height = msg.get<uint8_t>();
+
+	g_dispatcher.addTask(createTask(std::bind(&ProtocolSpectator::updateAwareRange, getThis(), width, height)));
+}
+
+void ProtocolSpectator::updateAwareRange(int width, int height)
+{
+	if (!isOTCv8) {
+		return;
+	}
+
+	width = std::max(width, 49);
+	height = std::max(height, 29);
+
+	// If you want to change max awareRange, edit maxViewportX, maxViewportY, maxClientViewportX, maxClientViewportY in map.h
+	awareRange.width = std::min(Map::maxViewportX * 2 - 1, std::min(Map::maxClientViewportX * 2 + 1, std::max(15, width)));
+	awareRange.height = std::min(Map::maxViewportY * 2 - 1, std::min(Map::maxClientViewportY * 2 + 1, std::max(11, height)));
+	// numbers must be odd
+	if (awareRange.width % 2 != 1)
+		awareRange.width -= 1;
+	if (awareRange.height % 2 != 1)
+		awareRange.height -= 1;
+
+	sendAwareRange();
+	sendMapDescription(caster->getPosition()); // refresh map
+}
+
+void ProtocolSpectator::sendAwareRange()
+{
+	if (!isOTCv8) {
+		return;
+	}
+
+	NetworkMessage msg;
+	msg.addByte(0x42);
+	msg.add<uint8_t>(awareRange.width);
+	msg.add<uint8_t>(awareRange.height);
+
 	writeToOutputBuffer(msg);
 }
 
@@ -627,8 +672,10 @@ bool ProtocolSpectator::canSee(int32_t x, int32_t y, int32_t z) const
 
 	//negative offset means that the action taken place is on a lower floor than ourself
 	int32_t offsetz = myPos.getZ() - z;
-	if ((x >= myPos.getX() - 8 + offsetz) && (x <= myPos.getX() + 9 + offsetz) &&
-	        (y >= myPos.getY() - 6 + offsetz) && (y <= myPos.getY() + 7 + offsetz)) {
+	if ((x >= myPos.getX() - awareRange.left() + offsetz) &&
+	    (x <= myPos.getX() + awareRange.right() + offsetz) &&
+	    (y >= myPos.getY() - awareRange.top() + offsetz) &&
+	    (y <= myPos.getY() + awareRange.bottom() + offsetz)) {
 		return true;
 	}
 	return false;
@@ -906,10 +953,47 @@ void ProtocolSpectator::sendSkills()
 
 void ProtocolSpectator::sendMapDescription(const Position& pos)
 {
+
+	if (isOTCv8) {
+		int32_t startz, endz, zstep;
+
+		if (pos.z > 7) {
+			startz = pos.z - 2;
+			endz = std::min<int32_t>(MAP_MAX_LAYERS - 1, pos.z + 2);
+			zstep = 1;
+		} else {
+			startz = 7;
+			endz = 0;
+			zstep = -1;
+		}
+
+		for (int32_t nz = startz; nz != endz + zstep; nz += zstep) {
+			sendFloorDescription(pos, nz);
+		}
+	} else {
+		NetworkMessage msg;
+		msg.addByte(0x64);
+		msg.addPosition(caster->getPosition());
+		GetMapDescription(pos.x - awareRange.left(), pos.y - awareRange.top(), pos.z, awareRange.horizontal(), awareRange.vertical(), msg);
+		writeToOutputBuffer(msg);
+	}
+}
+
+void ProtocolSpectator::sendFloorDescription(const Position& pos, int floor)
+{
+	// When map view range is big, let's say 30x20 all floors may not fit in single packets
+	// So we split one packet with every floor to few packets with single floor
+
 	NetworkMessage msg;
-	msg.addByte(0x64);
+	msg.addByte(0x4B);
 	msg.addPosition(caster->getPosition());
-	GetMapDescription(pos.x - 8, pos.y - 6, pos.z, 18, 14, msg);
+	msg.addByte(floor);
+	int32_t skip = -1;
+	GetFloorDescription(msg, pos.x - awareRange.left(), pos.y - awareRange.top(), floor, awareRange.horizontal(), awareRange.vertical(), pos.z - floor, skip);
+	if (skip >= 0) {
+		msg.addByte(skip);
+		msg.addByte(0xFF);
+	}
 	writeToOutputBuffer(msg);
 }
 
