@@ -109,7 +109,12 @@ void Player::addSpectator(ProtocolSpectator* spectator) {
 }
 
 void Player::removeSpectator(ProtocolSpectator* spectator) {
-	spectators.erase(std::remove(spectators.begin(), spectators.end(), spectator), spectators.end());
+	auto it = std::find(spectators.begin(), spectators.end(), spectator);
+	if (it == spectators.end()) {
+		return;
+	}
+
+	spectators.erase(it);
 	spectatorCount--;
 	
 	std::ostringstream query;
