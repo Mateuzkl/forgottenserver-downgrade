@@ -168,6 +168,27 @@ This custom version includes several enhanced systems and features:
 - Improved decay state management
 - Better handling of decay timers and item removal
 
+### 📺 Live Cast System
+- Stream your gameplay for other players to watch
+- Works with both **OTCv8** and **CIP 8.60** clients
+- Spectators can chat in the Live Cast channel
+- **Cast EXP Bonus**: Earn extra experience while streaming (configurable)
+- Commands:
+  - `!cast` or `!cast on` - Start live casting
+  - `!cast off` - Stop live casting
+  - `/commands` - View spectator commands (in cast channel)
+  - `/spectators` - View current spectators
+  - `/kick <name>` - Kick a spectator
+  - `/mute <name>` - Mute a spectator
+  - `/ban <name>` - Ban a spectator
+
+**config.lua settings:**
+```lua
+-- Cast EXP Bonus
+castExpBonus = true
+castExpBonusPercent = 5
+```
+
 ## Contributing
 
 Pull requests are welcome.
