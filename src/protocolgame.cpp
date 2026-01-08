@@ -2729,7 +2729,7 @@ void ProtocolGame::sendOutfitWindow()
 		protocolOutfits.emplace_back("Gamemaster", 75, 0);
 	}
 
-	size_t maxProtocolOutfits = 65535; // Both OTCv8 and CipSoft client support uint16_t
+	size_t maxProtocolOutfits = isOTCv8 ? 255 : 65535;
 
 	for (const Outfit* outfit : outfits) {
 		uint8_t addons;
@@ -2743,7 +2743,11 @@ void ProtocolGame::sendOutfitWindow()
 		}
 	}
 
-	msg.add<uint16_t>(static_cast<uint16_t>(protocolOutfits.size()));
+	if (isOTCv8) {
+		msg.addByte(static_cast<uint8_t>(protocolOutfits.size()));
+	} else {
+		msg.add<uint16_t>(static_cast<uint16_t>(protocolOutfits.size()));
+	}
 
 	for (const ProtocolOutfit& outfit : protocolOutfits) {
 		msg.add<uint16_t>(outfit.lookType);
