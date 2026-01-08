@@ -121,9 +121,11 @@ void ProtocolGame::release()
 
 void ProtocolGame::login(uint32_t characterId, uint32_t accountId, OperatingSystem_t operatingSystem)
 {
-	// OTCv8 features and extended opcodes
-	if (isOTCv8) {
-		sendFeatures();
+	// OTC features and extended opcodes (OTCv8 and Mehah)
+	if (isOTC) {
+		if (isOTCv8) {
+			sendFeatures(); // Only send features to OTCv8 for now
+		}
 		NetworkMessage opcodeMessage;
 		opcodeMessage.addByte(0x32);
 		opcodeMessage.addByte(0x00);
@@ -406,13 +408,24 @@ void ProtocolGame::onRecvFirstMessage(NetworkMessage& msg)
 	}
 
 	// OTCv8 version detection
+	isOTCv8 = false;
+	isMehah = false;
+
 	if (msg.getBufferPosition() < msg.getLength()) {
 		uint16_t otcV8StringLength = msg.get<uint16_t>();
 		if (otcV8StringLength == 5 && msg.getString(5) == "OTCv8") {
+			msg.get<uint16_t>(); // OTC version (253, 260, 261, ...)
 			isOTCv8 = true;
-			msg.get<uint16_t>();
 		}
 	}
+
+	// Mehah detection (OTClient but not OTCv8)
+	if (!isOTCv8 && operatingSystem == CLIENTOS_OTCLIENT_WINDOWS) {
+		isMehah = true;
+	}
+
+	// Set general OTC flag
+	isOTC = isOTCv8 || isMehah;
 
 	if (version < CLIENT_VERSION_MIN || version > CLIENT_VERSION_MAX) {
 		disconnectClient(fmt::format("Only clients with protocol {:s} allowed!", CLIENT_VERSION_STR));
@@ -536,6 +549,7 @@ void ProtocolGame::parsePacket(NetworkMessage& msg)
 	}
 
 	switch (recvbyte) {
+		case 0x10: break; // Unknown opcode (Mehah) - may cause desync
 		case 0x14:
 			g_dispatcher.addTask([thisPtr = getThis()]() { thisPtr->logout(true, false); });
 			break;
@@ -543,20 +557,23 @@ void ProtocolGame::parsePacket(NetworkMessage& msg)
 			g_dispatcher.addTask([playerID = player->getID()]() { g_game.playerReceivePing(playerID); });
 			break;
 		case 0x32:
-			if (isOTCv8) {
+			if (isOTC) {
 				parseExtendedOpcode(msg);
 			}
 			break; // otclient extended opcode
 		case 0x40:
-			if (isOTCv8) {
+			if (isOTC) {
 				parseNewPing(msg);
 			}
 			break; // GameClientExtendedPing
 		case 0x42:
-			if (isOTCv8) {
+			if (isOTC) {
 				parseChangeAwareRange(msg);
 			}
 			break; // GameClientChangeAwareRange
+		case 0x46: msg.getString(); break; // DLL check response (Mehah)
+		case 0x51: msg.getString(); break; // DLL check response
+		case 0x56: msg.getString(); break; // DLL check response (OTCv8)
 		case 0x64:
 			parseAutoWalk(msg);
 			break;
@@ -1544,7 +1561,7 @@ void ProtocolGame::parseEnableSharedPartyExperience(NetworkMessage& msg)
 
 void ProtocolGame::parseModalWindowAnswer(NetworkMessage& msg)
 {
-	if (!isOTCv8) {
+	if (!isOTC) {
 		return;
 	}
 
@@ -2183,7 +2200,7 @@ void ProtocolGame::sendDllCheck()
 		return;
 	}
 
-	if (isOTCv8) {
+	if (isOTC) {
 		return;
 	}
 
@@ -2235,7 +2252,7 @@ void ProtocolGame::sendMagicEffect(const Position& pos, uint16_t type)
 	NetworkMessage msg;
 	msg.addByte(0x83);
 	msg.addPosition(pos);
-	if (isOTCv8) {
+	if (isOTC) {
 		msg.add<uint16_t>(type);
 	} else {
 		msg.addByte(type);
@@ -2275,7 +2292,7 @@ void ProtocolGame::sendFYIBox(std::string_view message)
 // tile
 void ProtocolGame::sendMapDescription(const Position& pos)
 {
-	if (isOTCv8) {
+	if (isOTC) {
 		int32_t startz, endz, zstep;
 
 		if (pos.z > 7) {
@@ -2524,7 +2541,7 @@ void ProtocolGame::sendMoveCreature(const Creature* creature, const Position& ne
 				MoveUpCreature(msg, creature, newPos, oldPos);
 			}
 
-			if (!isOTCv8 && newStackPos >= MAX_STACKPOS_THINGS) {
+			if (!isOTC && newStackPos >= MAX_STACKPOS_THINGS) {
 				msg.addByte(0x4B);
 				msg.addPosition(player->getPosition());
 				GetMapDescription(newPos.x - Map::maxClientViewportX, newPos.y - Map::maxClientViewportY, newPos.z,
@@ -2587,7 +2604,7 @@ void ProtocolGame::sendInventoryItem(slots_t slot, const Item* item)
 
 void ProtocolGame::sendModalWindow(const ModalWindow& modalWindow)
 {
-	if (!isOTCv8) {
+	if (!isOTC) {
 		return;
 	}
 
@@ -2729,7 +2746,7 @@ void ProtocolGame::sendOutfitWindow()
 		protocolOutfits.emplace_back("Gamemaster", 75, 0);
 	}
 
-	size_t maxProtocolOutfits = isOTCv8 ? 255 : 65535;
+	size_t maxProtocolOutfits = isOTC ? 255 : 65535;
 
 	for (const Outfit* outfit : outfits) {
 		uint8_t addons;
@@ -2743,7 +2760,7 @@ void ProtocolGame::sendOutfitWindow()
 		}
 	}
 
-	if (isOTCv8) {
+	if (isOTC) {
 		msg.addByte(static_cast<uint8_t>(protocolOutfits.size()));
 	} else {
 		msg.add<uint16_t>(static_cast<uint16_t>(protocolOutfits.size()));
@@ -2805,7 +2822,7 @@ void ProtocolGame::sendAnimatedText(std::string_view message, const Position& po
 
 void ProtocolGame::sendSpellCooldown(uint8_t spellId, uint32_t time)
 {
-	if (!isOTCv8) {
+	if (!isOTC) {
 		return;
 	}
 
@@ -2818,7 +2835,7 @@ void ProtocolGame::sendSpellCooldown(uint8_t spellId, uint32_t time)
 
 void ProtocolGame::sendSpellGroupCooldown(SpellGroup_t groupId, uint32_t time)
 {
-	if (!isOTCv8) {
+	if (!isOTC) {
 		return;
 	}
 
@@ -2831,7 +2848,7 @@ void ProtocolGame::sendSpellGroupCooldown(SpellGroup_t groupId, uint32_t time)
 
 void ProtocolGame::sendUseItemCooldown(uint32_t time)
 {
-	if (!isOTCv8) {
+	if (!isOTC) {
 		return;
 	}
 
@@ -2909,7 +2926,7 @@ void ProtocolGame::AddPlayerStats(NetworkMessage& msg)
 	    static_cast<uint16_t>(std::min<uint32_t>(player->getMaxMana(), std::numeric_limits<uint16_t>::max())));
 
 	msg.addByte(static_cast<uint8_t>(std::min<uint32_t>(player->getMagicLevel(), std::numeric_limits<uint8_t>::max())));
-	if (isOTCv8) {
+	if (isOTC) {
 		msg.addByte(
 		    static_cast<uint8_t>(std::min<uint32_t>(player->getBaseMagicLevel(), std::numeric_limits<uint8_t>::max())));
 	}
@@ -2919,11 +2936,11 @@ void ProtocolGame::AddPlayerStats(NetworkMessage& msg)
 
 	msg.add<uint16_t>(player->getStaminaMinutes());
 
-	if (isOTCv8) {
+	if (isOTC) {
 		msg.add<uint16_t>(player->getOfflineTrainingTime() / 60 / 1000);
 	}
 
-	if (isOTCv8) {
+	if (isOTC) {
 		msg.add<uint16_t>(player->getBaseSpeed() / 2);
 	}
 
@@ -2943,7 +2960,7 @@ void ProtocolGame::AddPlayerSkills(NetworkMessage& msg)
 {
 	msg.addByte(0xA1);
 
-	if (!isOTCv8) {
+	if (!isOTC) {
 		for (uint8_t i = SKILL_FIRST; i <= SKILL_LAST; ++i) {
 			msg.addByte(
 			    std::min<uint8_t>(static_cast<uint8_t>(player->getSkillLevel(i)), std::numeric_limits<uint8_t>::max()));
@@ -2977,7 +2994,7 @@ void ProtocolGame::AddOutfit(NetworkMessage& msg, const Outfit_t& outfit)
 		msg.addItemId(outfit.lookTypeEx);
 	}
 
-	if (isOTCv8 || getVersion() != 861) {
+	if (isOTC || getVersion() != 861) {
 		msg.add<uint16_t>(outfit.lookMount);
 	}
 }
@@ -3026,7 +3043,7 @@ void ProtocolGame::MoveUpCreature(NetworkMessage& msg, const Creature* creature,
 		int32_t skip = -1;
 
 		// floor 7 and 6 already set
-		if (isOTCv8) {
+		if (isOTC) {
 			for (int z = 5; z >= 0; --z) {
 				sendFloorDescription(oldPos, z);
 			}
@@ -3137,7 +3154,7 @@ void ProtocolGame::parseExtendedOpcode(NetworkMessage& msg)
 
 void ProtocolGame::sendNewPing(uint32_t pingId)
 {
-	//if (!isOTCv8) return;
+	//if (!isOTC) return;
 
 	NetworkMessage msg;
 	msg.addByte(0x40);
@@ -3152,13 +3169,13 @@ void ProtocolGame::parseNewPing(NetworkMessage& msg)
 		createTask([protocol = getThis(), pingId]() { protocol->sendNewPing(pingId); }));
 }
 
-// OTCv8
+// OTC Features (OTCv8 and Mehah)
 void ProtocolGame::sendFeatures()
 {
-	if (!isOTCv8) return;
+	if (!isOTC) return;
 	
 	std::map<GameFeature, bool> features;
-	features[GameExtendedOpcode] = false;
+	features[GameExtendedOpcode] = true;
 	features[GameSkillsBase] = true;
 	features[GamePlayerMounts] = true;
 	features[GameMagicEffectU16] = true;
@@ -3191,7 +3208,7 @@ void ProtocolGame::parseChangeAwareRange(NetworkMessage& msg)
 
 void ProtocolGame::updateAwareRange(int width, int height)
 {
-	if (!isOTCv8) {
+	if (!isOTC) {
 		return;
 	}
 
@@ -3213,7 +3230,7 @@ void ProtocolGame::updateAwareRange(int width, int height)
 
 void ProtocolGame::sendAwareRange()
 {
-	if (!isOTCv8) {
+	if (!isOTC) {
 		return;
 	}
 

@@ -1,6 +1,11 @@
 math.randomseed(os.time())
 dofile('data/lib/lib.lua')
 
+-- Storage keys
+Storage = {
+	Language = 50000
+}
+
 local startupFile=io.open("data/startup/startup.lua", "r")
 if startupFile ~= nil then
 	dofile("data/startup/startup.lua")

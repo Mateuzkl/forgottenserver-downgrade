@@ -129,9 +129,11 @@ void ProtocolSpectator::login(const std::string& name, const std::string& passwo
 		return;
 	}
 
-	// OTCv8 features and extended opcodes
-	if (isOTCv8) {
-		sendFeatures();
+	// OTC features and extended opcodes (OTCv8 and Mehah)
+	if (isOTC) {
+		if (isOTCv8) {
+			sendFeatures();
+		}
 		NetworkMessage opcodeMessage;
 		opcodeMessage.addByte(0x32);
 		opcodeMessage.addByte(0x00);
@@ -236,13 +238,24 @@ void ProtocolSpectator::onRecvFirstMessage(NetworkMessage& msg)
 	}
 
 	// OTCv8 version detection
+	isOTCv8 = false;
+	isMehah = false;
+
 	if (msg.getBufferPosition() < msg.getLength()) {
 		uint16_t otcV8StringLength = msg.get<uint16_t>();
 		if (otcV8StringLength == 5 && msg.getString(5) == "OTCv8") {
+			msg.get<uint16_t>(); // OTC version (253, 260, 261, ...)
 			isOTCv8 = true;
-			msg.get<uint16_t>();
 		}
 	}
+
+	// Mehah detection (OTClient but not OTCv8)
+	if (!isOTCv8 && operatingSystem == CLIENTOS_OTCLIENT_WINDOWS) {
+		isMehah = true;
+	}
+
+	// Set general OTC flag
+	isOTC = isOTCv8 || isMehah;
 
 	if (version < CLIENT_VERSION_MIN || version > CLIENT_VERSION_MAX) {
 		std::ostringstream ss;
@@ -406,7 +419,7 @@ void ProtocolSpectator::parseChangeAwareRange(NetworkMessage& msg)
 
 void ProtocolSpectator::updateAwareRange(int width, int height)
 {
-	if (!isOTCv8) {
+	if (!isOTC) {
 		return;
 	}
 
@@ -428,7 +441,7 @@ void ProtocolSpectator::updateAwareRange(int width, int height)
 
 void ProtocolSpectator::sendAwareRange()
 {
-	if (!isOTCv8) {
+	if (!isOTC) {
 		return;
 	}
 
@@ -472,6 +485,9 @@ void ProtocolSpectator::parsePacket(NetworkMessage& msg)
 		case 0x14: g_dispatcher.addTask(createTask(std::bind(&ProtocolSpectator::logout, getThis(), true, false))); break;
 		case 0x1D: sendPingBack(); break;
 		case 0x1E: break;
+		case 0x46: msg.getString(); break; // DLL check response (Mehah)
+		case 0x51: msg.getString(); break; // DLL check response
+		case 0x56: msg.getString(); break; // DLL check response (OTCv8)
 		case 0x64:
 		case 0x65:
 		case 0x66:
@@ -805,7 +821,7 @@ void ProtocolSpectator::sendMagicEffect(const Position& pos, uint16_t type)
 	NetworkMessage msg;
 	msg.addByte(0x83);
 	msg.addPosition(pos);
-	if (isOTCv8) {
+	if (isOTC) {
 		msg.add<uint16_t>(type);
 	} else {
 		msg.addByte(type);
@@ -853,7 +869,7 @@ void ProtocolSpectator::AddOutfit(NetworkMessage& msg, const Outfit_t& outfit)
 		msg.addItemId(outfit.lookTypeEx);
 	}
 
-	if (isOTCv8 || version != 861) {
+	if (isOTC || version != 861) {
 		msg.add<uint16_t>(outfit.lookMount);
 	}
 }
@@ -954,7 +970,7 @@ void ProtocolSpectator::sendSkills()
 void ProtocolSpectator::sendMapDescription(const Position& pos)
 {
 
-	if (isOTCv8) {
+	if (isOTC) {
 		int32_t startz, endz, zstep;
 
 		if (pos.z > 7) {
@@ -1151,7 +1167,7 @@ void ProtocolSpectator::AddPlayerStats(NetworkMessage& msg)
 
 	msg.addByte(std::min<uint32_t>(caster->getMagicLevel(), std::numeric_limits<uint8_t>::max()));
 
-	if (isOTCv8) {
+	if (isOTC) {
 		msg.addByte(std::min<uint32_t>(caster->getBaseMagicLevel(), std::numeric_limits<uint8_t>::max()));
 	}
 
@@ -1161,11 +1177,11 @@ void ProtocolSpectator::AddPlayerStats(NetworkMessage& msg)
 	
 	msg.add<uint16_t>(caster->getStaminaMinutes());
 
-	if (isOTCv8) {
+	if (isOTC) {
 		msg.add<uint16_t>(caster->getOfflineTrainingTime() / 60 / 1000);
 	}
 
-	if (isOTCv8) {
+	if (isOTC) {
 		msg.add<uint16_t>(caster->getBaseSpeed() / 2);
 	}
 }
@@ -1174,7 +1190,7 @@ void ProtocolSpectator::AddPlayerSkills(NetworkMessage& msg)
 {
 	msg.addByte(0xA1);
 	
-	if (!isOTCv8) {
+	if (!isOTC) {
 		for (uint8_t i = SKILL_FIRST; i <= SKILL_LAST; ++i) {
 			msg.addByte(std::min<int32_t>(caster->getSkillLevel(i), std::numeric_limits<uint8_t>::max()));
 			msg.addByte(caster->getSkillPercent(i));

@@ -283,6 +283,9 @@ private:
 	uint8_t challengeRandom = 0;
 
 	bool isOTCv8 = false;
+	bool isMehah = false;
+	bool isOTC = false;
+	
 	bool debugAssertSent = false;
 	bool acceptPackets = false;
 	
