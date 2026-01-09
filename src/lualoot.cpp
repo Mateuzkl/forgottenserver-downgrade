@@ -129,6 +129,19 @@ int luaLootSetActionId(lua_State* L)
 	return 1;
 }
 
+int luaLootSetUnique(lua_State* L)
+{
+	// loot:setUnique(unique)
+	Loot* loot = getUserdata<Loot>(L, 1);
+	if (loot) {
+		loot->lootBlock.unique = getBoolean(L, 2);
+		pushBoolean(L, true);
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
+
 int luaLootSetIdFromName(lua_State* L)
 {
 	// loot:setIdFromName(name)
@@ -203,6 +216,7 @@ void LuaScriptInterface::registerLoot()
 	registerMethod("Loot", "setSubType", luaLootSetSubType);
 	registerMethod("Loot", "setChance", luaLootSetChance);
 	registerMethod("Loot", "setActionId", luaLootSetActionId);
+	registerMethod("Loot", "setUnique", luaLootSetUnique);
 	registerMethod("Loot", "setDescription", luaLootSetDescription);
 	registerMethod("Loot", "addChildLoot", luaLootAddChildLoot);
 }

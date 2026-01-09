@@ -49,11 +49,8 @@ monster.voices = {
 monster.loot = {
 {
 	id = "Ferumbras' hat",
-	chance = 100000
-},
-{
-	id = "Ferumbras' hat",
-	chance = 100000
+	chance = 100000,
+	unique = true
 },
 {
 	id = "gold coin",

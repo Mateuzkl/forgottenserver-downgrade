@@ -104,8 +104,8 @@ registerMonsterType.flags = function(mtype, mask)
 		if mask.flags.canWalkOnPoison ~= nil then
 			mtype:canWalkOnPoison(mask.flags.canWalkOnPoison)
 		end
-		if mask.flags.rewardboss ~= nil then
-			mtype:isRewardBoss(mask.flags.rewardboss)
+		if mask.flags.rewardboss ~= nil or mask.flags.isrewardboss ~= nil then
+			mtype:isRewardBoss(mask.flags.rewardboss or mask.flags.isrewardboss)
 		end
 	end
 end
@@ -159,6 +159,9 @@ registerMonsterType.loot = function(mtype, mask)
 			if loot.aid or loot.actionId then
 				parent:setActionId(loot.aid or loot.actionId)
 			end
+			if loot.unique then
+				parent:setUnique(loot.unique)
+			end
 			if loot.subType or loot.charges then
 				parent:setSubType(loot.subType or loot.charges)
 			end
@@ -177,6 +180,9 @@ registerMonsterType.loot = function(mtype, mask)
 					if children.maxCount then child:setMaxCount(children.maxCount) end
 					if children.aid or children.actionId then
 						child:setActionId(children.aid or children.actionId)
+					end
+					if children.unique then
+						child:setUnique(children.unique)
 					end
 					if children.subType or children.charges then
 						child:setSubType(children.subType or children.charges)
