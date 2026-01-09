@@ -214,6 +214,7 @@ private:
 	                     MagicEffectClasses magicEffect = CONST_ME_NONE);
 	void sendMoveCreature(const Creature* creature, const Position& newPos, int32_t newStackPos, const Position& oldPos,
 	                      int32_t oldStackPos, bool teleport);
+	void removeCreatureFromKnownSet(uint32_t creatureId) { knownCreatureSet.erase(creatureId); }
 
 	// containers
 	void sendAddContainerItem(uint8_t cid, const Item* item);
