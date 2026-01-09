@@ -1972,10 +1972,8 @@ void Monster::death(Creature*)
 		auto& rewardBossContributionInfo = g_game.rewardBossTracking;
 		auto it = rewardBossContributionInfo.find(monsterId);
 		if (it == rewardBossContributionInfo.end()) {
-			std::cout << "[RewardBoss] No tracking info found for monster ID: " << monsterId << std::endl;
 			return;
 		}
-		std::cout << "[RewardBoss] Processing loot for monster ID: " << monsterId << std::endl;
 		auto& scoreInfo = it->second;
 		uint32_t mostScoreContributor = 0;
 		int32_t highestScore = 0;
@@ -2030,13 +2028,10 @@ void Monster::death(Creature*)
 			rewardContainer->setIntAttr(ITEM_ATTRIBUTE_DATE, currentTime);
 			rewardContainer->setIntAttr(ITEM_ATTRIBUTE_REWARDID, getMonster()->getID());
 			bool hasLoot = false;
-			std::cout << "[RewardBoss] Processing " << creatureLoot.size() << " loot items for player " << playerId << std::endl;
-			std::cout << "[RewardBoss] mostScoreContributor: " << mostScoreContributor << ", lootRate: " << lootRate << std::endl;
 			for (const auto& lootBlock : creatureLoot) {
 				float adjustedChance =
 				    (lootBlock.chance * lootRate) * ConfigManager::getInteger(ConfigManager::RATE_LOOT);
 				if (lootBlock.unique && mostScoreContributor == playerId) {
-					std::cout << "[RewardBoss] Adding UNIQUE item " << lootBlock.id << " to player " << playerId << std::endl;
 					// Ensure that the mostScoreContributor can receive multiple unique items
 					auto lootItem = Item::CreateItem(lootBlock.id, uniform_random(1, lootBlock.countmax));
 					const ItemType& itemType = Item::items[lootBlock.id];
@@ -2061,10 +2056,8 @@ void Monster::death(Creature*)
 				}
 			}
 			if (hasLoot) {
-				std::cout << "[RewardBoss] hasLoot=true, adding to reward chest for player " << playerId << std::endl;
 				if (player) {
 					player->getRewardChest().internalAddThing(rewardContainer);
-					std::cout << "[RewardBoss] Added to online player's reward chest" << std::endl;
 					player->sendTextMessage(
 					    MESSAGE_STATUS_DEFAULT,
 					    "The following items dropped by " + getMonster()->getName() +
