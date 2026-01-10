@@ -2235,6 +2235,9 @@ void LuaScriptInterface::registerFunctions()
 	registerMethod("Player", "isLiveCasting", LuaScriptInterface::luaPlayerIsLiveCasting);
 	registerMethod("Player", "startLiveCasting", LuaScriptInterface::luaPlayerStartLiveCasting);
 	registerMethod("Player", "stopLiveCasting", LuaScriptInterface::luaPlayerStopLiveCasting);
+	registerMethod("Player", "getReset", LuaScriptInterface::luaPlayerGetReset); // reset system
+	registerMethod("Player", "doReset", LuaScriptInterface::luaPlayerDoReset); // reset system
+	registerMethod("Player", "setReset", LuaScriptInterface::luaPlayerSetReset); // reset system
 }
 
 #undef registerEnum
@@ -3612,5 +3615,44 @@ int LuaScriptInterface::luaPlayerStopLiveCasting(lua_State* L)
 	Player* player = getUserdata<Player>(L, 1);
 	player->stopLiveCasting();
 	pushBoolean(L, player->isLiveCasting() == false);
+	return 1;
+}
+
+int LuaScriptInterface::luaPlayerGetReset(lua_State* L) // reset system
+{
+	// player:getReset()
+	Player* player = getUserdata<Player>(L, 1);
+	if (player) {
+		lua_pushnumber(L, player->getReset());
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
+
+int LuaScriptInterface::luaPlayerDoReset(lua_State* L) // reset system
+{
+	// player:doReset()
+	Player* player = getUserdata<Player>(L, 1);
+	if (player) {
+		player->doReset();
+		lua_pushboolean(L, true);
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
+
+int LuaScriptInterface::luaPlayerSetReset(lua_State* L) // reset system
+{
+	// player:setReset(reset)
+	Player* player = getUserdata<Player>(L, 1);
+	if (player) {
+		uint32_t reset = getNumber<uint32_t>(L, 2);
+		player->setReset(reset);
+		lua_pushboolean(L, true);
+	} else {
+		lua_pushnil(L);
+	}
 	return 1;
 }
