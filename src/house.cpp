@@ -693,7 +693,7 @@ void House::updateDoorDescription() const
 
 	// Reset system - show required resets
 	if (requiredReset > 0) {
-		ss << " It requires " << requiredReset << " resets.";
+		description << " It requires " << requiredReset << " resets.";
 	}
 
 	for (Door* door : doorSet) {

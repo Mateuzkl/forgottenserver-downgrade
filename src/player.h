@@ -191,6 +191,11 @@ public:
 
 	Vocation* getVocation() const { return vocation; }
 
+	uint32_t getResetCount() const { return reset; }
+	void addReset(uint32_t count = 1);
+	void setResetCount(uint32_t count);
+	double getResetExpReduction() const;
+
 	OperatingSystem_t getOperatingSystem() const { return operatingSystem; }
 	void setOperatingSystem(OperatingSystem_t clientos) { operatingSystem = clientos; }
 

@@ -1229,6 +1229,10 @@ void LuaScriptInterface::registerFunctions()
 	registerEnum(ACCOUNT_TYPE_COMMUNITYMANAGER);
 	registerEnum(ACCOUNT_TYPE_GOD);
 
+	registerGlobalVariable("RESET_REDUCTION_PERCENTAGE", ConfigManager::RESET_REDUCTION_PERCENTAGE);
+	registerGlobalVariable("RESET_SYSTEM_ENABLED", ConfigManager::RESET_SYSTEM_ENABLED);
+	registerGlobalVariable("RESET_LEVEL", ConfigManager::RESET_LEVEL);
+
 	registerGlobalVariable("ACCOUNT_MANAGER_NONE", static_cast<uint8_t>(AccountManagerMode::ACCOUNT_MANAGER_NONE));
 	registerGlobalVariable("ACCOUNT_MANAGER_NEW", static_cast<uint8_t>(AccountManagerMode::ACCOUNT_MANAGER_NEW));
 	registerGlobalVariable("ACCOUNT_MANAGER_ACCOUNT", static_cast<uint8_t>(AccountManagerMode::ACCOUNT_MANAGER_ACCOUNT));

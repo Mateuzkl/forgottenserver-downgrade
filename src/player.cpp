@@ -1,4 +1,4 @@
-// Copyright 2023 The Forgotten Server Authors. All rights reserved.
+﻿// Copyright 2023 The Forgotten Server Authors. All rights reserved.
 // Use of this source code is governed by the GPL-2.0 License that can be found in the LICENSE file.
 
 #include "otpch.h"
@@ -189,6 +189,10 @@ std::string Player::getDescription(int32_t lookDistance) const
 		} else {
 			s << " You have no vocation (Level " << level << ").";
 		}
+
+		if (ConfigManager::getBoolean(ConfigManager::RESET_SYSTEM_ENABLED) && reset > 0) {
+			s << " Resets [" << reset << "].";
+		}
 	} else {
 		s << name;
 		if (!group->access) {
@@ -209,7 +213,7 @@ std::string Player::getDescription(int32_t lookDistance) const
 		} else {
 			s << " has no vocation.";
 		}
-		if (reset > 0) {
+		if (ConfigManager::getBoolean(ConfigManager::RESET_SYSTEM_ENABLED) && reset > 0) {
 			s << " Resets [" << reset << "].";
 		}
 	}
@@ -3944,7 +3948,7 @@ Skulls_t Player::getSkull() const
 void Player::doReset() // reset system
 {
 	++reset;
-	uint32_t bonusReset = reset * getNumber(ConfigManager::RESET_STATBONUS);
+	uint32_t bonusReset = reset * getInteger(ConfigManager::RESET_STATBONUS);
 	capacity += bonusReset;
 	
 	mana = getMaxMana();
@@ -5385,4 +5389,30 @@ bool Player::addOfflineTrainingTries(skills_t skill, uint64_t tries)
 	        ucwords(getSkillName(skill)), oldSkillValue, oldPercentToNextLevel, (oldSkillValue + 1), newSkillValue,
 	        newPercentToNextLevel, (newSkillValue + 1)));
 	return sendUpdate;
+}
+
+
+
+
+void Player::addReset(uint32_t count /*= 1*/)
+{
+	reset += count;
+	Database::getInstance().executeQuery(fmt::format("UPDATE `players` SET `reset` = {:d} WHERE `id` = {:d}", reset, getGUID()));
+}
+
+void Player::setResetCount(uint32_t count)
+{
+	reset = count;
+	Database::getInstance().executeQuery(fmt::format("UPDATE `players` SET `reset` = {:d} WHERE `id` = {:d}", reset, getGUID()));
+}
+
+double Player::getResetExpReduction() const
+{
+	if (!ConfigManager::getBoolean(ConfigManager::RESET_SYSTEM_ENABLED)) {
+		return 1.0;
+	}
+
+	int32_t reductionPerReset = ConfigManager::getInteger(ConfigManager::RESET_REDUCTION_PERCENTAGE);
+	double multiplier = 1.0 - (static_cast<double>(reset * reductionPerReset) / 100.0);
+	return std::max<double>(0.1, multiplier);
 }

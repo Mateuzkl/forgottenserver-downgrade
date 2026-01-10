@@ -37,7 +37,10 @@ function loginMessage.onLogin(player)
 
     player:registerEvent("logoutMessage")
 
-    player:updateStamina()
+    if configManager.getBoolean(RESET_SYSTEM_ENABLED) then
+        local reductionMultiplier = player:getResetExpReduction()
+        player:setExperienceRate(ExperienceRateType.STAMINA, reductionMultiplier)
+    end
     return true
 end
 loginMessage:register()

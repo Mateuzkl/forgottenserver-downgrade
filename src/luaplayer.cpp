@@ -2555,6 +2555,58 @@ int luaOfflinePlayerRemove(lua_State* L)
 	}
 	return 0;
 }
+int luaPlayerGetResetCount(lua_State* L)
+{
+
+	Player* player = getUserdata<Player>(L, 1);
+	if (player) {
+		lua_pushinteger(L, player->getResetCount());
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
+
+int luaPlayerAddReset(lua_State* L)
+{
+
+	Player* player = getUserdata<Player>(L, 1);
+	if (player) {
+		uint32_t count = getInteger<uint32_t>(L, 2);
+		player->addReset(count);
+		pushBoolean(L, true);
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
+
+int luaPlayerSetResetCount(lua_State* L)
+{
+
+	Player* player = getUserdata<Player>(L, 1);
+	if (player) {
+		uint32_t count = getInteger<uint32_t>(L, 2);
+		player->setResetCount(count);
+		pushBoolean(L, true);
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
+
+int luaPlayerGetResetExpReduction(lua_State* L)
+{
+
+	Player* player = getUserdata<Player>(L, 1);
+	if (player) {
+		lua_pushnumber(L, player->getResetExpReduction());
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
+
 } // namespace
 
 void LuaScriptInterface::registerPlayer()
@@ -2755,6 +2807,12 @@ void LuaScriptInterface::registerPlayer()
 
 	registerMethod("Player", "isAccountManager", luaPlayerIsAccountManager);
 	registerMethod("Player", "getAccountManagerMode", luaPlayerGetAccountManagerMode);
+
+
+	registerMethod("Player", "getResetCount", luaPlayerGetResetCount);
+	registerMethod("Player", "addReset", luaPlayerAddReset);
+	registerMethod("Player", "setResetCount", luaPlayerSetResetCount);
+	registerMethod("Player", "getResetExpReduction", luaPlayerGetResetExpReduction);
 
 	// OfflinePlayer
 	registerClass("OfflinePlayer", "Player", luaOfflinePlayerCreate);

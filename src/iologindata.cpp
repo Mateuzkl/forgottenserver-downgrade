@@ -938,6 +938,7 @@ bool IOLoginData::savePlayer(Player* player)
 	query << "`skill_shielding_tries` = " << player->skills[SKILL_SHIELD].tries << ',';
 	query << "`skill_fishing` = " << player->skills[SKILL_FISHING].level << ',';
 	query << "`skill_fishing_tries` = " << player->skills[SKILL_FISHING].tries << ',';
+	query << "`reset` = " << player->getResetCount() << ',';
 	query << "`direction` = " << static_cast<uint16_t>(player->getDirection()) << ',';
 
 	if (!player->isOffline()) {

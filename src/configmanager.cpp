@@ -257,10 +257,10 @@ bool ConfigManager::load()
 		integers[Integer::STATUS_PORT] = getGlobalInteger(L, "statusProtocolPort", 7171);
 		integers[Integer::LIVE_CAST_PORT] = getGlobalInteger(L, "liveCastProtocolPort", 7173);
 
-		integers[RESET_LEVEL] = getGlobalInteger(L, "resetLevel", 100); // reset system
-		integers[RESET_STATBONUS] = getGlobalInteger(L, "resetStatBonus", 5); // reset system
-		integers[RESET_DMGBONUS] = getGlobalInteger(L, "resetDmgBonus", 10); // reset system
-		integers[RESET_DMGBONUS_NEW] = getGlobalInteger(L, "resetDmgBonus", 5); // reset system
+		integers[RESET_LEVEL] = getGlobalInteger(L, "resetLevel", 100);
+		integers[RESET_STATBONUS] = getGlobalInteger(L, "resetStatBonus", 5);
+		integers[RESET_DMGBONUS] = getGlobalInteger(L, "resetDmgBonus", 10);
+		integers[RESET_REDUCTION_PERCENTAGE] = getGlobalInteger(L, "resetReductionPercentage", 0);
 
 		integers[Integer::MARKET_OFFER_DURATION] = getGlobalInteger(L, "marketOfferDuration", 30 * 24 * 60 * 60);
 	}
@@ -312,6 +312,7 @@ bool ConfigManager::load()
 	booleans[Boolean::GENERATE_ACCOUNT_NUMBER] = getGlobalBoolean(L, "generateAccountNumber", false);
 	booleans[Boolean::CHECK_DUPLICATE_STORAGE_KEYS] = getGlobalBoolean(L, "checkDuplicateStorageKeys", false);
 	booleans[Boolean::DLL_CHECK_KICK] = getGlobalBoolean(L, "dllCheckKick", false);
+	booleans[Boolean::RESET_SYSTEM_ENABLED] = getGlobalBoolean(L, "resetSystemEnabled", false); // reset system
 
 	strings[String::DEFAULT_PRIORITY] = getGlobalString(L, "defaultPriority", "high");
 	strings[String::SERVER_NAME] = getGlobalString(L, "serverName", "");

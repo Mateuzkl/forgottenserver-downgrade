@@ -19,7 +19,9 @@ castExpBonusPercent = 5 -- percentage bonus (5 = 5%)
 resetLevel = 510 -- min level to reset
 resetStats = 5 -- % more hp and mp on every reset ()
 resetDmg = 10 -- % attack bonus per reset. 10 = 1%, 100 = 10%, 1000 = 100%. accumulative, keep it low!!!!
-resetDmgBonus = 5 -- damage bonus per reset for the new system    
+resetDmgBonus = 5 -- damage bonus per reset for the new system
+resetSystemEnabled = true -- enable/disable the reset system
+resetReductionPercentage = 10 -- XP reduction percentage per reset (e.g. 10 = 10%)    
 
 -- Account Manager
 accountManager = true
