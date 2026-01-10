@@ -185,9 +185,9 @@ std::string Player::getDescription(int32_t lookDistance) const
 		if (group->access) {
 			s << " You are " << group->name << '.';
 		} else if (vocation->getId() != VOCATION_NONE) {
-			s << " You are " << vocation->getVocDescription() << '.';
+			s << " You are " << vocation->getVocDescription() << " (Level " << level << ").";
 		} else {
-			s << " You have no vocation.";
+			s << " You have no vocation (Level " << level << ").";
 		}
 	} else {
 		s << name;
@@ -208,6 +208,9 @@ std::string Player::getDescription(int32_t lookDistance) const
 			s << " is " << vocation->getVocDescription() << '.';
 		} else {
 			s << " has no vocation.";
+		}
+		if (reset > 0) {
+			s << " Resets [" << reset << "].";
 		}
 	}
 
