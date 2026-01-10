@@ -165,7 +165,11 @@ bool Weapon::configureEvent(const pugi::xml_node& node)
 	if ((attr = node.attribute("soul"))) {
 		soul = pugi::cast<uint32_t>(attr.value());
 	}
-
+	
+	if ((attr = node.attribute("reset"))) {
+		reset = pugi::cast<uint32_t>(attr.value());
+	}
+	
 	if ((attr = node.attribute("prem"))) {
 		premium = attr.as_bool();
 	}
@@ -231,7 +235,11 @@ bool Weapon::configureEvent(const pugi::xml_node& node)
 	if (getReqMagLv() > 0) {
 		wieldInfo |= WIELDINFO_MAGLV;
 	}
-
+	
+	if (getReqReset() > 0) {
+		wieldInfo |= WIELDINFO_RESET;
+	}
+	
 	if (!vocationString.empty()) {
 		wieldInfo |= WIELDINFO_VOCREQ;
 	}
@@ -246,6 +254,7 @@ bool Weapon::configureEvent(const pugi::xml_node& node)
 		it.vocationString = vocationString;
 		it.minReqLevel = getReqLevel();
 		it.minReqMagicLevel = getReqMagLv();
+		it.minReqReset = getReqReset();
 	}
 
 	configureWeapon(Item::items[id]);
@@ -303,6 +312,16 @@ int32_t Weapon::playerWeaponCheck(Player* player, Creature* target, uint8_t shoo
 
 	if (player->getMagicLevel() < getReqMagLv()) {
 		damageModifier = (isWieldedUnproperly() ? damageModifier / 2 : 0);
+	}
+	if (player->getReset() < getReqReset()) {
+		if (!isWieldedUnproperly()) {
+			std::ostringstream ss;
+			ss << "You need " << getReqReset() << " resets to use this weapon. You currently have " << player->getReset() << " resets.";
+			player->sendTextMessage(MESSAGE_STATUS_SMALL, ss.str());
+			g_game.addMagicEffect(player->getPosition(), CONST_ME_POFF);
+			return 0;
+		}
+		damageModifier = damageModifier / 2;
 	}
 	return damageModifier;
 }

@@ -125,6 +125,8 @@ public:
 	bool hasMounts() const;
 	void dismount();
 
+	void doReset(); // reset system
+
 	void sendFYIBox(std::string_view message)
 	{
 		if (client) {
@@ -265,6 +267,8 @@ public:
 	uint32_t getAccount() const { return accountNumber; }
 	AccountType_t getAccountType() const { return accountType; }
 	uint32_t getLevel() const { return level; }
+	uint32_t getReset() const { return reset; }
+	void setReset(uint32_t newReset) { reset = newReset; }
 	uint8_t getLevelPercent() const { return levelPercent; }
 	uint32_t getMagicLevel() const { return std::max<int32_t>(0, magLevel + varStats[STAT_MAGICPOINTS]); }
 	uint32_t getSpecialMagicLevel(CombatType_t type) const
@@ -1190,6 +1194,7 @@ private:
 	uint32_t conditionImmunities = 0;
 	uint32_t conditionSuppressions = 0;
 	uint32_t level = 1;
+	uint32_t reset = 0; // reset system
 	uint32_t magLevel = 0;
 	uint32_t actionTaskEvent = 0;
 	uint32_t nextStepEvent = 0;

@@ -435,6 +435,10 @@ bool Spell::configureSpell(const pugi::xml_node& node)
 	if ((attr = node.attribute("soul"))) {
 		soul = pugi::cast<uint32_t>(attr.value());
 	}
+	
+	if ((attr = node.attribute("reset"))) {
+		reset = pugi::cast<uint32_t>(attr.value());
+	}
 
 	if ((attr = node.attribute("range"))) {
 		range = pugi::cast<int32_t>(attr.value());
@@ -563,6 +567,13 @@ bool Spell::playerSpellCheck(Player* player) const
 
 	if (player->getMagicLevel() < magLevel) {
 		player->sendCancelMessage(RETURNVALUE_NOTENOUGHMAGICLEVEL);
+		g_game.addMagicEffect(player->getPosition(), CONST_ME_POFF);
+		return false;
+	}
+	if (player->getReset() < reset) {
+		std::ostringstream ss;
+		ss << "You need " << reset << " resets to cast this spell. You currently have " << player->getReset() << " resets.";
+		player->sendTextMessage(MESSAGE_STATUS_SMALL, ss.str());
 		g_game.addMagicEffect(player->getPosition(), CONST_ME_POFF);
 		return false;
 	}

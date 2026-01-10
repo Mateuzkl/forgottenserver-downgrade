@@ -185,9 +185,9 @@ std::string Player::getDescription(int32_t lookDistance) const
 		if (group->access) {
 			s << " You are " << group->name << '.';
 		} else if (vocation->getId() != VOCATION_NONE) {
-			s << " You are " << vocation->getVocDescription() << '.';
+			s << " You are " << vocation->getVocDescription() << " (Level " << level << ").";
 		} else {
-			s << " You have no vocation.";
+			s << " You have no vocation (Level " << level << ").";
 		}
 	} else {
 		s << name;
@@ -208,6 +208,9 @@ std::string Player::getDescription(int32_t lookDistance) const
 			s << " is " << vocation->getVocDescription() << '.';
 		} else {
 			s << " has no vocation.";
+		}
+		if (reset > 0) {
+			s << " Resets [" << reset << "].";
 		}
 	}
 
@@ -3936,6 +3939,27 @@ Skulls_t Player::getSkull() const
 		return SKULL_NONE;
 	}
 	return skull;
+}
+
+void Player::doReset() // reset system
+{
+	++reset;
+	uint32_t bonusReset = reset * getNumber(ConfigManager::RESET_STATBONUS);
+	capacity += bonusReset;
+	
+	mana = getMaxMana();
+	health = getMaxHealth();
+	experience = 0;
+	level = 1;
+	levelPercent = 0;
+	magLevel = 0;
+	magLevelPercent = 0;
+	for (int i = SKILL_FIRST; i <= SKILL_LAST; ++i) {
+		skills[i].level = 10;
+		skills[i].percent = 0;
+	}
+	sendStats();
+	sendSkills();
 }
 
 Skulls_t Player::getSkullClient(const Creature* creature) const

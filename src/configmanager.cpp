@@ -257,6 +257,11 @@ bool ConfigManager::load()
 		integers[Integer::STATUS_PORT] = getGlobalInteger(L, "statusProtocolPort", 7171);
 		integers[Integer::LIVE_CAST_PORT] = getGlobalInteger(L, "liveCastProtocolPort", 7173);
 
+		integers[RESET_LEVEL] = getGlobalInteger(L, "resetLevel", 100); // reset system
+		integers[RESET_STATBONUS] = getGlobalInteger(L, "resetStatBonus", 5); // reset system
+		integers[RESET_DMGBONUS] = getGlobalInteger(L, "resetDmgBonus", 10); // reset system
+		integers[RESET_DMGBONUS_NEW] = getGlobalInteger(L, "resetDmgBonus", 5); // reset system
+
 		integers[Integer::MARKET_OFFER_DURATION] = getGlobalInteger(L, "marketOfferDuration", 30 * 24 * 60 * 60);
 	}
 

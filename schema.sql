@@ -21,6 +21,7 @@ CREATE TABLE IF NOT EXISTS `players` (
   `group_id` int NOT NULL DEFAULT '1',
   `account_id` int NOT NULL DEFAULT '0',
   `level` int NOT NULL DEFAULT '1',
+  `reset` int(11) NOT NULL DEFAULT 0,
   `vocation` int NOT NULL DEFAULT '0',
   `health` int NOT NULL DEFAULT '150',
   `healthmax` int NOT NULL DEFAULT '150',
