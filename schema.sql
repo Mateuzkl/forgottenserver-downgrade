@@ -283,6 +283,7 @@ CREATE TABLE IF NOT EXISTS `market_offers` (
 
 CREATE TABLE IF NOT EXISTS `players_online` (
   `player_id` int NOT NULL,
+  `cast_password` varchar(30) DEFAULT NULL,
   `cast_spectators` int NOT NULL DEFAULT '0',
   PRIMARY KEY (`player_id`)
 ) ENGINE=MEMORY DEFAULT CHARACTER SET=utf8;
