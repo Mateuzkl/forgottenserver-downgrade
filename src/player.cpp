@@ -3938,6 +3938,27 @@ Skulls_t Player::getSkull() const
 	return skull;
 }
 
+void Player::doReset() // reset system
+{
+	++reset;
+	uint32_t bonusReset = reset * getNumber(ConfigManager::RESET_STATBONUS);
+	capacity += bonusReset;
+	
+	mana = getMaxMana();
+	health = getMaxHealth();
+	experience = 0;
+	level = 1;
+	levelPercent = 0;
+	magLevel = 0;
+	magLevelPercent = 0;
+	for (int i = SKILL_FIRST; i <= SKILL_LAST; ++i) {
+		skills[i].level = 10;
+		skills[i].percent = 0;
+	}
+	sendStats();
+	sendSkills();
+}
+
 Skulls_t Player::getSkullClient(const Creature* creature) const
 {
 	if (!creature || g_game.getWorldType() != WORLD_TYPE_PVP) {
