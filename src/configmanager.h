@@ -168,6 +168,10 @@ enum Integer
 	MAX_ALLOWED_ON_A_DUMMY,
 	RATE_EXERCISE_TRAINING_SPEED,
 	DLL_CHECK_KICK_TIME,
+	RESET_LEVEL, // reset system
+	RESET_STATBONUS, // reset system
+	RESET_DMGBONUS, // reset system
+	RESET_DMGBONUS_NEW, // reset system
 
 	LAST_INTEGER /* this must be the last one */
 };
