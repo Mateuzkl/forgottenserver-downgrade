@@ -665,6 +665,19 @@ int luaHouseGetProtectionGuests(lua_State* L)
 	return 1;
 }
 
+int luaHouseGetRequiredReset(lua_State* L)
+{
+	// house:getRequiredReset()
+	House* house = getUserdata<House>(L, 1);
+	if (house) {
+		lua_pushinteger(L, house->getRequiredReset());
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
+
+
 int luaHouseClearProtectionGuests(lua_State* L)
 {
 	// house:clearProtectionGuests()
@@ -736,4 +749,6 @@ void LuaScriptInterface::registerHouse()
 	registerMethod("House", "isProtectionGuest", luaHouseIsProtectionGuest);
 	registerMethod("House", "getProtectionGuests", luaHouseGetProtectionGuests);
 	registerMethod("House", "clearProtectionGuests", luaHouseClearProtectionGuests);
+
+	registerMethod("House", "getRequiredReset", luaHouseGetRequiredReset);
 }
