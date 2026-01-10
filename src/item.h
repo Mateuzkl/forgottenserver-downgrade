@@ -509,7 +509,7 @@ public:
 	Item(const Item& i);
 	virtual Item* clone() const;
 
-	virtual ~Item() = default;
+	virtual ~Item();
 
 	// non-assignable
 	Item& operator=(const Item&) = delete;

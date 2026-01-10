@@ -1489,6 +1489,11 @@ ReturnValue Game::internalAddItem(Cylinder* toCylinder, Item* item, int32_t inde
 
 ReturnValue Game::internalRemoveItem(Item* item, int32_t count /*= -1*/, bool test /*= false*/, uint32_t flags /*= 0*/)
 {
+	extern bool isValidItemPointer(Item*);
+	if (!isValidItemPointer(item)) {
+		return RETURNVALUE_NOTPOSSIBLE;
+	}
+
 	Cylinder* cylinder = item->getParent();
 	if (cylinder == nullptr) {
 		return RETURNVALUE_NOTPOSSIBLE;
