@@ -333,6 +333,7 @@ enum WieldInfo_t
 	WIELDINFO_MAGLV = 1 << 1,
 	WIELDINFO_VOCREQ = 1 << 2,
 	WIELDINFO_PREMIUM = 1 << 3,
+	WIELDINFO_RESET = 1 << 4,
 };
 
 enum Skulls_t : uint8_t
