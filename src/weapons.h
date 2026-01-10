@@ -97,7 +97,12 @@ public:
 
 	uint32_t getSoul() const { return soul; }
 	void setSoul(uint32_t s) { soul = s; }
-
+	uint32_t getReqReset() const {
+		return reset;
+	}
+	void setRequiredReset(uint32_t r) {
+		reset = r;
+	}
 	uint8_t getBreakChance() const { return breakChance; }
 	void setBreakChance(uint8_t b) { breakChance = b; }
 
@@ -146,6 +151,7 @@ private:
 	uint32_t health = 0;
 	uint32_t healthPercent = 0;
 	uint32_t soul = 0;
+	uint32_t reset = 0;
 	uint32_t wieldInfo = WIELDINFO_NONE;
 	uint8_t breakChance = 0;
 	bool enabled = true;
