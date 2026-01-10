@@ -157,6 +157,9 @@ public:
 	HouseType_t getType() const { return type; }
 
 	uint32_t getId() const { return id; }
+	// Reset system functions
+	void setRequiredReset(uint32_t amount) { this->requiredReset = amount; }
+	uint32_t getRequiredReset() { return requiredReset;}
 	const std::unordered_set<uint32_t>& getProtectionGuests() const { return protectionGuests; }
 	std::unordered_set<uint32_t>& getProtectionGuests() { return protectionGuests; }
 
@@ -219,6 +222,7 @@ private:
 	uint32_t rentWarnings = 0;
 	uint32_t rent = 0;
 	uint32_t townId = 0;
+	uint32_t requiredReset = 0; // Reset system
 
 	Position posEntry = {};
 
