@@ -18,7 +18,7 @@ int luaConditionCreate(lua_State* L)
 
 	Condition* condition = Condition::createCondition(conditionId, conditionType, 0, 0);
 	if (condition) {
-		pushUserdata<Condition>(L, condition.release());
+		pushUserdata<Condition>(L, condition);
 		setMetatable(L, -1, "Condition");
 	} else {
 		lua_pushnil(L);

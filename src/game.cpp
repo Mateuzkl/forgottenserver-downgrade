@@ -3573,7 +3573,7 @@ bool Game::playerYell(Player* player, std::string_view text)
 		}
 
 		Condition* condition = Condition::createCondition(CONDITIONID_DEFAULT, CONDITION_YELLTICKS, 30000, 0);
-		player->addCondition(std::unique_ptr<Condition>(condition));
+		player->addCondition(condition);
 	}
 
 	internalCreatureSay(player, TALKTYPE_YELL, boost::algorithm::to_upper_copy(std::string{text}), false);
