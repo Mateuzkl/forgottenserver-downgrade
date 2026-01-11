@@ -16,7 +16,7 @@ int luaConditionCreate(lua_State* L)
 	ConditionType_t conditionType = getInteger<ConditionType_t>(L, 2);
 	ConditionId_t conditionId = getInteger<ConditionId_t>(L, 3, CONDITIONID_COMBAT);
 
-	auto condition = Condition::createCondition(conditionId, conditionType, 0, 0);
+	Condition* condition = Condition::createCondition(conditionId, conditionType, 0, 0);
 	if (condition) {
 		pushUserdata<Condition>(L, condition.release());
 		setMetatable(L, -1, "Condition");
