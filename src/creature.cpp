@@ -1026,6 +1026,7 @@ bool Creature::addCondition(Condition* condition, bool force /* = false*/)
 	if (!force && condition->getType() == CONDITION_HASTE && hasCondition(CONDITION_PARALYZE)) {
 		int64_t walkDelay = getWalkDelay();
 		if (walkDelay > 0) {
+			// Clone condition to avoid use-after-free when bot casts spells rapidly
 			Condition* clonedCondition = condition->clone();
 			uint32_t id = getID();
 			g_scheduler.addEvent(
