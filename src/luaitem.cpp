@@ -3,6 +3,7 @@
 
 #include "otpch.h"
 
+#include "combat.h"
 #include "game.h"
 #include "item.h"
 #include "luascript.h"
@@ -817,6 +818,55 @@ int luaItemGetBoostPercent(lua_State* L)
 	}
 	return 1;
 }
+
+int luaItemIsMagicField(lua_State* L)
+{
+	// item:isMagicField()
+	const Item* item = getUserdata<const Item>(L, 1);
+	if (item) {
+		pushBoolean(L, item->getMagicField() != nullptr);
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
+
+int luaItemGetMagicField(lua_State* L)
+{
+	// item:getMagicField()
+	Item* item = getUserdata<Item>(L, 1);
+	if (item) {
+		MagicField* field = item->getMagicField();
+		if (field) {
+			pushUserdata<Item>(L, field);
+			setItemMetatable(L, -1, field);
+		} else {
+			lua_pushnil(L);
+		}
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
+
+int luaItemOnStepInField(lua_State* L)
+{
+	// item:onStepInField(creature)
+	Item* item = getUserdata<Item>(L, 1);
+	Creature* creature = getCreature(L, 2);
+	if (item && creature) {
+		MagicField* field = item->getMagicField();
+		if (field) {
+			field->onStepInField(creature);
+			pushBoolean(L, true);
+		} else {
+			pushBoolean(L, false);
+		}
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
 } // namespace
 
 void LuaScriptInterface::registerItem()
@@ -877,4 +927,8 @@ void LuaScriptInterface::registerItem()
 
 	registerMethod("Item", "setBoostPercent", luaItemSetBoostPercent);
 	registerMethod("Item", "getBoostPercent", luaItemGetBoostPercent);
+
+	registerMethod("Item", "isMagicField", luaItemIsMagicField);
+	registerMethod("Item", "getMagicField", luaItemGetMagicField);
+	registerMethod("Item", "onStepInField", luaItemOnStepInField);
 }
