@@ -82,7 +82,7 @@ public:
 
 	void start(ServiceManager* manager);
 
-	void forceAddCondition(uint32_t creatureId, std::unique_ptr<Condition> condition);
+	void forceAddCondition(uint32_t creatureId, Condition* condition);
 	void forceRemoveCondition(uint32_t creatureId, ConditionType_t type);
 
 	bool loadMainMap(std::string_view filename);

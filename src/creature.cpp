@@ -24,16 +24,11 @@ Creature::~Creature()
 		summon->removeMaster();
 	}
 
-	for (const auto& condition : conditions) {
+	for (auto& condition : conditions) {
 		condition->endCondition(this);
 		// unique_ptr deletes automatically
 	}
 	conditions.clear();
-
-	// Clear registered creature events to prevent memory leak
-	// Note: We don't delete the events as they're owned by g_creatureEvents
-	eventsList.clear();
-	scriptEventsBitField = 0;
 }
 
 bool Creature::canSee(const Position& myPos, const Position& pos, int32_t viewRangeX, int32_t viewRangeY)
@@ -423,7 +418,7 @@ void Creature::onCreatureMove(Creature* creature, const Tile* newTile, const Pos
 		} else {
 			if (hasExtraSwing()) {
 				// our target is moving lets see if we can get in hit
-				g_dispatcher.addTask(createTask([id = getID()]() { g_game.checkCreatureAttack(id); }));
+				g_dispatcher.addTask([id = getID()]() { g_game.checkCreatureAttack(id); });
 			}
 
 			if (newTile->getZone() != oldTile->getZone()) {
@@ -465,7 +460,8 @@ void Creature::onDeath()
 	const int64_t timeNow = OTSYS_TIME();
 	const int64_t inFightTicks = getInteger(ConfigManager::PZ_LOCKED);
 	int32_t mostDamage = 0;
-	std::map<Creature*, uint64_t> experienceMap;
+	std::unordered_map<Creature*, uint64_t> experienceMap;
+	experienceMap.reserve(damageMap.size());
 	for (const auto& it : damageMap) {
 		if (Creature* attacker = g_game.getCreatureByID(it.first)) {
 			CountBlock_t cb = it.second;
@@ -1021,9 +1017,9 @@ bool Creature::setMaster(Creature* newMaster)
 	return true;
 }
 
-bool Creature::addCondition(std::unique_ptr<Condition> condition, bool force /* = false*/)
+bool Creature::addCondition(Condition* condition, bool force /* = false*/)
 {
-	if (!condition) {
+	if (condition == nullptr) {
 		return false;
 	}
 
@@ -1033,32 +1029,35 @@ bool Creature::addCondition(std::unique_ptr<Condition> condition, bool force /* 
 			Condition* clonedCondition = condition->clone();
 			uint32_t id = getID();
 			g_scheduler.addEvent(
-                 createSchedulerTask(walkDelay, [id, clonedCondition]() { g_game.forceAddCondition(id, std::unique_ptr<Condition>(clonedCondition)); }));
+			    createSchedulerTask(walkDelay, [id, clonedCondition]() { g_game.forceAddCondition(id, clonedCondition); }));
+			delete condition;
 			return false;
 		}
 	}
 
 	Condition* prevCond = getCondition(condition->getType(), condition->getId(), condition->getSubId());
 	if (prevCond) {
-		prevCond->addCondition(this, condition.get());
+		prevCond->addCondition(this, condition);
+		delete condition;
 		return true;
 	}
 
 	if (condition->startCondition(this)) {
+		conditions.push_back(std::unique_ptr<Condition>(condition));
 		onAddCondition(condition->getType());
-		conditions.push_back(std::move(condition));
 		return true;
 	}
 
+	delete condition;
 	return false;
 }
 
-bool Creature::addCombatCondition(std::unique_ptr<Condition> condition)
+bool Creature::addCombatCondition(Condition* condition)
 {
 	// Caution: condition variable could be deleted after the call to addCondition
 	ConditionType_t type = condition->getType();
 
-	if (!addCondition(std::move(condition))) {
+	if (!addCondition(condition)) {
 		return false;
 	}
 
@@ -1068,8 +1067,8 @@ bool Creature::addCombatCondition(std::unique_ptr<Condition> condition)
 
 void Creature::removeCondition(ConditionType_t type, bool force /* = false*/)
 {
-	auto it = conditions.begin();
-	while (it != conditions.end()) {
+	auto it = conditions.begin(), end = conditions.end();
+	while (it != end) {
 		auto& condition = *it;
 		if (condition->getType() != type) {
 			++it;
@@ -1086,9 +1085,10 @@ void Creature::removeCondition(ConditionType_t type, bool force /* = false*/)
 		}
 
 		condition->endCondition(this);
+		it = conditions.erase(it);
+		// unique_ptr deletes automatically
 
 		onEndCondition(type);
-		it = conditions.erase(it);
 	}
 }
 
@@ -1096,7 +1096,7 @@ void Creature::removeCondition(ConditionType_t type, ConditionId_t conditionId, 
 {
 	auto it = conditions.begin(), end = conditions.end();
 	while (it != end) {
-		Condition* condition = it->get();
+		auto& condition = *it;
 		if (condition->getType() != type || condition->getId() != conditionId) {
 			++it;
 			continue;
@@ -1111,10 +1111,11 @@ void Creature::removeCondition(ConditionType_t type, ConditionId_t conditionId, 
 			}
 		}
 
-		ConditionType_t condType = condition->getType();
-		condition->endCondition(this);
-		onEndCondition(condType);
+
 		it = conditions.erase(it);
+		// unique_ptr handles deletion automatically
+		condition->endCondition(this);
+		onEndCondition(type);
 	}
 }
 
@@ -1134,8 +1135,8 @@ void Creature::removeCombatCondition(ConditionType_t type)
 
 void Creature::removeCondition(Condition* condition, bool force /* = false*/)
 {
-	auto it = std::find_if(conditions.begin(), conditions.end(),
-		[condition](const std::unique_ptr<Condition>& ptr) { return ptr.get() == condition; });
+	auto it = std::find_if(conditions.begin(), conditions.end(), 
+		[condition](const std::unique_ptr<Condition>& c) { return c.get() == condition; });
 	
 	if (it == conditions.end()) {
 		return;
@@ -1178,10 +1179,6 @@ Condition* Creature::getCondition(ConditionType_t type, ConditionId_t conditionI
 
 void Creature::executeConditions(uint32_t interval)
 {
-	if (conditions.empty()) {
-    	return;
-	}
-
 	// Create a copy of raw pointers for iteration
 	std::vector<Condition*> tempConditions;
 	tempConditions.reserve(conditions.size());
@@ -1191,7 +1188,7 @@ void Creature::executeConditions(uint32_t interval)
 
 	for (Condition* condition : tempConditions) {
 		auto it = std::find_if(conditions.begin(), conditions.end(),
-			[condition](const std::unique_ptr<Condition>& ptr) { return ptr.get() == condition; });
+			[condition](const std::unique_ptr<Condition>& c) { return c.get() == condition; });
 		
 		if (it == conditions.end()) {
 			continue;
@@ -1199,13 +1196,12 @@ void Creature::executeConditions(uint32_t interval)
 
 		if (!condition->executeCondition(this, interval)) {
 			it = std::find_if(conditions.begin(), conditions.end(),
-				[condition](const std::unique_ptr<Condition>& ptr) { return ptr.get() == condition;});
+				[condition](const std::unique_ptr<Condition>& c) { return c.get() == condition; });
 			
 			if (it != conditions.end()) {
-				ConditionType_t type = condition->getType();
-				condition->endCondition(this);
-				onEndCondition(type);
 				conditions.erase(it);
+				condition->endCondition(this);
+				onEndCondition(condition->getType());
 			}
 		}
 	}

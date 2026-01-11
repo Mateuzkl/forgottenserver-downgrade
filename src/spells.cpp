@@ -435,10 +435,6 @@ bool Spell::configureSpell(const pugi::xml_node& node)
 	if ((attr = node.attribute("soul"))) {
 		soul = pugi::cast<uint32_t>(attr.value());
 	}
-	
-	if ((attr = node.attribute("reset"))) {
-		reset = pugi::cast<uint32_t>(attr.value());
-	}
 
 	if ((attr = node.attribute("range"))) {
 		range = pugi::cast<int32_t>(attr.value());
@@ -567,13 +563,6 @@ bool Spell::playerSpellCheck(Player* player) const
 
 	if (player->getMagicLevel() < magLevel) {
 		player->sendCancelMessage(RETURNVALUE_NOTENOUGHMAGICLEVEL);
-		g_game.addMagicEffect(player->getPosition(), CONST_ME_POFF);
-		return false;
-	}
-	if (player->getReset() < reset) {
-		std::ostringstream ss;
-		ss << "You need " << reset << " resets to cast this spell. You currently have " << player->getReset() << " resets.";
-		player->sendTextMessage(MESSAGE_STATUS_SMALL, ss.str());
 		g_game.addMagicEffect(player->getPosition(), CONST_ME_POFF);
 		return false;
 	}
@@ -711,26 +700,10 @@ bool Spell::playerRuneSpellCheck(Player* player, const Position& toPos)
 		player->sendCancelMessage(RETURNVALUE_NOTENOUGHROOM);
 		g_game.addMagicEffect(player->getPosition(), CONST_ME_POFF);
 		return false;
-	}
-	
-	if (blockingSolid) {
-		if (tile->hasFlag(TILESTATE_BLOCKSOLID)) {
-			player->sendCancelMessage(RETURNVALUE_NOTENOUGHROOM);
-			g_game.addMagicEffect(player->getPosition(), CONST_ME_POFF);
-			return false;
-		}
-		
-		const TileItemVector* items = tile->getItemList();
-		if (items) {
-			for (const Item* item : *items) {
-				const ItemType& itemType = Item::items[item->getID()];
-				if (itemType.blockSolid || itemType.type == ITEM_TYPE_MAGICFIELD) {
-					player->sendCancelMessage(RETURNVALUE_NOTENOUGHROOM);
-					g_game.addMagicEffect(player->getPosition(), CONST_ME_POFF);
-					return false;
-				}
-			}
-		}
+	} else if (blockingSolid && tile->hasFlag(TILESTATE_BLOCKSOLID)) {
+		player->sendCancelMessage(RETURNVALUE_NOTENOUGHROOM);
+		g_game.addMagicEffect(player->getPosition(), CONST_ME_POFF);
+		return false;
 	}
 
 	if (needTarget && !topVisibleCreature) {
@@ -756,21 +729,21 @@ void Spell::postCastSpell(Player* player, bool finishedCast /*= true*/, bool pay
 	if (finishedCast) {
 		if (!player->hasFlag(PlayerFlag_HasNoExhaustion)) {
 			if (cooldown > 0) {
-				auto  condition = Condition::createCondition(CONDITIONID_DEFAULT, CONDITION_SPELLCOOLDOWN,
+				Condition* condition = Condition::createCondition(CONDITIONID_DEFAULT, CONDITION_SPELLCOOLDOWN,
 				                                                  cooldown, 0, false, spellId);
-				player->addCondition(std::move(condition));
+				player->addCondition(condition);
 			}
 
 			if (groupCooldown > 0) {
-				auto condition = Condition::createCondition(CONDITIONID_DEFAULT, CONDITION_SPELLGROUPCOOLDOWN,
+				Condition* condition = Condition::createCondition(CONDITIONID_DEFAULT, CONDITION_SPELLGROUPCOOLDOWN,
 				                                                  groupCooldown, 0, false, group);
-				player->addCondition(std::move(condition));
+				player->addCondition(condition);
 			}
 
 			if (secondaryGroupCooldown > 0) {
-				auto condition = Condition::createCondition(CONDITIONID_DEFAULT, CONDITION_SPELLGROUPCOOLDOWN,
+				Condition* condition = Condition::createCondition(CONDITIONID_DEFAULT, CONDITION_SPELLGROUPCOOLDOWN,
 				                                                  secondaryGroupCooldown, 0, false, secondaryGroup);
-				player->addCondition(std::move(condition));
+				player->addCondition(condition);
 			}
 		}
 
@@ -874,22 +847,22 @@ bool InstantSpell::playerCastInstant(Player* player, std::string& param)
 			if (!target || target->isRemoved() || target->isDead()) {
 				if (!casterTargetOrDirection) {
 					if (cooldown > 0) {
-						auto condition = Condition::createCondition(CONDITIONID_DEFAULT, CONDITION_SPELLCOOLDOWN,
+						Condition* condition = Condition::createCondition(CONDITIONID_DEFAULT, CONDITION_SPELLCOOLDOWN,
 						                                                  cooldown, 0, false, spellId);
-						player->addCondition(std::move(condition));
+						player->addCondition(condition);
 					}
 
 					if (groupCooldown > 0) {
-						auto condition = Condition::createCondition(
+						Condition* condition = Condition::createCondition(
 						    CONDITIONID_DEFAULT, CONDITION_SPELLGROUPCOOLDOWN, groupCooldown, 0, false, group);
-						player->addCondition(std::move(condition));
+						player->addCondition(condition);
 					}
 
 					if (secondaryGroupCooldown > 0) {
-						auto condition =
+						Condition* condition =
 						    Condition::createCondition(CONDITIONID_DEFAULT, CONDITION_SPELLGROUPCOOLDOWN,
 						                               secondaryGroupCooldown, 0, false, secondaryGroup);
-						player->addCondition(std::move(condition));
+						player->addCondition(condition);
 					}
 
 					player->sendCancelMessage(ret);
@@ -938,21 +911,21 @@ bool InstantSpell::playerCastInstant(Player* player, std::string& param)
 
 			if (ret != RETURNVALUE_NOERROR) {
 				if (cooldown > 0) {
-					auto condition = Condition::createCondition(CONDITIONID_DEFAULT, CONDITION_SPELLCOOLDOWN,
+					Condition* condition = Condition::createCondition(CONDITIONID_DEFAULT, CONDITION_SPELLCOOLDOWN,
 					                                                  cooldown, 0, false, spellId);
-					player->addCondition(std::move(condition));
+					player->addCondition(condition);
 				}
 
 				if (groupCooldown > 0) {
-					auto condition = Condition::createCondition(CONDITIONID_DEFAULT, CONDITION_SPELLGROUPCOOLDOWN,
+					Condition* condition = Condition::createCondition(CONDITIONID_DEFAULT, CONDITION_SPELLGROUPCOOLDOWN,
 					                                                  groupCooldown, 0, false, group);
-					player->addCondition(std::move(condition));
+					player->addCondition(condition);
 				}
 
 				if (secondaryGroupCooldown > 0) {
-					auto condition = Condition::createCondition(CONDITIONID_DEFAULT, CONDITION_SPELLGROUPCOOLDOWN,
+					Condition* condition = Condition::createCondition(CONDITIONID_DEFAULT, CONDITION_SPELLGROUPCOOLDOWN,
 					                                                  secondaryGroupCooldown, 0, false, secondaryGroup);
-					player->addCondition(std::move(condition));
+					player->addCondition(condition);
 				}
 
 				player->sendCancelMessage(ret);
@@ -1151,11 +1124,6 @@ ReturnValue RuneSpell::canExecuteAction(const Player* player, const Position& to
 bool RuneSpell::executeUse(Player* player, Item* item, const Position&, Thing* target, const Position& toPosition,
                            bool isHotkey)
 {
-	if (item->getID() != runeId) {
-		player->sendCancelMessage(RETURNVALUE_CANNOTUSETHISOBJECT);
-		return false;
-	}
-	
 	if (!playerRuneSpellCheck(player, toPosition)) {
 		return false;
 	}
@@ -1229,6 +1197,7 @@ bool RuneSpell::internalCastSpell(Creature* creature, const LuaVariant& var, boo
 
 bool RuneSpell::executeCastSpell(Creature* creature, const LuaVariant& var, bool isHotkey)
 {
+	// onCastSpell(creature, var, isHotkey)
 	if (!scriptInterface->reserveScriptEnv()) {
 		LOG_ERROR("[Error - RuneSpell::executeCastSpell] Call stack overflow");
 		return false;

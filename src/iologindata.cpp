@@ -380,7 +380,7 @@ bool IOLoginData::loadPlayer(Player* player, DBResult_ptr result)
 	Condition_ptr condition = Condition::createCondition(propStream);
 	while (condition) {
 		if (condition->unserialize(propStream)) {
-			player->storedConditionList.push_front(std::move(condition));
+			player->storedConditionList.push_front(condition.release());
 		}
 		condition = Condition::createCondition(propStream);
 	}

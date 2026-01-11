@@ -717,7 +717,7 @@ int luaCreatureAddCondition(lua_State* L)
 	Condition* condition = getUserdata<Condition>(L, 2);
 	if (creature && condition) {
 		bool force = getBoolean(L, 3, false);
-		pushBoolean(L, creature->addCondition(std::unique_ptr<Condition>(condition->clone()), force));
+		pushBoolean(L, creature->addCondition(condition->clone(), force));
 	} else {
 		lua_pushnil(L);
 	}

@@ -217,8 +217,8 @@ public:
 	virtual float getAttackFactor() const { return 1.0f; }
 	virtual float getDefenseFactor() const { return 1.0f; }
 
-	bool addCondition(std::unique_ptr<Condition> condition, bool force = false);
-	bool addCombatCondition(std::unique_ptr<Condition> condition);
+	bool addCondition(Condition* condition, bool force = false);
+	bool addCombatCondition(Condition* condition);
 	void removeCondition(ConditionType_t type, ConditionId_t conditionId, bool force = false);
 	void removeCondition(ConditionType_t type, bool force = false);
 	void removeCondition(Condition* condition, bool force = false);
