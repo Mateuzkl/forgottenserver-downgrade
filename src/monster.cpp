@@ -1885,7 +1885,9 @@ void Monster::death(Creature*)
 		uint32_t monsterId = getMonster()->getID();
 		auto& rewardBossContributionInfo = g_game.rewardBossTracking;
 		auto it = rewardBossContributionInfo.find(monsterId);
-		if (it == rewardBossContributionInfo.end()) return;
+		if (it == rewardBossContributionInfo.end()) {
+			return;
+		}
 		auto& scoreInfo = it->second;
 		uint32_t mostScoreContributor = 0;
 		int32_t highestScore = 0;
