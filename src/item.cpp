@@ -22,6 +22,9 @@ extern Vocations g_vocations;
 
 Items Item::items;
 
+// Global registry to track valid Item pointers
+static std::unordered_set<Item*> g_validItems;
+
 Item* Item::CreateItem(const uint16_t type, uint16_t count /*= 0*/)
 {
 	Item* newItem = nullptr;
@@ -141,6 +144,7 @@ std::unique_ptr<Item> Item::CreateItemSafe(PropStream& propStream)
 
 Item::Item(const uint16_t type, uint16_t count /*= 0*/) : id(type)
 {
+	g_validItems.insert(this);
 	const ItemType& it = items[id];
 
 	if (it.isFluidContainer() || it.isSplash()) {
@@ -164,9 +168,20 @@ Item::Item(const uint16_t type, uint16_t count /*= 0*/) : id(type)
 
 Item::Item(const Item& i) : Thing(), id(i.id), count(i.count), loadedFromMap(i.loadedFromMap)
 {
+	g_validItems.insert(this);
 	if (i.attributes) {
 		attributes.reset(new ItemAttributes(*i.attributes));
 	}
+}
+
+Item::~Item()
+{
+	g_validItems.erase(this);
+}
+
+bool isValidItemPointer(Item* item)
+{
+	return item && g_validItems.count(item) > 0;
 }
 
 Item* Item::clone() const

@@ -159,12 +159,21 @@ int luaItemSplit(lua_State* L)
 int luaItemRemove(lua_State* L)
 {
 	// item:remove([count = -1])
-	Item* item = getUserdata<Item>(L, 1);
-	if (item) {
-		int32_t count = getInteger<int32_t>(L, 2, -1);
-		pushBoolean(L, g_game.internalRemoveItem(item, count) == RETURNVALUE_NOERROR);
-	} else {
+	Item** itemPtr = getRawUserdata<Item>(L, 1);
+	if (!itemPtr || !*itemPtr) {
 		lua_pushnil(L);
+		return 1;
+	}
+
+	Item* item = *itemPtr;
+	int32_t count = getInteger<int32_t>(L, 2, -1);
+	ReturnValue ret = g_game.internalRemoveItem(item, count);
+
+	if (ret == RETURNVALUE_NOTPOSSIBLE) {
+		*itemPtr = nullptr;  // Reset the pointer to prevent future access.
+		lua_pushnil(L);
+	} else {
+		pushBoolean(L, ret == RETURNVALUE_NOERROR);
 	}
 	return 1;
 }
