@@ -1570,10 +1570,6 @@ void ProtocolGame::sendCreatureOutfit(const Creature* creature, const Outfit_t& 
 		return;
 	}
 
-	if (knownCreatureSet.find(creature->getID()) == knownCreatureSet.end()) {
-		return;
-	}
-
 	NetworkMessage msg;
 	msg.addByte(0x8E);
 	msg.add<uint32_t>(creature->getID());
@@ -1975,10 +1971,6 @@ void ProtocolGame::sendCloseContainer(uint8_t cid)
 void ProtocolGame::sendCreatureTurn(const Creature* creature, uint32_t stackpos)
 {
 	if (stackpos >= MAX_STACKPOS_THINGS || !canSee(creature)) {
-		return;
-	}
-
-	if (knownCreatureSet.find(creature->getID()) == knownCreatureSet.end()) {
 		return;
 	}
 
@@ -2561,28 +2553,8 @@ void ProtocolGame::sendMoveCreature(const Creature* creature, const Position& ne
 			writeToOutputBuffer(msg);
 		}
 	} else if (canSee(oldPos) && canSee(creature->getPosition())) {
-		bool creatureKnown = knownCreatureSet.find(creature->getID()) != knownCreatureSet.end();
-		bool creatureInvisible = creature->isInvisible() && !player->canSeeInvisibility();
-		
-		if (creatureInvisible) {
-			return;
-		}
-		
-		if (oldStackPos < 0 || oldStackPos >= MAX_STACKPOS_THINGS) {
-			sendAddCreature(creature, newPos, newStackPos);
-			return;
-		}
-		
-		if (newStackPos < 0) {
-			return;
-		}
-		
 		if (teleport || (oldPos.z == 7 && newPos.z >= 8) || oldStackPos >= MAX_STACKPOS_THINGS) {
-			if (creatureKnown) {
-				sendRemoveTileThing(oldPos, oldStackPos);
-			}
-			sendAddCreature(creature, newPos, newStackPos);
-		} else if (!creatureKnown) {
+			sendRemoveTileThing(oldPos, oldStackPos);
 			sendAddCreature(creature, newPos, newStackPos);
 		} else {
 			NetworkMessage msg;
@@ -2593,9 +2565,7 @@ void ProtocolGame::sendMoveCreature(const Creature* creature, const Position& ne
 			writeToOutputBuffer(msg);
 		}
 	} else if (canSee(oldPos)) {
-		if (knownCreatureSet.find(creature->getID()) != knownCreatureSet.end()) {
-			sendRemoveTileThing(oldPos, oldStackPos);
-		}
+		sendRemoveTileThing(oldPos, oldStackPos);
 	} else if (canSee(creature->getPosition())) {
 		sendAddCreature(creature, newPos, newStackPos);
 	}

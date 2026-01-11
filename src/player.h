@@ -680,7 +680,6 @@ public:
 				client->sendAddCreature(creature, creature->getPosition(), stackpos);
 			} else {
 				client->sendRemoveTileThing(creature->getPosition(), stackpos);
-				client->removeCreatureFromKnownSet(creature->getID());
 			}
 		}
 	}

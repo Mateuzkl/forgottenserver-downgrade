@@ -1085,11 +1085,10 @@ void Creature::removeCondition(ConditionType_t type, bool force /* = false*/)
 			}
 		}
 
-		auto conditionPtr = std::move(*it);
-		it = conditions.erase(it);
-		
-		conditionPtr->endCondition(this);
+		condition->endCondition(this);
+
 		onEndCondition(type);
+		it = conditions.erase(it);
 	}
 }
 
@@ -1112,12 +1111,10 @@ void Creature::removeCondition(ConditionType_t type, ConditionId_t conditionId, 
 			}
 		}
 
-		auto conditionPtr = std::move(*it);
+		ConditionType_t condType = condition->getType();
+		condition->endCondition(this);
+		onEndCondition(condType);
 		it = conditions.erase(it);
-		end = conditions.end();
-		
-		conditionPtr->endCondition(this);
-		onEndCondition(type);
 	}
 }
 
@@ -1153,12 +1150,10 @@ void Creature::removeCondition(Condition* condition, bool force /* = false*/)
 		}
 	}
 
-	ConditionType_t type = condition->getType();
-	auto conditionPtr = std::move(*it);
+	condition->endCondition(this);
+	onEndCondition(condition->getType());
 	conditions.erase(it);
-	
-	conditionPtr->endCondition(this);
-	onEndCondition(type);
+	// unique_ptr deletes automatically
 }
 
 Condition* Creature::getCondition(ConditionType_t type) const
