@@ -114,6 +114,42 @@ This custom version includes several enhanced systems and features:
 - Improved decay state management
 - Better handling of decay timers and item removal
 
+## 🧩 Client With DLL (Extensions & Mounts)
+
+### 📥 Download Client
+[Client v8.60 with DLL & Mounts](https://github.com/Mateuzkl/Client-cip-8.60-with-DLL-Mount)
+
+### ⚠️ Important Configuration
+
+If you are using the custom Client with DLL injection (for Mounts and other extensions), you **MUST** configure your server correctly to avoid player disconnections (kicks).
+
+The DLL requires the server to send a periodic verification packet ("DLL Check"). If disabled, the client will disconnect.
+
+### Required config.lua Settings
+
+```lua
+-- DLL Check Configuration
+-- Sends the DLL verification packet. REQUIRED 'true' for the DLL Client to work.
+dllCheckKick = true
+
+-- Time in seconds between checks.
+-- CRITICAL: Must be set to 5 seconds to match the DLL's internal heartbeat.
+dllCheckKickTime = 5
+```
+
+### How It Works
+
+1. The DLL client expects periodic verification packets from the server
+2. If `dllCheckKick` is set to `true`, the server will send these packets
+3. The interval between packets is controlled by `dllCheckKickTime` (in seconds)
+4. **Default recommended value: 5 seconds** - this matches the DLL's internal heartbeat
+
+### Troubleshooting
+
+- **Players keep disconnecting?** Make sure `dllCheckKick = true` and `dllCheckKickTime = 5`
+- **DLL not working?** Verify both settings are properly configured in your `config.lua`
+- **Custom heartbeat?** You can adjust `dllCheckKickTime` if needed, but 5 seconds is the standard
+
 ## Contributing
 
 Pull requests are welcome.

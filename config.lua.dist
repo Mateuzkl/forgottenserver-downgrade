@@ -2,6 +2,13 @@
 -- NOTE: The maximum number of outfits only applies to cip client, OTC will use 255
 maxProtocolOutfits = 50
 
+
+-- true = kick enabled, false = kick disabled (default)
+dllCheckKick = true 
+
+-- time in seconds (optional usage)
+dllCheckKickTime = 5
+
 -- Account Manager
 accountManager = true
 namelockManager = true

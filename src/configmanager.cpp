@@ -301,6 +301,7 @@ bool ConfigManager::load()
 	booleans[Boolean::NAMELOCK_MANAGER] = getGlobalBoolean(L, "namelockManager", false);
 	booleans[Boolean::START_CHOOSEVOC] = getGlobalBoolean(L, "newPlayerChooseVoc", false);
 	booleans[Boolean::GENERATE_ACCOUNT_NUMBER] = getGlobalBoolean(L, "generateAccountNumber", false);
+	booleans[Boolean::DLL_CHECK_KICK] = getGlobalBoolean(L, "dllCheckKick", false);
 
 	strings[String::DEFAULT_PRIORITY] = getGlobalString(L, "defaultPriority", "high");
 	strings[String::SERVER_NAME] = getGlobalString(L, "serverName", "");
@@ -381,6 +382,7 @@ bool ConfigManager::load()
 	integers[Integer::NEW_PLAYER_MAGIC_LEVEL] = getGlobalInteger(L, "newPlayerMagicLevel", 0);
 	integers[Integer::MAX_ALLOWED_ON_A_DUMMY] = getGlobalInteger(L, "maxAllowedOnADummy", 5);
 	integers[Integer::RATE_EXERCISE_TRAINING_SPEED] = getGlobalInteger(L, "rateExerciseTrainingSpeed", 1.0);
+	integers[Integer::DLL_CHECK_KICK_TIME] = getGlobalInteger(L, "dllCheckKickTime", 300);
 
 	expStages = loadXMLStages();
 	if (expStages.empty()) {

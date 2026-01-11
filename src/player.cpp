@@ -1414,7 +1414,22 @@ void Player::onThink(uint32_t interval)
 {
 	Creature::onThink(interval);
 
-	sendPing();
+	int64_t timeNow = OTSYS_TIME();
+	if (timeNow - lastPing >= 5000) {
+		lastPing = timeNow;
+		if (client) {
+			client->sendPing();
+		}
+	}
+
+	if (client && !client->isOTCv8 && getBoolean(ConfigManager::DLL_CHECK_KICK)) {
+		int64_t checkInterval = getInteger(ConfigManager::DLL_CHECK_KICK_TIME) * 1000;
+		if (timeNow - lastDllCheck >= checkInterval) {
+			lastDllCheck = timeNow;
+			client->sendDllCheck();
+		}
+	} else if (ConfigManager::getBoolean(ConfigManager::DLL_CHECK_KICK)) {
+	}
 
 	MessageBufferTicks += interval;
 	if (MessageBufferTicks >= 1500) {
