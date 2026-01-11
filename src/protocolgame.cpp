@@ -2029,7 +2029,7 @@ void ProtocolGame::sendDistanceShoot(const Position& from, const Position& to, u
 	writeToOutputBuffer(msg);
 }
 
-void ProtocolGame::sendMagicEffect(const Position& pos, uint16_t type)
+void ProtocolGame::sendMagicEffect(const Position& pos, uint8_t type)
 {
 	if (!canSee(pos)) {
 		return;
@@ -2038,7 +2038,8 @@ void ProtocolGame::sendMagicEffect(const Position& pos, uint16_t type)
 	NetworkMessage msg;
 	msg.addByte(0x83);
 	msg.addPosition(pos);
-	msg.add<uint16_t>(type);
+	msg.addByte(type);
+
 	writeToOutputBuffer(msg);
 }
 
@@ -2494,7 +2495,7 @@ void ProtocolGame::sendOutfitWindow()
 		}
 
 		protocolOutfits.emplace_back(outfit->name, outfit->lookType, addons);
-		if (isOTCv8 && protocolOutfits.size() >= g_config.getInteger(ConfigManager::MAX_PROTOCOL_OUTFITS)) {
+		if (isOTCv8 && protocolOutfits.size() >= static_cast<size_t>(ConfigManager::getInteger(ConfigManager::MAX_PROTOCOL_OUTFITS))) {
 			break;
 		}
 	}
@@ -2520,7 +2521,7 @@ void ProtocolGame::sendOutfitWindow()
 		msg.addString(mount->name);
 	}
 
-	writeToOutputBuffer(msg, false);
+	writeToOutputBuffer(msg);
 }
 
 void ProtocolGame::sendUpdatedVIPStatus(uint32_t guid, VipStatus_t newStatus)
@@ -2557,6 +2558,10 @@ void ProtocolGame::sendAnimatedText(std::string_view message, const Position& po
 
 void ProtocolGame::sendSpellCooldown(uint8_t spellId, uint32_t time)
 {
+	if (!isOTCv8) {
+		return;
+	}
+
 	NetworkMessage msg;
 	msg.addByte(0xA4);
 	msg.addByte(spellId);
@@ -2567,6 +2572,10 @@ void ProtocolGame::sendSpellCooldown(uint8_t spellId, uint32_t time)
 
 void ProtocolGame::sendSpellGroupCooldown(SpellGroup_t groupId, uint32_t time)
 {
+	if (!isOTCv8) {
+		return;
+	}
+
 	NetworkMessage msg;
 	msg.addByte(0xA5);
 	msg.addByte(groupId);
@@ -2879,7 +2888,6 @@ void ProtocolGame::sendFeatures()
 	features[GameExtendedOpcode] = false;
 	features[GameSkillsBase] = true;
 	features[GamePlayerMounts] = true;
-	features[GameMagicEffectU16] = true;
 	features[GameOfflineTrainingTime] = true;
 	features[GameDoubleSkills] = true;
 	features[GameBaseSkillU16] = true;

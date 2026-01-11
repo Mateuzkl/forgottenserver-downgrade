@@ -2620,7 +2620,7 @@ int LuaScriptInterface::luaDoAreaCombat(lua_State* L)
 
 		CombatParams params;
 		params.combatType = combatType;
-		params.impactEffect = Lua::getInteger<uint16_t>(L, 7);
+		params.impactEffect = Lua::getInteger<uint8_t>(L, 7);
 		params.blockedByArmor = Lua::getBoolean(L, 8, false);
 		params.blockedByShield = Lua::getBoolean(L, 9, false);
 		params.ignoreResistances = Lua::getBoolean(L, 10, false);
@@ -2661,7 +2661,7 @@ int LuaScriptInterface::luaDoTargetCombat(lua_State* L)
 
 	CombatParams params;
 	params.combatType = combatType;
-	params.impactEffect = Lua::getInteger<uint16_t>(L, 6);
+	params.impactEffect = Lua::getInteger<uint8_t>(L, 6);
 	params.blockedByArmor = Lua::getBoolean(L, 8, false);
 	params.blockedByShield = Lua::getBoolean(L, 9, false);
 	params.ignoreResistances = Lua::getBoolean(L, 10, false);
