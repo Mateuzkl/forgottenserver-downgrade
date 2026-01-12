@@ -44,7 +44,35 @@
 
 ## 🔨 How to Compile (Advanced Users)
 
-[Compiling on Ubuntu](https://github.com/MillhioreBT/forgottenserver-downgrade/wiki/Compiling-on-Ubuntu)
+### Compiling on Ubuntu 22.04
+
+```bash
+sudo apt install git cmake build-essential libluajit-5.1-dev libmysqlclient-dev libboost-system1.74-dev libboost-iostreams1.74-dev libboost-filesystem1.74-dev libboost-locale1.74-dev libpugixml-dev libfmt-dev libssl-dev libspdlog-dev -y
+```
+
+```bash
+git clone https://github.com/Mateuzkl/forgottenserver-downgrade.git
+cd forgottenserver-downgrade
+mkdir build && cd build
+cmake ..
+make -j$(nproc)
+```
+
+### Compiling on Ubuntu 24.04
+
+```bash
+sudo apt install git cmake build-essential libluajit-5.1-dev libmysqlclient-dev libboost-system1.83-dev libboost-iostreams1.83-dev libboost-filesystem1.83-dev libboost-locale1.83-dev libpugixml-dev libfmt-dev libssl-dev libspdlog-dev -y
+```
+
+```bash
+git clone https://github.com/Mateuzkl/forgottenserver-downgrade.git
+cd forgottenserver-downgrade
+mkdir build && cd build
+cmake ..
+make -j$(nproc)
+```
+
+### Compiling on Windows (vcpkg)
 
 [Compiling on Windows](https://github.com/MillhioreBT/forgottenserver-downgrade/wiki/Compiling-on-Windows-(vcpkg))
 
