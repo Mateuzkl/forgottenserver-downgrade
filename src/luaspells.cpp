@@ -216,19 +216,15 @@ int luaSpellGroup(lua_State* L)
 			lua_pushinteger(L, spell->getSecondaryGroup());
 			return 2;
 		} else if (lua_gettop(L) == 2) {
-			SpellGroup_t group = getInteger<SpellGroup_t>(L, 2);
-			if (group) {
-				spell->setGroup(group);
-				pushBoolean(L, true);
-			} else if (isString(L, 2)) {
+			SpellGroup_t group = SPELLGROUP_NONE;
+			if (isString(L, 2)) {
 				group = stringToSpellGroup(getString(L, 2));
-				if (group != SPELLGROUP_NONE) {
-					spell->setGroup(group);
-				} else {
-					LOG_WARN(fmt::format("[Warning - Spell::group] Unknown group: {}", getString(L, 2)));
-					pushBoolean(L, false);
-					return 1;
-				}
+			} else {
+				group = getInteger<SpellGroup_t>(L, 2);
+			}
+			
+			if (group != SPELLGROUP_NONE) {
+				spell->setGroup(group);
 				pushBoolean(L, true);
 			} else {
 				LOG_WARN(fmt::format("[Warning - Spell::group] Unknown group: {}", getString(L, 2)));
@@ -236,32 +232,29 @@ int luaSpellGroup(lua_State* L)
 				return 1;
 			}
 		} else {
-			SpellGroup_t primaryGroup = getInteger<SpellGroup_t>(L, 2);
-			SpellGroup_t secondaryGroup = getInteger<SpellGroup_t>(L, 2);
-			if (primaryGroup && secondaryGroup) {
-				spell->setGroup(primaryGroup);
-				spell->setSecondaryGroup(secondaryGroup);
-				pushBoolean(L, true);
-			} else if (isString(L, 2) && isString(L, 3)) {
+			SpellGroup_t primaryGroup = SPELLGROUP_NONE;
+			SpellGroup_t secondaryGroup = SPELLGROUP_NONE;
+			
+			if (isString(L, 2)) {
 				primaryGroup = stringToSpellGroup(getString(L, 2));
-				if (primaryGroup != SPELLGROUP_NONE) {
-					spell->setGroup(primaryGroup);
-				} else {
-					LOG_WARN(fmt::format("[Warning - Spell::group] Unknown primaryGroup: {}", getString(L, 2)));
-					pushBoolean(L, false);
-					return 1;
-				}
+			} else {
+				primaryGroup = getInteger<SpellGroup_t>(L, 2);
+			}
+			
+			if (isString(L, 3)) {
 				secondaryGroup = stringToSpellGroup(getString(L, 3));
+			} else {
+				secondaryGroup = getInteger<SpellGroup_t>(L, 3);
+			}
+			
+			if (primaryGroup != SPELLGROUP_NONE) {
+				spell->setGroup(primaryGroup);
 				if (secondaryGroup != SPELLGROUP_NONE) {
 					spell->setSecondaryGroup(secondaryGroup);
-				} else {
-					LOG_WARN(fmt::format("[Warning - Spell::group] Unknown secondaryGroup: {}", getString(L, 3)));
-					pushBoolean(L, false);
-					return 1;
 				}
 				pushBoolean(L, true);
 			} else {
-				LOG_WARN(fmt::format("[Warning - Spell::group] Unknown primaryGroup: {} or secondaryGroup: {}", getString(L, 2), getString(L, 3)));
+				LOG_WARN(fmt::format("[Warning - Spell::group] Unknown primaryGroup: {}", getString(L, 2)));
 				pushBoolean(L, false);
 				return 1;
 			}
