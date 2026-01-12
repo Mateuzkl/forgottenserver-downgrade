@@ -273,18 +273,14 @@ void loggerSignalHandler(int signal) {
 	// write() is async-signal-safe, while fprintf, g_logger(), etc. are not.
 	const char* signalName = "UNKNOWN";
 	switch (signal) {
-	case SIGTERM:
-		signalName = "SIGTERM";
-		break;
-	case SIGINT:
-		signalName = "SIGINT";
-		break;
 	case SIGSEGV:
 		signalName = "SIGSEGV";
 		break;
 	case SIGABRT:
 		signalName = "SIGABRT";
 		break;
+	default:
+		return;
 	}
 
 	// Use write() for signal-safe output to stderr
@@ -299,14 +295,6 @@ void loggerSignalHandler(int signal) {
 }
 
 void setupLoggerSignalHandlers() {
-	std::signal(SIGTERM, loggerSignalHandler);
-	std::signal(SIGINT, loggerSignalHandler);
-
-	#ifndef _WIN32
-		std::signal(SIGHUP, loggerSignalHandler);
-		std::signal(SIGQUIT, loggerSignalHandler);
-	#endif
-
 	std::signal(SIGSEGV, loggerSignalHandler);
 	std::signal(SIGABRT, loggerSignalHandler);
 }

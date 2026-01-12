@@ -18,6 +18,7 @@
 #include "script.h"
 #include "scriptmanager.h"
 #include "server.h"
+#include "signals.h"
 #include "luascript.h"	
 
 #include <fmt/format.h>
@@ -265,7 +266,6 @@ void mainLoader(ServiceManager* services)
 
 void startServer()
 {
-	// Setup bad allocation handler
 	std::set_new_handler(badAllocationHandler);
 
 	ServiceManager serviceManager;

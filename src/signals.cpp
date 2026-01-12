@@ -54,6 +54,7 @@ void sigtermHandler()
 {
 	// Dispatcher thread
 	LOG_INFO("SIGTERM received, shutting game server down...");
+	LOG_INFO("Saving game state before shutdown...");
 	g_game.setGameState(GAME_STATE_SHUTDOWN);
 }
 
@@ -124,6 +125,7 @@ void sigintHandler()
 {
 	// Dispatcher thread
 	LOG_INFO("SIGINT received, shutting game server down...");
+	LOG_INFO("Saving game state before shutdown...");
 	g_game.setGameState(GAME_STATE_SHUTDOWN);
 }
 
