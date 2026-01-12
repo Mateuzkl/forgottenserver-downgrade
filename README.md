@@ -51,8 +51,8 @@ sudo apt install git cmake build-essential libluajit-5.1-dev libmysqlclient-dev 
 ```
 
 ```bash
-git clone https://github.com/Mateuzkl/forgottenserver-downgrade.git
-cd forgottenserver-downgrade
+git clone -b Revscrypt-full --single-branch https://github.com/Mateuzkl/forgottenserver-downgrade-1.7-8.60.git revscrypt-project
+cd revscrypt-project
 mkdir build && cd build
 cmake ..
 make -j$(nproc)
@@ -65,8 +65,8 @@ sudo apt install git cmake build-essential libluajit-5.1-dev libmysqlclient-dev 
 ```
 
 ```bash
-git clone https://github.com/Mateuzkl/forgottenserver-downgrade.git
-cd forgottenserver-downgrade
+git clone -b Revscrypt-full --single-branch https://github.com/Mateuzkl/forgottenserver-downgrade-1.7-8.60.git revscrypt-project
+cd revscrypt-project
 mkdir build && cd build
 cmake ..
 make -j$(nproc)
