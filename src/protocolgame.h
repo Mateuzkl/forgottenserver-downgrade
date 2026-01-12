@@ -65,6 +65,9 @@ public:
 
 	uint16_t getVersion() const { return version; }
 
+	// Known creature management - fix for creature desync bug
+	void removeKnownCreature(uint32_t creatureId);
+
 private:
 	ProtocolGame_ptr getThis() { return std::static_pointer_cast<ProtocolGame>(shared_from_this()); }
 	void connect(uint32_t playerId, OperatingSystem_t operatingSystem);
@@ -203,6 +206,7 @@ private:
 
 	// tiles
 	void sendMapDescription(const Position& pos);
+	void sendMapDescription(const Position& pos, bool broadcast);
 
 	void sendAddTileItem(const Position& pos, uint32_t stackpos, const Item* item);
 	void sendUpdateTileItem(const Position& pos, uint32_t stackpos, const Item* item);
@@ -264,6 +268,7 @@ private:
 	// OTCv8
 	void sendFeatures();
 	void sendFloorDescription(const Position& pos, int floor);
+	void sendFloorDescription(const Position& pos, int floor, bool broadcast);
 	void parseChangeAwareRange(NetworkMessage& msg);
 	void updateAwareRange(int width, int height);
 	void sendAwareRange();

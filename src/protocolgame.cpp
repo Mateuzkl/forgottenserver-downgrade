@@ -905,6 +905,11 @@ std::pair<bool, uint32_t> ProtocolGame::isKnownCreature(uint32_t id)
 	return {};
 }
 
+void ProtocolGame::removeKnownCreature(uint32_t creatureId)
+{
+	knownCreatureSet.erase(creatureId);
+}
+
 bool ProtocolGame::canSee(const Creature* c) const
 {
 	if (!c || !player || c->isRemoved()) {
@@ -2275,6 +2280,11 @@ void ProtocolGame::sendFYIBox(std::string_view message)
 // tile
 void ProtocolGame::sendMapDescription(const Position& pos)
 {
+	sendMapDescription(pos, true);
+}
+
+void ProtocolGame::sendMapDescription(const Position& pos, bool broadcast)
+{
 	if (isOTCv8) {
 		int32_t startz, endz, zstep;
 
@@ -2289,22 +2299,24 @@ void ProtocolGame::sendMapDescription(const Position& pos)
 		}
 
 		for (int32_t nz = startz; nz != endz + zstep; nz += zstep) {
-			sendFloorDescription(pos, nz);
+			sendFloorDescription(pos, nz, broadcast);
 		}
 	} else {
 		NetworkMessage msg;
 		msg.addByte(0x64);
 		msg.addPosition(player->getPosition());
 		GetMapDescription(pos.x - awareRange.left(), pos.y - awareRange.top(), pos.z, awareRange.horizontal(), awareRange.vertical(), msg);
-		writeToOutputBuffer(msg);
+		writeToOutputBuffer(msg, broadcast);
 	}
 }
 
 void ProtocolGame::sendFloorDescription(const Position& pos, int floor)
 {
-	// When map view range is big, let's say 30x20 all floors may not fit in single packets
-	// So we split one packet with every floor to few packets with single floor
+	sendFloorDescription(pos, floor, true);
+}
 
+void ProtocolGame::sendFloorDescription(const Position& pos, int floor, bool broadcast)
+{
 	NetworkMessage msg;
 	msg.addByte(0x4B);
 	msg.addPosition(player->getPosition());
@@ -2315,7 +2327,7 @@ void ProtocolGame::sendFloorDescription(const Position& pos, int floor)
 		msg.addByte(skip);
 		msg.addByte(0xFF);
 	}
-	writeToOutputBuffer(msg);
+	writeToOutputBuffer(msg, broadcast);
 }
 
 void ProtocolGame::sendAddTileItem(const Position& pos, uint32_t stackpos, const Item* item)
@@ -2503,10 +2515,14 @@ void ProtocolGame::sendAddCreature(const Creature* creature, const Position& pos
 void ProtocolGame::sendMoveCreature(const Creature* creature, const Position& newPos, int32_t newStackPos,
                                     const Position& oldPos, int32_t oldStackPos, bool teleport)
 {
+	bool shouldBroadcast = (creature != player);
+	
 	if (creature == player) {
 		if (teleport || oldStackPos >= MAX_STACKPOS_THINGS) {
-			sendRemoveTileThing(oldPos, oldStackPos);
-			sendMapDescription(newPos);
+			NetworkMessage msg;
+			RemoveTileThing(msg, oldPos, oldStackPos);
+			writeToOutputBuffer(msg, shouldBroadcast);
+			sendMapDescription(newPos, shouldBroadcast);
 		} else {
 			NetworkMessage msg;
 			if (oldPos.z == 7 && newPos.z >= 8) {
@@ -2530,27 +2546,27 @@ void ProtocolGame::sendMoveCreature(const Creature* creature, const Position& ne
 				GetMapDescription(newPos.x - Map::maxClientViewportX, newPos.y - Map::maxClientViewportY, newPos.z,
 				                  (Map::maxClientViewportX * 2) + 2, (Map::maxClientViewportY * 2) + 2, msg);
 			} else {
-				if (oldPos.y > newPos.y) { // north, for old x
+				if (oldPos.y > newPos.y) {
 					msg.addByte(0x65);
 					GetMapDescription(oldPos.x - awareRange.left(), newPos.y - awareRange.top(), newPos.z,
 					                  awareRange.horizontal(), 1, msg);
-				} else if (oldPos.y < newPos.y) { // south, for old x
+				} else if (oldPos.y < newPos.y) {
 					msg.addByte(0x67);
 					GetMapDescription(oldPos.x - awareRange.left(), newPos.y + awareRange.bottom(),
 					                  newPos.z, awareRange.horizontal(), 1, msg);
 				}
 
-				if (oldPos.x < newPos.x) { // east, [with new y]
+				if (oldPos.x < newPos.x) {
 					msg.addByte(0x66);
 					GetMapDescription(newPos.x + awareRange.right(), newPos.y - awareRange.top(),
 					                  newPos.z, 1, awareRange.vertical(), msg);
-				} else if (oldPos.x > newPos.x) { // west, [with new y]
+				} else if (oldPos.x > newPos.x) {
 					msg.addByte(0x68);
 					GetMapDescription(newPos.x - awareRange.left(), newPos.y - awareRange.top(), newPos.z,
 					                  1, awareRange.vertical(), msg);
 				}
 			}
-			writeToOutputBuffer(msg);
+			writeToOutputBuffer(msg, shouldBroadcast);
 		}
 	} else if (canSee(oldPos) && canSee(creature->getPosition())) {
 		if (teleport || (oldPos.z == 7 && newPos.z >= 8) || oldStackPos >= MAX_STACKPOS_THINGS) {
@@ -2566,6 +2582,14 @@ void ProtocolGame::sendMoveCreature(const Creature* creature, const Position& ne
 		}
 	} else if (canSee(oldPos)) {
 		sendRemoveTileThing(oldPos, oldStackPos);
+		removeKnownCreature(creature->getID());
+		if (player && player->isLiveCasting()) {
+			for (auto& spectator : player->spectators) {
+				if (spectator && spectator->isAcceptingPackets()) {
+					spectator->removeKnownCreature(creature->getID());
+				}
+			}
+		}
 	} else if (canSee(creature->getPosition())) {
 		sendAddCreature(creature, newPos, newStackPos);
 	}

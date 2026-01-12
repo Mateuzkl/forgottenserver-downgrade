@@ -618,7 +618,16 @@ public:
 	                      int32_t oldStackPos, bool teleport)
 	{
 		if (client) {
-			client->sendMoveCreature(creature, newPos, newStackPos, oldPos, oldStackPos, teleport);
+			if (creature == this && isLiveCasting()) {
+				client->sendMoveCreature(creature, newPos, newStackPos, oldPos, oldStackPos, teleport);
+				for (auto& spectator : spectators) {
+					if (spectator && spectator->isAcceptingPackets()) {
+						spectator->sendMoveCreature(creature, newPos, newStackPos, oldPos, oldStackPos, teleport);
+					}
+				}
+			} else {
+				client->sendMoveCreature(creature, newPos, newStackPos, oldPos, oldStackPos, teleport);
+			}
 		}
 	}
 	void sendCreatureTurn(const Creature* creature)
