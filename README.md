@@ -9,9 +9,31 @@
 
 ## 🛠 It is currently under development. ⚙
 
-## How to compile
+## 🔨 How to Compile (Advanced Users)
 
-[Compiling on Ubuntu](https://github.com/MillhioreBT/forgottenserver-downgrade/wiki/Compiling-on-Ubuntu)
+### Compiling on Ubuntu 22.04
+
+```bash
+sudo apt install git cmake build-essential libluajit-5.1-dev libmysqlclient-dev libboost-system1.74-dev libboost-iostreams1.74-dev libboost-filesystem1.74-dev libboost-locale1.74-dev libpugixml-dev libfmt-dev libssl-dev libspdlog-dev -y
+git clone https://github.com/Mateuzkl/forgottenserver-downgrade-1.7-8.60.git revscrypt-project
+cd revscrypt-project
+mkdir build && cd build
+cmake ..
+make -j$(nproc)
+```
+
+### Compiling on Ubuntu 24.04
+
+```bash
+sudo apt install git cmake build-essential libluajit-5.1-dev libmysqlclient-dev libboost-system1.83-dev libboost-iostreams1.83-dev libboost-filesystem1.83-dev libboost-locale1.83-dev libpugixml-dev libfmt-dev libssl-dev libspdlog-dev -y
+git clone https://github.com/Mateuzkl/forgottenserver-downgrade-1.7-8.60.git revscrypt-project
+cd revscrypt-project
+mkdir build && cd build
+cmake ..
+make -j$(nproc)
+```
+
+### Compiling on Windows
 
 [Compiling on Windows](https://github.com/MillhioreBT/forgottenserver-downgrade/wiki/Compiling-on-Windows-(vcpkg))
 
