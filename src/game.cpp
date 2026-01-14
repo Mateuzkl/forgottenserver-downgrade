@@ -5318,59 +5318,91 @@ void Game::resetDamageTracking(uint32_t monsterId)
 bool Game::reload(ReloadTypes_t reloadType)
 {
 	switch (reloadType) {
-		case RELOAD_TYPE_ACTIONS:
-			return g_actions->reload();
-		case RELOAD_TYPE_CHAT:
-			return g_chat->load();
-		case RELOAD_TYPE_CONFIG:
-			return ConfigManager::load();
+		case RELOAD_TYPE_ACTIONS: {
+			bool result = g_actions->reload();
+			if (result) LOG_INFO("Actions reloaded successfully.");
+			return result;
+		}
+		case RELOAD_TYPE_CHAT: {
+			bool result = g_chat->load();
+			if (result) LOG_INFO("Chat reloaded successfully.");
+			return result;
+		}
+		case RELOAD_TYPE_CONFIG: {
+			bool result = ConfigManager::load();
+			if (result) LOG_INFO("Config reloaded successfully.");
+			return result;
+		}
 		case RELOAD_TYPE_CREATURESCRIPTS: {
 			g_creatureEvents->reload();
 			g_creatureEvents->removeInvalidEvents();
+			LOG_INFO("CreatureScripts reloaded successfully.");
 			return true;
 		}
-		case RELOAD_TYPE_EVENTS:
-			return g_events->load();
-		case RELOAD_TYPE_GLOBALEVENTS:
-			return g_globalEvents->reload();
-		case RELOAD_TYPE_ITEMS:
-			return Item::items.reload();
-		case RELOAD_TYPE_MONSTERS:
-			return g_monsters.reload();
-		case RELOAD_TYPE_MOUNTS:
-			return mounts.reload();
-		case RELOAD_TYPE_MOVEMENTS:
-			return g_moveEvents->reload();
+		case RELOAD_TYPE_EVENTS: {
+			bool result = g_events->load();
+			if (result) LOG_INFO("Events reloaded successfully.");
+			return result;
+		}
+		case RELOAD_TYPE_GLOBALEVENTS: {
+			bool result = g_globalEvents->reload();
+			if (result) LOG_INFO("GlobalEvents reloaded successfully.");
+			return result;
+		}
+		case RELOAD_TYPE_ITEMS: {
+			bool result = Item::items.reload();
+			if (result) LOG_INFO("Items reloaded successfully.");
+			return result;
+		}
+		case RELOAD_TYPE_MONSTERS: {
+			g_monsters.reload();
+			g_scripts->loadScripts("scripts/monsters", false, true);
+			LOG_INFO("Monsters reloaded successfully.");
+			return true;
+		}
+		case RELOAD_TYPE_MOUNTS: {
+			bool result = mounts.reload();
+			if (result) LOG_INFO("Mounts reloaded successfully.");
+			return result;
+		}
+		case RELOAD_TYPE_MOVEMENTS: {
+			bool result = g_moveEvents->reload();
+			if (result) LOG_INFO("Movements reloaded successfully.");
+			return result;
+		}
 		case RELOAD_TYPE_NPCS: {
 			Npcs::reload();
+			LOG_INFO("NPCs reloaded successfully.");
 			return true;
 		}
 
-		case RELOAD_TYPE_RAIDS:
-			return raids.reload() && raids.startup();
+		case RELOAD_TYPE_RAIDS: {
+			bool result = raids.reload() && raids.startup();
+			if (result) LOG_INFO("Raids reloaded successfully.");
+			return result;
+		}
 
 		case RELOAD_TYPE_SPELLS: {
-			if (!g_spells->reload()) {
-				LOG_ERROR("[Error - Game::reload] Failed to reload spells.");
-				std::terminate();
-			} else if (!g_monsters.reload()) {
-				LOG_ERROR("[Error - Game::reload] Failed to reload monsters.");
-				std::terminate();
-			}
+			g_spells->reload();
+			g_monsters.reload();
+			LOG_INFO("Spells reloaded successfully.");
 			return true;
 		}
 
-		case RELOAD_TYPE_TALKACTIONS:
-			return g_talkActions->reload();
+		case RELOAD_TYPE_TALKACTIONS: {
+			bool result = g_talkActions->reload();
+			if (result) LOG_INFO("TalkActions reloaded successfully.");
+			return result;
+		}
 
 		case RELOAD_TYPE_WEAPONS: {
-			bool results = g_weapons->reload();
+			bool result = g_weapons->reload();
 			g_weapons->loadDefaults();
-			return results;
+			if (result) LOG_INFO("Weapons reloaded successfully.");
+			return result;
 		}
 
 		case RELOAD_TYPE_SCRIPTS: {
-			// commented out stuff is TODO, once we approach further in revscriptsys
 			g_actions->clear(true);
 			g_creatureEvents->clear(true);
 			g_moveEvents->clear(true);
@@ -5381,50 +5413,38 @@ bool Game::reload(ReloadTypes_t reloadType)
 			g_spells->clear(true);
 			g_scripts->loadScripts("scripts", false, true);
 			g_creatureEvents->removeInvalidEvents();
-			/*
-			Npcs::reload();
-			raids.reload() && raids.startup();
-			Item::items.reload();
-			ConfigManager::reload();
-			g_events->load();
-			g_chat->load();
-			*/
+			LOG_INFO("Scripts reloaded successfully.");
 			return true;
 		}
 
 		default: {
-			if (!g_spells->reload()) {
-				LOG_ERROR("[Error - Game::reload] Failed to reload spells.");
-				std::terminate();
-			} else if (!g_monsters.reload()) {
-				LOG_ERROR("[Error - Game::reload] Failed to reload monsters.");
-				std::terminate();
-			}
-
+			g_actions->clear(true);
+			g_creatureEvents->clear(true);
+			g_moveEvents->clear(true);
+			g_talkActions->clear(true);
+			g_globalEvents->clear(true);
+			g_spells->clear(true);
+			g_weapons->clear(true);
+			
+			g_spells->reload();
+			g_monsters.reload();
 			g_actions->reload();
 			ConfigManager::load();
 			g_creatureEvents->reload();
-			g_monsters.reload();
 			g_moveEvents->reload();
 			Npcs::reload();
 			raids.reload() && raids.startup();
 			g_talkActions->reload();
 			Item::items.reload();
 			g_weapons->reload();
-			g_weapons->clear(true);
 			g_weapons->loadDefaults();
 			mounts.reload();
 			g_globalEvents->reload();
 			g_events->load();
 			g_chat->load();
-			g_actions->clear(true);
-			g_creatureEvents->clear(true);
-			g_moveEvents->clear(true);
-			g_talkActions->clear(true);
-			g_globalEvents->clear(true);
-			g_spells->clear(true);
 			g_scripts->loadScripts("scripts", false, true);
 			g_creatureEvents->removeInvalidEvents();
+			LOG_INFO("All reloaded successfully.");
 			return true;
 		}
 	}

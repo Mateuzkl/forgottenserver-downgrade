@@ -22,17 +22,15 @@ bool BaseEvents::loadFromXml()
 
 	auto scriptsName = std::string{getScriptBaseName()};
 	std::string basePath = "data/" + scriptsName + "/";
-	if (getScriptInterface().loadFile(basePath + "lib/" + scriptsName + ".lua") == -1) {
-		LOG_WARN(fmt::format("[Warning - BaseEvents::loadFromXml] Can not load {} lib/{}.lua", scriptsName, scriptsName));
-	}
+	getScriptInterface().loadFile(basePath + "lib/" + scriptsName + ".lua");
 
 	std::string filename = basePath + scriptsName + ".xml";
 
 	pugi::xml_document doc;
 	pugi::xml_parse_result result = doc.load_file(filename.c_str());
 	if (!result) {
-		printXMLError("Error - BaseEvents::loadFromXml", filename, result);
-		return false;
+		loaded = true;
+		return true;
 	}
 
 	loaded = true;

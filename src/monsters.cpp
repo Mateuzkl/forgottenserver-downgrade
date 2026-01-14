@@ -50,8 +50,8 @@ bool Monsters::loadFromXml(bool reloading /*= false*/)
 	pugi::xml_document doc;
 	pugi::xml_parse_result result = doc.load_file("data/monster/monsters.xml");
 	if (!result) {
-		LOG_ERROR(fmt::format("[Error - Monsters::loadFromXml] Failed to load data/monster/monsters.xml: {}", result.description()));
-		return false;
+		loaded = true;
+		return true;
 	}
 
 	loaded = true;
