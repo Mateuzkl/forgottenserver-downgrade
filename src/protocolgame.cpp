@@ -1058,8 +1058,14 @@ void ProtocolGame::parseSetOutfit(NetworkMessage& msg)
 	newOutfit.lookLegs = msg.getByte();
 	newOutfit.lookFeet = msg.getByte();
 	newOutfit.lookAddons = msg.getByte();
-	if (getVersion() != 861) {
+	if (isOTCv8 || getVersion() != 861) {
 		newOutfit.lookMount = msg.get<uint16_t>();
+		if (newOutfit.lookMount != 0 && !player->isMounted()) {
+			const Mount* mount = g_game.mounts.getMountByClientID(newOutfit.lookMount);
+			if (mount && mount->id == player->getCurrentMount()) {
+				newOutfit.lookMount = 0;
+			}
+		}
 	} else {
 		newOutfit.lookMount = 0;
 	}
@@ -2779,17 +2785,19 @@ void ProtocolGame::sendOutfitWindow()
 		msg.addByte(outfit.addons);
 	}
 
-	std::vector<const Mount*> mounts;
-	for (const Mount& mount : g_game.mounts.getMounts()) {
-		if (player->hasMount(&mount)) {
-			mounts.push_back(&mount);
+	if (isOTCv8 || getVersion() != 861) {
+		std::vector<const Mount*> mounts;
+		for (const Mount& mount : g_game.mounts.getMounts()) {
+			if (player->hasMount(&mount)) {
+				mounts.push_back(&mount);
+			}
 		}
-	}
 
-	msg.addByte(static_cast<uint8_t>(mounts.size()));
-	for (const Mount* mount : mounts) {
-		msg.add<uint16_t>(mount->clientId);
-		msg.addString(mount->name);
+		msg.addByte(static_cast<uint8_t>(mounts.size()));
+		for (const Mount* mount : mounts) {
+			msg.add<uint16_t>(mount->clientId);
+			msg.addString(mount->name);
+		}
 	}
 
 	writeToOutputBuffer(msg, false);
