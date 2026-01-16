@@ -108,7 +108,8 @@ end
 
 To use the extended sprites feature, you need to extract the sprite files from the provided `.rar` archive:
 
-1. **Download the sprite archive**: Look for the `860 by marko.rar` file in the repository
+1. **Download the sprite archive**: [Download 860-otcv-revisado2.rar](https://www.mediafire.com/file/iyas69j0sanddyr/860-otcv-revisado2.rar/file)
+   - **Note**: This file is specifically revised for **OTCv8** only.
 2. **Extract the files**: Extract the `.spr` and `.dat` files from the archive
 3. **Copy to OTCv8**: Place the extracted `.spr` and `.dat` files into your OTCv8 client directory
 4. **Enable the feature**: Make sure `g_game.enableFeature(GameSpritesU32)` is enabled in your `game_features.lua` file (already enabled above)
