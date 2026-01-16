@@ -82,6 +82,11 @@ To use the extended sprites feature, you need to extract the sprite files from t
 
 **Important**: The `.spr` and `.dat` files must match the client version (860) for proper functionality.
 
+### 📥 Download OTCv8 Client
+[Download OTCv8 Revised](https://www.mediafire.com/file/iyas69j0sanddyr/860-otcv-revisado2.rar/file)
+
+**Note:** This file is for **OTC** usage only.
+
 ## 🎮 New Systems & Features
 
 This custom version includes several enhanced systems and features:
