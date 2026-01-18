@@ -31,6 +31,7 @@
 DatabaseTasks g_databaseTasks;
 Dispatcher g_dispatcher;
 Scheduler g_scheduler;
+Stats g_stats;
 
 Game g_game;
 Monsters g_monsters;
@@ -272,6 +273,9 @@ void startServer()
 
 	g_dispatcher.start();
 	g_scheduler.start();
+#ifdef STATS_ENABLED
+	g_stats.start();
+#endif
 
 	g_dispatcher.addTask([=, services = &serviceManager]() { mainLoader(services); });
 
@@ -292,6 +296,9 @@ void startServer()
 		g_scheduler.shutdown();
 		g_databaseTasks.shutdown();
 		g_dispatcher.shutdown();
+#ifdef STATS_ENABLED
+		g_stats.shutdown();
+#endif
 	}
 
 	// Cleanup Lua environment before shutting down threads
@@ -303,6 +310,9 @@ void startServer()
 	g_scheduler.join();
 	g_databaseTasks.join();
 	g_dispatcher.join();
+#ifdef STATS_ENABLED
+	g_stats.join();
+#endif
 
 }
 

@@ -287,6 +287,17 @@ private:
 
 	uint8_t challengeRandom = 0;
 
+	// Helpers so we don't need to bind every time
+	template <typename Callable, typename... Args>
+	void addGameTaskWithStats(Callable&& function, const std::string& function_str, const std::string& extra_info, Args&&... args) {
+		g_dispatcher.addTask(createTaskWithStats(std::bind(std::forward<Callable>(function), &g_game, std::forward<Args>(args)...), function_str, extra_info));
+	}
+
+	template <typename Callable, typename... Args>
+	void addGameTaskTimedWithStats(uint32_t delay, Callable&& function, const std::string& function_str, const std::string& extra_info, Args&&... args) {
+		g_dispatcher.addTask(createTaskWithStats(delay, std::bind(std::forward<Callable>(function), &g_game, std::forward<Args>(args)...), function_str, extra_info));
+	}
+
 	bool isOTCv8 = false;
 	bool debugAssertSent = false;
 	bool acceptPackets = false;

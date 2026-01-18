@@ -149,9 +149,9 @@ void ServicePort::onAccept(Connection_ptr connection, const boost::system::error
 			close();
 			pendingStart = true;
 			g_scheduler.addEvent(createSchedulerTask(
-			    15000, [serverPort = this->serverPort, service = std::weak_ptr<ServicePort>(shared_from_this())]() {
+			    15000, ([serverPort = this->serverPort, service = std::weak_ptr<ServicePort>(shared_from_this())]() {
 				    openAcceptor(service, serverPort);
-			    }));
+			    })));
 		}
 	}
 }
@@ -209,7 +209,7 @@ void ServicePort::open(uint16_t port)
 		pendingStart = true;
 		g_scheduler.addEvent(createSchedulerTask(
 		    15000,
-		    [port, service = std::weak_ptr<ServicePort>(shared_from_this())]() { openAcceptor(service, port); }));
+		    ([port, service = std::weak_ptr<ServicePort>(shared_from_this())]() { openAcceptor(service, port); })));
 	}
 }
 

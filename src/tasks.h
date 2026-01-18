@@ -6,6 +6,7 @@
 #define FS_TASKS_H
 
 #include "thread_holder_base.h"
+#include "stats.h"
 
 using TaskFunc = std::function<void(void)>;
 constexpr int DISPATCHER_TASK_EXPIRATION = 2000;
@@ -17,11 +18,14 @@ class Task
 {
 public:
 	// DO NOT allocate this class on the stack
-	explicit Task(TaskFunc&& f) : func(std::move(f)) {}
+	explicit Task(TaskFunc&& f, const std::string& _description, const std::string& _extraDescription) :
+	description(_description), extraDescription(_extraDescription), func(std::move(f)) {}
 
-	// C++20: Use steady_clock instead of system_clock for better performance
-	Task(uint32_t ms, TaskFunc&& f) :
-	    expiration(std::chrono::steady_clock::now() + std::chrono::milliseconds(ms)), func(std::move(f))
+	Task(uint32_t ms, TaskFunc&& f, const std::string& _description, const std::string& _extraDescription) :
+		description(_description), 
+		extraDescription(_extraDescription),
+		expiration(std::chrono::steady_clock::now() + std::chrono::milliseconds(ms)),
+		func(std::move(f))
 	{}
 
 	virtual ~Task() = default;
@@ -53,17 +57,12 @@ private:
 	TaskFunc func;
 };
 
-Task* createTask(TaskFunc&& f);
-Task* createTask(uint32_t expiration, TaskFunc&& f);
+Task* createTaskWithStats(TaskFunc&& f, const std::string& description, const std::string& extraDescription);
+Task* createTaskWithStats(uint32_t expiration, TaskFunc&& f, const std::string& description, const std::string& extraDescription);
 
 class Dispatcher : public ThreadHolder<Dispatcher>
 {
 public:
-	void addTask(Task* task);
-
-	void addTask(TaskFunc&& f) { addTask(createTask(std::move(f)));}
-
-	void addTask(uint32_t expiration, TaskFunc&& f) { addTask(createTask(expiration, std::move(f))); }
 	Dispatcher() : ThreadHolder()
 	{
 		static int id = 0;
@@ -73,6 +72,12 @@ public:
 		// C++20: Reserve capacity for task list to reduce allocations
 		taskList.reserve(32);
 	}
+	void addTask(Task* task);
+
+	void addTask(TaskFunc&& f) { addTask(createTask(std::move(f)));}
+
+	void addTask(uint32_t expiration, TaskFunc&& f) { addTask(createTimedTask(expiration, std::move(f))); }
+
 
 	void shutdown();
 

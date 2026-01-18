@@ -10,44 +10,70 @@
 
 extern Game g_game;
 
-Task* createTask(TaskFunc&& f) { return new Task(std::move(f)); }
+Task* createTaskWithStats(TaskFunc&& f, const std::string& description, const std::string& extraDescription)
+{
+	return new Task(std::move(f), description, extraDescription);
+}
 
-Task* createTask(uint32_t expiration, TaskFunc&& f) { return new Task(expiration, std::move(f)); }
+Task* createTaskWithStats(uint32_t expiration, TaskFunc&& f, const std::string& description, const std::string& extraDescription)
+{
+	return new Task(expiration, std::move(f), description, extraDescription);
+}
 
 void Dispatcher::threadMain()
 {
-	// C++20: Pre-allocate with reserve to reduce reallocations
-	std::vector<Task*> tmpTaskList;
-	tmpTaskList.reserve(32);
+    std::vector<Task*> tmpTaskList;
+    tmpTaskList.reserve(32);
 
-	while (getState() != THREAD_STATE_TERMINATED) {
-		// C++20: Use semaphore acquire instead of condition_variable wait
-		taskSignal.acquire();
+#ifdef STATS_ENABLED
+    std::chrono::high_resolution_clock::time_point time_point;
+#endif
 
-		// Check termination after waking up
-		if (getState() == THREAD_STATE_TERMINATED) {
-			break;
-		}
+    while (getState() != THREAD_STATE_TERMINATED) {
+        // Measure wait time when STATS_ENABLED
+#ifdef STATS_ENABLED
+        time_point = std::chrono::high_resolution_clock::now();
+        taskSignal.acquire();
+        g_stats.dispatcherWaitTime(dispatcherId) += std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::high_resolution_clock::now() - time_point
+        ).count();
+#else
+        taskSignal.acquire();
+#endif
 
-		// Critical section: move tasks to the temporary list
-		{
-			std::lock_guard<std::mutex> lockGuard(taskLock);
-			if (!taskList.empty()) {
-				tmpTaskList.swap(taskList);
-			}
-		}
+        // Check termination after waking up
+        if (getState() == THREAD_STATE_TERMINATED) {
+            break;
+        }
 
-		// Process all available tasks
-		for (Task* task : tmpTaskList) {
-			if (!task->hasExpired()) {
-				++dispatcherCycle;
-				// execute task
-				(*task)();
-			}
-			delete task;
-		}
-		tmpTaskList.clear();
-	}
+        // Critical section: move tasks to the temporary list
+        {
+            std::lock_guard<std::mutex> lockGuard(taskLock);
+            if (!taskList.empty()) {
+                tmpTaskList.swap(taskList);
+            }
+        }
+
+        // Process all available tasks
+        for (Task* task : tmpTaskList) {
+#ifdef STATS_ENABLED
+            time_point = std::chrono::high_resolution_clock::now();
+#endif
+            if (!task->hasExpired()) {
+                ++dispatcherCycle;
+                (*task)();
+            }
+#ifdef STATS_ENABLED
+            task->executionTime = std::chrono::duration_cast<std::chrono::nanoseconds>(
+                std::chrono::high_resolution_clock::now() - time_point
+            ).count();
+            g_stats.addDispatcherTask(dispatcherId, task);
+#else
+            delete task;
+#endif
+        }
+        tmpTaskList.clear();
+    }
 }
 
 void Dispatcher::addTask(Task* task)
@@ -76,9 +102,9 @@ void Dispatcher::addTask(Task* task)
 void Dispatcher::shutdown()
 {
 	// Create shutdown task
-	Task* task = createTask([this]() {
+	Task* task = createTaskWithStats([this]() {
 		setState(THREAD_STATE_TERMINATED);
-	});
+	}, "Dispatcher::shutdown", "");
 
 	// Add task to queue
 	{

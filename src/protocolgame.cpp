@@ -275,13 +275,15 @@ void ProtocolGame::login(uint32_t characterId, uint32_t accountId, OperatingSyst
 		}
 
 		if (foundPlayer->client) {
-			foundPlayer->disconnect();
-			foundPlayer->isConnecting = true;
-
-			eventConnect = g_scheduler.addEvent(
-			    createSchedulerTask(1000, [=, thisPtr = getThis(), playerID = foundPlayer->getID()]() {
-				    thisPtr->connect(playerID, operatingSystem);
-			    }));
+			foundPlayer->client->disconnectClient(
+				"You are already logged in.\nSomeone is trying to access your account?");
+			foundPlayer->client->disconnect();
+			foundPlayer->client = nullptr;
+			g_scheduler.addEvent(
+				createSchedulerTask(1000, ([=, thisPtr = getThis(), playerID = foundPlayer->getID()]() {
+					thisPtr->connect(playerID, operatingSystem);
+				})));
+			return;
 		} else {
 			connect(foundPlayer->getID(), operatingSystem);
 		}
@@ -3180,8 +3182,9 @@ void ProtocolGame::sendNewPing(uint32_t pingId)
 void ProtocolGame::parseNewPing(NetworkMessage& msg)
 {
 	uint32_t pingId = msg.get<uint32_t>();
-	g_dispatcher.addTask(
-		createTask([protocol = getThis(), pingId]() { protocol->sendNewPing(pingId); }));
+	if (g_game.getGameState() == GAME_STATE_NORMAL && player) {
+		createTask(([protocol = getThis(), pingId]() { protocol->sendNewPing(pingId); }));
+	}
 }
 
 // OTCv8

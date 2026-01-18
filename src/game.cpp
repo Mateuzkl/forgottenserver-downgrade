@@ -140,6 +140,9 @@ void Game::setGameState(GameState_t newState)
 			g_scheduler.stop();
 			g_databaseTasks.stop();
 			g_dispatcher.stop();
+#ifdef STATS_ENABLED
+			g_stats.stop();
+#endif
 			LOG_INFO("Shutdown complete.");
 			break;
 		}
@@ -667,9 +670,9 @@ void Game::playerMoveThing(uint32_t playerId, const Position& fromPos, uint16_t 
 		if (movingCreature->getPosition().isInRange(player->getPosition(), 1, 1, 0)) {
 			SchedulerTask* task =
 			    createSchedulerTask(static_cast<uint32_t>(getInteger(ConfigManager::RANGE_MOVE_CREATURE_INTERVAL)),
-			                        [=, this, playerID = player->getID(), creatureID = movingCreature->getID()]() {
+			                        ([=, this, playerID = player->getID(), creatureID = movingCreature->getID()]() {
 				                        playerMoveCreatureByID(playerID, creatureID, fromPos, toPos);
-			                        });
+			                        }));
 			player->setNextActionTask(task);
 		} else {
 			playerMoveCreature(player, movingCreature, movingCreature->getPosition(), tile);
@@ -725,10 +728,10 @@ void Game::playerMoveCreature(Player* player, Creature* movingCreature, const Po
 	if (!player->canDoAction()) {
 		uint32_t delay = player->getNextActionTime();
 		SchedulerTask* task =
-		    createSchedulerTask(delay, [=, this, playerID = player->getID(), movingCreatureID = movingCreature->getID(),
+		    createSchedulerTask(delay, ([=, this, playerID = player->getID(), movingCreatureID = movingCreature->getID(),
 		                                toPos = toTile->getPosition()]() {
 			    playerMoveCreatureByID(playerID, movingCreatureID, movingCreatureOrigPos, toPos);
-		    });
+		    }));
 		player->setNextActionTask(task);
 		return;
 	}
@@ -749,10 +752,10 @@ void Game::playerMoveCreature(Player* player, Creature* movingCreature, const Po
 			});
 			SchedulerTask* task = createSchedulerTask(
 			    static_cast<uint32_t>(getInteger(ConfigManager::RANGE_MOVE_CREATURE_INTERVAL)),
-			    [=, this, playerID = player->getID(), movingCreatureID = movingCreature->getID(),
+			    ([=, this, playerID = player->getID(), movingCreatureID = movingCreature->getID(),
 			     toPos = toTile->getPosition()] {
 				    playerMoveCreatureByID(playerID, movingCreatureID, movingCreatureOrigPos, toPos);
-			    });
+			    }));
 			player->setNextWalkActionTask(task);
 		} else {
 			player->sendCancelMessage(RETURNVALUE_THEREISNOWAY);
@@ -931,9 +934,9 @@ void Game::playerMoveItem(Player* player, const Position& fromPos, uint16_t spri
 {
 	if (!player->canDoAction()) {
 		uint32_t delay = player->getNextActionTime();
-		SchedulerTask* task = createSchedulerTask(delay, [=, this, playerID = player->getID()]() {
+		SchedulerTask* task = createSchedulerTask(delay, ([=, this, playerID = player->getID()]() {
 			playerMoveItemByPlayerID(playerID, fromPos, spriteId, fromStackPos, toPos, count);
-		});
+		}));
 		player->setNextActionTask(task);
 		return;
 	}
@@ -1036,9 +1039,9 @@ void Game::playerMoveItem(Player* player, const Position& fromPos, uint16_t spri
 
 				SchedulerTask* task = createSchedulerTask(
 				    static_cast<uint32_t>(getInteger(ConfigManager::RANGE_MOVE_ITEM_INTERVAL)),
-				    [this, playerID = player->getID(), itemPos, spriteId, itemStackPos, toPos, count]() {
+				    ([this, playerID = player->getID(), itemPos, spriteId, itemStackPos, toPos, count]() {
 					    playerMoveItemByPlayerID(playerID, itemPos, spriteId, itemStackPos, toPos, count);
-				    });
+				    }));
 				player->setNextWalkActionTask(task);
 			} else {
 				player->sendCancelMessage(RETURNVALUE_THEREISNOWAY);
@@ -1098,9 +1101,9 @@ void Game::playerMoveItem(Player* player, const Position& fromPos, uint16_t spri
 
 			SchedulerTask* task = createSchedulerTask(
 			    static_cast<uint32_t>(getInteger(ConfigManager::RANGE_MOVE_ITEM_INTERVAL)),
-			    [=, this, playerID = player->getID()]() {
+			    ([=, this, playerID = player->getID()]() {
 				    playerMoveItemByPlayerID(playerID, fromPos, spriteId, fromStackPos, toPos, count);
-			    });
+			    }));
 			player->setNextWalkActionTask(task);
 		} else {
 			player->sendCancelMessage(RETURNVALUE_THEREISNOWAY);
@@ -2249,9 +2252,9 @@ void Game::playerUseItemEx(uint32_t playerId, const Position& fromPos, uint8_t f
 				});
 
 				SchedulerTask* task = createSchedulerTask(
-				    static_cast<uint32_t>(getInteger(ConfigManager::RANGE_USE_ITEM_EX_INTERVAL)), [=, this]() {
+				    static_cast<uint32_t>(getInteger(ConfigManager::RANGE_USE_ITEM_EX_INTERVAL)), ([=, this]() {
 					    playerUseItemEx(playerId, itemPos, itemStackPos, fromSpriteId, toPos, toStackPos, toSpriteId);
-				    });
+				    }));
 				player->setNextWalkActionTask(task);
 			} else {
 				player->sendCancelMessage(RETURNVALUE_THEREISNOWAY);
@@ -2265,9 +2268,9 @@ void Game::playerUseItemEx(uint32_t playerId, const Position& fromPos, uint8_t f
 
 	if (!player->canDoAction()) {
 		uint32_t delay = player->getNextActionTime();
-		SchedulerTask* task = createSchedulerTask(delay, [=, this]() {
+		SchedulerTask* task = createSchedulerTask(delay, ([=, this]() {
 			playerUseItemEx(playerId, fromPos, fromStackPos, fromSpriteId, toPos, toStackPos, toSpriteId);
-		});
+		}));
 		player->setNextActionTask(task);
 		return;
 	}
@@ -2323,7 +2326,7 @@ void Game::playerUseItem(uint32_t playerId, const Position& pos, uint8_t stackPo
 
 				SchedulerTask* task =
 				    createSchedulerTask(static_cast<uint32_t>(getInteger(ConfigManager::RANGE_USE_ITEM_INTERVAL)),
-				                        [=, this]() { playerUseItem(playerId, pos, stackPos, index, spriteId); });
+				                        ([=, this]() { playerUseItem(playerId, pos, stackPos, index, spriteId); }));
 				player->setNextWalkActionTask(task);
 				return;
 			}
@@ -2338,7 +2341,7 @@ void Game::playerUseItem(uint32_t playerId, const Position& pos, uint8_t stackPo
 	if (!player->canDoAction()) {
 		uint32_t delay = player->getNextActionTime();
 		SchedulerTask* task =
-		    createSchedulerTask(delay, [=, this]() { playerUseItem(playerId, pos, stackPos, index, spriteId); });
+		    createSchedulerTask(delay, ([=, this]() { playerUseItem(playerId, pos, stackPos, index, spriteId); }));
 		player->setNextActionTask(task);
 		return;
 	}
@@ -2446,7 +2449,7 @@ void Game::playerUseWithCreature(uint32_t playerId, const Position& fromPos, uin
 
 				SchedulerTask* task = createSchedulerTask(
 				    static_cast<uint32_t>(getInteger(ConfigManager::RANGE_USE_WITH_CREATURE_INTERVAL)),
-				    [=, this]() { playerUseWithCreature(playerId, itemPos, itemStackPos, creatureId, spriteId); });
+				    ([=, this]() { playerUseWithCreature(playerId, itemPos, itemStackPos, creatureId, spriteId); }));
 				player->setNextWalkActionTask(task);
 			} else {
 				player->sendCancelMessage(RETURNVALUE_THEREISNOWAY);
@@ -2461,7 +2464,7 @@ void Game::playerUseWithCreature(uint32_t playerId, const Position& fromPos, uin
 	if (!player->canDoAction()) {
 		uint32_t delay = player->getNextActionTime();
 		SchedulerTask* task = createSchedulerTask(
-		    delay, [=, this]() { playerUseWithCreature(playerId, fromPos, fromStackPos, creatureId, spriteId); });
+		    delay, ([=, this]() { playerUseWithCreature(playerId, fromPos, fromStackPos, creatureId, spriteId); }));
 		player->setNextActionTask(task);
 		return;
 	}
@@ -2563,7 +2566,7 @@ void Game::playerRotateItem(uint32_t playerId, const Position& pos, uint8_t stac
 
 			SchedulerTask* task =
 			    createSchedulerTask(static_cast<uint32_t>(getInteger(ConfigManager::RANGE_ROTATE_ITEM_INTERVAL)),
-			                        [=, this]() { playerRotateItem(playerId, pos, stackPos, spriteId); });
+			                        ([=, this]() { playerRotateItem(playerId, pos, stackPos, spriteId); }));
 			player->setNextWalkActionTask(task);
 		} else {
 			player->sendCancelMessage(RETURNVALUE_THEREISNOWAY);
@@ -2716,9 +2719,9 @@ void Game::playerRequestTrade(uint32_t playerId, const Position& pos, uint8_t st
 				playerAutoWalk(playerID, listDir);
 			});
 
-			SchedulerTask* task = createSchedulerTask(RANGE_REQUEST_TRADE_INTERVAL, [=, this]() {
+			SchedulerTask* task = createSchedulerTask(RANGE_REQUEST_TRADE_INTERVAL, ([=, this]() {
 				playerRequestTrade(playerId, pos, stackPos, tradePlayerId, spriteId);
-			});
+			}));
 			player->setNextWalkActionTask(task);
 		} else {
 			player->sendCancelMessage(RETURNVALUE_THEREISNOWAY);
@@ -3789,7 +3792,7 @@ void Game::removeCreatureCheck(Creature* creature)
 void Game::checkCreatures(size_t index)
 {
 	g_scheduler.addEvent(createSchedulerTask(EVENT_CHECK_CREATURE_INTERVAL,
-	                                         [=, this]() { checkCreatures((index + 1) % EVENT_CREATURECOUNT); }));
+	                                         ([=, this]() { checkCreatures((index + 1) % EVENT_CREATURECOUNT); })));
 
 	auto& checkCreatureList = checkCreatureLists[index];
 	auto it = checkCreatureList.begin(), end = checkCreatureList.end();
@@ -3810,6 +3813,10 @@ void Game::checkCreatures(size_t index)
 	}
 
 	cleanup();
+
+#ifdef STATS_ENABLED
+	g_stats.playersOnline = getPlayersOnline();
+#endif
 }
 
 void Game::changeSpeed(Creature* creature, int32_t varSpeedDelta)
@@ -4783,6 +4790,9 @@ void Game::shutdown()
 	g_scheduler.shutdown();
 	g_databaseTasks.shutdown();
 	g_dispatcher.shutdown();
+#ifdef STATS_ENABLED
+	g_stats.shutdown();
+#endif
 	map.spawns.clear();
 	raids.clear();
 

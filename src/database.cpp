@@ -4,6 +4,7 @@
 #include "otpch.h"
 
 #include "database.h"
+#include "stats.h"
 
 #include "configmanager.h"
 
@@ -130,6 +131,9 @@ bool Database::commit()
 bool Database::executeQuery(std::string_view query)
 {
 	std::lock_guard<std::recursive_mutex> lockGuard(databaseLock);
+#ifdef STATS_ENABLED
+	std::chrono::high_resolution_clock::time_point time_point = std::chrono::high_resolution_clock::now();
+#endif
 	auto success = ::executeQuery(handle, query, retryQueries);
 
 	// executeQuery can be called with command that produces result (e.g. SELECT)
@@ -137,12 +141,21 @@ bool Database::executeQuery(std::string_view query)
 	auto mysql_res = mysql_store_result(handle.get());
 	mysql_free_result(mysql_res);
 
+#ifdef STATS_ENABLED
+	uint64_t ns = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - time_point).count();
+	g_stats.addSqlStats(new Stat(ns, std::string(query.substr(0, 100)), std::string(query.substr(0, 256))));
+#endif
+
 	return success;
 }
 
 DBResult_ptr Database::storeQuery(std::string_view query)
 {
 	std::lock_guard<std::recursive_mutex> lockGuard(databaseLock);
+
+#ifdef STATS_ENABLED
+	std::chrono::high_resolution_clock::time_point time_point = std::chrono::high_resolution_clock::now();
+#endif
 
 retry:
 	if (!::executeQuery(handle, query, retryQueries) && !retryQueries) {
@@ -152,6 +165,12 @@ retry:
 	// we should call that every time as someone would call executeQuery('SELECT...')
 	// as it is described in MySQL manual: "it doesn't hurt" :P
 	tfs::detail::MysqlResult_ptr res{mysql_store_result(handle.get())};
+
+#ifdef STATS_ENABLED
+	uint64_t ns = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - time_point).count();
+	g_stats.addSqlStats(new Stat(ns, std::string(query.substr(0, 100)), std::string(query.substr(0, 256))));
+#endif
+	
 	if (!res) {
 		LOG_ERROR(fmt::format("[Error - mysql_store_result] Query: {}\nMessage: {}", query, mysql_error(handle.get())));
 		const unsigned error = mysql_errno(handle.get());

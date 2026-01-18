@@ -298,6 +298,7 @@ public:
 	int32_t loadFile(std::string_view file, Npc* npc = nullptr);
 
 	std::string_view getFileById(int32_t scriptId);
+	const std::string& getFileByIdForStats(int32_t scriptId);
 	int32_t getEvent(std::string_view eventName);
 	int32_t getEvent();
 	int32_t getMetaEvent(std::string_view globalName, std::string_view eventName);
