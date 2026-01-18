@@ -277,7 +277,7 @@ void startServer()
 	g_stats.start();
 #endif
 
-	g_dispatcher.addTask([=, services = &serviceManager]() { mainLoader(services); });
+	g_dispatcher.addTask(createTaskWithStats([=, services = &serviceManager]() { mainLoader(services); }, "MainLoader", ""));
 
 	g_loaderSignal.wait(g_loaderUniqueLock);
 

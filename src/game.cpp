@@ -24,6 +24,7 @@
 #include "scheduler.h"
 #include "script.h"
 #include "server.h"
+#include "stats.h"
 #include "spells.h"
 #include "talkaction.h"
 #include "weapons.h"
@@ -172,6 +173,7 @@ void Game::setGameState(GameState_t newState)
 
 void Game::saveGameState()
 {
+	AutoStat stat("Game::saveGameState", "full");
 	if (gameState == GAME_STATE_NORMAL) {
 		setGameState(GAME_STATE_MAINTAIN);
 	}

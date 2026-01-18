@@ -110,17 +110,18 @@ namespace {
 
 					auto file_sink = std::make_shared<spdlog::sinks::rotating_file_sink_mt>(timestampedPath_, rotateSize, rotateFiles);
 					file_sink->set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%l] %v");
-
 					file_sink->set_level(spdlog::level::trace);
 
 					std::vector<spdlog::sink_ptr> sinks{ console_sink, file_sink };
-
 					logger_ = std::make_shared<spdlog::logger>("tfs", sinks.begin(), sinks.end());
-
 					logger_->set_level(spdlog::level::trace);
 			        logger_->flush_on(spdlog::level::info);
 
-					// spdlog::register_logger(logger_);
+					auto console_sink_stats = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+					console_sink_stats->set_pattern("[%H:%M:%S] %v");
+
+					statsLoggerConsole_ = std::make_shared<spdlog::logger>("tfs_stats_console", console_sink_stats);
+					statsLoggerConsole_->set_level(spdlog::level::info);
 
 					logger_->info("=== TFS Logger Initialized ===");
 					logger_->info("Log file: {}", timestampedPath_);
@@ -165,6 +166,22 @@ namespace {
 				}
 			}
 
+			void stats(std::string_view msg) override {
+				if (statsLoggerConsole_) {
+					statsLoggerConsole_->info("\033[38;5;208m[STATS]\033[0m {}", msg);
+				}
+
+				if (logger_) {
+					for (auto& sink : logger_->sinks()) {
+						auto fileSink = std::dynamic_pointer_cast<spdlog::sinks::rotating_file_sink_mt>(sink);
+						if (fileSink) {
+							spdlog::details::log_msg logMsg("tfs", spdlog::level::info, fmt::format("[STATS] {}", msg));
+							fileSink->log(logMsg);
+						}
+					}
+				}
+			}
+
 		protected:
 			void log(LogLevel level, std::string_view msg) override {
 				if (!logger_ || !logger_->should_log(toSpd(level))) return;
@@ -187,6 +204,7 @@ namespace {
 
 		private:
 			std::shared_ptr<spdlog::logger> logger_;
+			std::shared_ptr<spdlog::logger> statsLoggerConsole_;
 			std::string timestampedPath_;
 	};
 

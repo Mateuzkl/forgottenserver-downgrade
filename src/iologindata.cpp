@@ -7,6 +7,7 @@
 #include "iologindata.h"
 
 #include "configmanager.h"
+#include "stats.h"
 #include "game.h"
 #include "player.h"
 #include "vocation.h"
@@ -829,6 +830,7 @@ bool IOLoginData::addRewardItems(uint32_t playerId, const ItemBlockList& itemLis
 
 bool IOLoginData::savePlayer(Player* player)
 {
+	AutoStat stat("savePlayer", "full");
 	if(player->isSpectator) {
 		return false;
 	}
@@ -959,39 +961,45 @@ bool IOLoginData::savePlayer(Player* player)
 	}
 
 	// learned spells
-	if (!db.executeQuery(fmt::format("DELETE FROM `player_spells` WHERE `player_id` = {:d}", player->getGUID()))) {
-		return false;
-	}
+	{
+		AutoStat statSpells("savePlayer", "spells");
+		if (!db.executeQuery(fmt::format("DELETE FROM `player_spells` WHERE `player_id` = {:d}", player->getGUID()))) {
+			return false;
+		}
 
-	DBInsert spellsQuery("INSERT INTO `player_spells` (`player_id`, `name` ) VALUES ");
-	for (std::string_view spellName : player->learnedInstantSpellList) {
-		if (!spellsQuery.addRow(fmt::format("{:d}, {:s}", player->getGUID(), db.escapeString(spellName)))) {
+		DBInsert spellsQuery("INSERT INTO `player_spells` (`player_id`, `name` ) VALUES ");
+		for (std::string_view spellName : player->learnedInstantSpellList) {
+			if (!spellsQuery.addRow(fmt::format("{:d}, {:s}", player->getGUID(), db.escapeString(spellName)))) {
+				return false;
+			}
+		}
+
+		if (!spellsQuery.execute()) {
 			return false;
 		}
 	}
 
-	if (!spellsQuery.execute()) {
-		return false;
-	}
-
 	// item saving
-	if (!db.executeQuery(fmt::format("DELETE FROM `player_items` WHERE `player_id` = {:d}", player->getGUID()))) {
-		return false;
-	}
-
-	DBInsert itemsQuery(
-	    "INSERT INTO `player_items` (`player_id`, `pid`, `sid`, `itemtype`, `count`, `attributes`) VALUES ");
-
-	ItemBlockList itemList;
-	for (int32_t slotId = CONST_SLOT_FIRST; slotId <= CONST_SLOT_LAST; ++slotId) {
-		Item* item = player->inventory[slotId];
-		if (item) {
-			itemList.emplace_back(slotId, item);
+	{
+		AutoStat statItems("savePlayer", "items_inventory");
+		if (!db.executeQuery(fmt::format("DELETE FROM `player_items` WHERE `player_id` = {:d}", player->getGUID()))) {
+			return false;
 		}
-	}
 
-	if (!saveItems(player, itemList, itemsQuery, propWriteStream)) {
-		return false;
+		DBInsert itemsQuery(
+		    "INSERT INTO `player_items` (`player_id`, `pid`, `sid`, `itemtype`, `count`, `attributes`) VALUES ");
+
+		ItemBlockList itemList;
+		for (int32_t slotId = CONST_SLOT_FIRST; slotId <= CONST_SLOT_LAST; ++slotId) {
+			Item* item = player->inventory[slotId];
+			if (item) {
+				itemList.emplace_back(slotId, item);
+			}
+		}
+
+		if (!saveItems(player, itemList, itemsQuery, propWriteStream)) {
+			return false;
+		}
 	}
 
 	// save depot locker items
@@ -1005,6 +1013,7 @@ bool IOLoginData::savePlayer(Player* player)
 	}
 
 	if (needsSave) {
+		AutoStat statDepot("savePlayer", "items_depot");
 		if (!db.executeQuery(
 		        fmt::format("DELETE FROM `player_depotlockeritems` WHERE `player_id` = {:d}", player->getGUID()))) {
 			return false;
@@ -1012,7 +1021,7 @@ bool IOLoginData::savePlayer(Player* player)
 
 		DBInsert lockerQuery(
 		    "INSERT INTO `player_depotlockeritems` (`player_id`, `pid`, `sid`, `itemtype`, `count`, `attributes`) VALUES ");
-		itemList.clear();
+		ItemBlockList itemList;
 
 		for (const auto& it : player->depotLockerMap) {
 			for (Item* item : it.second->getItemList()) {
@@ -1050,82 +1059,95 @@ bool IOLoginData::savePlayer(Player* player)
 	}
 
 	// save reward items
-	if (!db.executeQuery(fmt::format("DELETE FROM `player_rewarditems` WHERE `player_id` = {:d}", player->getGUID()))) {
-		return false;
-	}
+	{
+		AutoStat statReward("savePlayer", "items_reward");
+		if (!db.executeQuery(fmt::format("DELETE FROM `player_rewarditems` WHERE `player_id` = {:d}", player->getGUID()))) {
+			return false;
+		}
 
-	DBInsert rewardQuery("INSERT INTO `player_rewarditems` (`player_id`, `pid`, `sid`, `itemtype`, `count`, `attributes`) VALUES ");
-	itemList.clear();
+		DBInsert rewardQuery("INSERT INTO `player_rewarditems` (`player_id`, `pid`, `sid`, `itemtype`, `count`, `attributes`) VALUES ");
+		ItemBlockList itemList;
 
-	int32_t pidCounter = 1;
+		int32_t pidCounter = 1;
 
-	for (Item* item : player->getRewardChest().getItemList()) {
-		if (Container* container = item->getContainer()) {
-			int32_t currentPid = pidCounter++;
-			for (Item* subItem : container->getItemList()) {
-				itemList.emplace_back(currentPid, subItem);
+		for (Item* item : player->getRewardChest().getItemList()) {
+			if (Container* container = item->getContainer()) {
+				int32_t currentPid = pidCounter++;
+				for (Item* subItem : container->getItemList()) {
+					itemList.emplace_back(currentPid, subItem);
+				}
+			}
+			else {
+				itemList.emplace_back(0, item);
 			}
 		}
-		else {
-			itemList.emplace_back(0, item);
-		}
-	}
 
-	if (!saveItems(player, itemList, rewardQuery, propWriteStream)) {
-		return false;
-	}
-
-	if (!db.executeQuery(fmt::format("DELETE FROM `player_storage` WHERE `player_id` = {:d}", player->getGUID()))) {
-		return false;
-	}
-
-	DBInsert storageQuery("INSERT INTO `player_storage` (`player_id`, `key`, `value`) VALUES ");
-
-	for (const auto& [key, value] : player->getStorageMap()) {
-		if (!storageQuery.addRow(fmt::format("{:d}, {:d}, {:d}", player->getGUID(), key, value))) {
+		if (!saveItems(player, itemList, rewardQuery, propWriteStream)) {
 			return false;
 		}
 	}
 
-	if (!storageQuery.execute()) {
-		return false;
+	{
+		AutoStat statStorage("savePlayer", "storage");
+		if (!db.executeQuery(fmt::format("DELETE FROM `player_storage` WHERE `player_id` = {:d}", player->getGUID()))) {
+			return false;
+		}
+
+		DBInsert storageQuery("INSERT INTO `player_storage` (`player_id`, `key`, `value`) VALUES ");
+
+		for (const auto& [key, value] : player->getStorageMap()) {
+			if (!storageQuery.addRow(fmt::format("{:d}, {:d}, {:d}", player->getGUID(), key, value))) {
+				return false;
+			}
+		}
+
+		if (!storageQuery.execute()) {
+			return false;
+		}
 	}
 
 	// save outfits & addons
-	if (!db.executeQuery(fmt::format("DELETE FROM `player_outfits` WHERE `player_id` = {:d}", player->getGUID()))) {
-		return false;
-	}
-
-	DBInsert outfitQuery("INSERT INTO `player_outfits` (`player_id`, `outfit_id`, `addons`) VALUES ");
-
-	for (const auto& [lookType, addon] : player->outfits) {
-		if (!outfitQuery.addRow(fmt::format("{:d}, {:d}, {:d}", player->getGUID(), lookType, addon))) {
+	{
+		AutoStat statOutfits("savePlayer", "outfits");
+		if (!db.executeQuery(fmt::format("DELETE FROM `player_outfits` WHERE `player_id` = {:d}", player->getGUID()))) {
 			return false;
 		}
-	}
 
-	if (!outfitQuery.execute()) {
-		return false;
+		DBInsert outfitQuery("INSERT INTO `player_outfits` (`player_id`, `outfit_id`, `addons`) VALUES ");
+
+		for (const auto& [lookType, addon] : player->outfits) {
+			if (!outfitQuery.addRow(fmt::format("{:d}, {:d}, {:d}", player->getGUID(), lookType, addon))) {
+				return false;
+			}
+		}
+
+		if (!outfitQuery.execute()) {
+			return false;
+		}
 	}
 
 	// save mounts
-	if (!db.executeQuery(fmt::format("DELETE FROM `player_mounts` WHERE `player_id` = {:d}", player->getGUID()))) {
-		return false;
-	}
+	{
+		AutoStat statMounts("savePlayer", "mounts");
+		if (!db.executeQuery(fmt::format("DELETE FROM `player_mounts` WHERE `player_id` = {:d}", player->getGUID()))) {
+			return false;
+		}
 
-	DBInsert mountQuery("INSERT INTO `player_mounts` (`player_id`, `mount_id`) VALUES ");
+		DBInsert mountQuery("INSERT INTO `player_mounts` (`player_id`, `mount_id`) VALUES ");
 
-	for (const auto& it : player->mounts) {
-		if (!mountQuery.addRow(fmt::format("{:d}, {:d}", player->getGUID(), it))) {
+		for (const auto& it : player->mounts) {
+			if (!mountQuery.addRow(fmt::format("{:d}, {:d}", player->getGUID(), it))) {
+				return false;
+			}
+		}
+
+		if (!mountQuery.execute()) {
 			return false;
 		}
 	}
 
-	if (!mountQuery.execute()) {
-		return false;
-	}
-
 	// End the transaction
+	AutoStat statCommit("savePlayer", "commit");
 	return transaction.commit();
 }
 

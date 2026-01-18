@@ -9,49 +9,68 @@
 #include "game.h"
 #include "logger.h"
 #include <fmt/format.h>
+#include "stats.h"
+
 #include "tools.h"
 
 extern Game g_game;
 
 void IOMapSerialize::loadHouseItems(Map* map)
 {
-	int64_t start = OTSYS_TIME();
-
-	DBResult_ptr result = Database::getInstance().storeQuery("SELECT `data` FROM `tile_store`");
-	if (!result) {
-		return;
-	}
-
-	do {
-		auto attr = result->getString("data");
-		PropStream propStream;
-		propStream.init(attr.data(), attr.size());
-
-		uint16_t x, y;
-		uint8_t z;
-		if (!propStream.read<uint16_t>(x) || !propStream.read<uint16_t>(y) || !propStream.read<uint8_t>(z)) {
-			continue;
-		}
-
-		Tile* tile = map->getTile(x, y, z);
-		if (!tile) {
-			continue;
-		}
-
-		uint32_t item_count;
-		if (!propStream.read<uint32_t>(item_count)) {
-			continue;
-		}
-
-		while (item_count--) {
-			loadItem(propStream, tile);
-		}
-	} while (result->next());
-	LOG_INFO(fmt::format("Loaded house items in: {:.3f} s", (OTSYS_TIME() - start) / 1000.));
+    AutoStat stat("loadHouseItems", "full");
+    int64_t start = OTSYS_TIME();
+    
+    DBResult_ptr result = Database::getInstance().storeQuery(
+        "SELECT `house_id`, `data` FROM `tile_store` ORDER BY `house_id`"
+    );
+    
+    if (!result) {
+        return;
+    }
+    
+    size_t tileCount = 0;
+    size_t itemCount = 0;
+    
+    {
+        AutoStat statParse("loadHouseItems", "parse_tiles");
+        
+        do {
+            auto attr = result->getString("data");
+            PropStream propStream;
+            propStream.init(attr.data(), attr.size());
+            
+            uint16_t x, y;
+            uint8_t z;
+            if (!propStream.read<uint16_t>(x) || !propStream.read<uint16_t>(y) || !propStream.read<uint8_t>(z)) {
+                continue;
+            }
+            
+            Tile* tile = map->getTile(x, y, z);
+            if (!tile) {
+                continue;
+            }
+            
+            uint32_t item_count;
+            if (!propStream.read<uint32_t>(item_count)) {
+                continue;
+            }
+            
+            tileCount++;
+            itemCount += item_count;
+            
+            while (item_count--) {
+                loadItem(propStream, tile);
+            }
+        } while (result->next());
+    }
+    
+    LOG_INFO(fmt::format("Loaded house items in: {:.3f} s ({} tiles, {} items)", 
+                         (OTSYS_TIME() - start) / 1000., tileCount, itemCount));
 }
 
 bool IOMapSerialize::saveHouseItems()
 {
+	AutoStat stat("saveHouseItems", "full");
 	int64_t start = OTSYS_TIME();
 	Database& db = Database::getInstance();
 
@@ -66,26 +85,36 @@ bool IOMapSerialize::saveHouseItems()
 		return false;
 	}
 
-	DBInsert stmt("INSERT INTO `tile_store` (`house_id`, `data`) VALUES ");
+	std::ostringstream query;
+	query << "INSERT INTO `tile_store` (`house_id`, `data`) VALUES ";
 
-	PropWriteStream stream;
-	for (const auto& it : g_game.map.houses.getHouses()) {
-		// save house items
-		House* house = it.second;
-		for (HouseTile* tile : house->getTiles()) {
-			saveTile(stream, tile);
+	bool notEmpty = false;
+	{
+		AutoStat statBuild("saveHouseItems", "build_query");
+		PropWriteStream stream;
+		for (const auto& it : g_game.map.houses.getHouses()) {
+			// save house items
+			House* house = it.second;
+			for (HouseTile* tile : house->getTiles()) {
+				saveTile(stream, tile);
 
-			if (auto attributes = stream.getStream(); !attributes.empty()) {
-				if (!stmt.addRow(fmt::format("{:d}, {:s}", house->getId(), db.escapeString(attributes)))) {
-					return false;
+				if (auto attributes = stream.getStream(); !attributes.empty()) {
+					if (notEmpty) {
+						query << ",";
+					}
+					query << "(" << house->getId() << "," << db.escapeString(attributes) << ")";
+					notEmpty = true;
+					stream.clear();
 				}
-				stream.clear();
 			}
 		}
 	}
 
-	if (!stmt.execute()) {
-		return false;
+	if (notEmpty) {
+		AutoStat statExec("saveHouseItems", "execute_query");
+		if (!db.executeQuery(query.str())) {
+			return false;
+		}
 	}
 
 	// End the transaction
@@ -320,21 +349,37 @@ bool IOMapSerialize::saveHouseInfo()
 		return false;
 	}
 
+	std::ostringstream query;
+	query << "INSERT INTO `houses` (`id`, `type`, `owner`, `paid`, `warnings`, `is_protected`, `name`, `town_id`, `rent`, `size`, `beds`) VALUES ";
+
+	bool notEmpty = false;
 	for (const auto& it : g_game.map.houses.getHouses()) {
 		House* house = it.second;
-		DBResult_ptr result = db.storeQuery(fmt::format("SELECT `id` FROM `houses` WHERE `id` = {:d}", house->getId()));
-		if (result) {
-			db.executeQuery(fmt::format(
-			    "UPDATE `houses` SET `owner` = {:d}, `type` = {:d}, `paid` = {:d}, `warnings` = {:d}, `is_protected` = {:d}, `name` = {:s}, `town_id` = {:d}, `rent` = {:d}, `size` = {:d}, `beds` = {:d} WHERE `id` = {:d}",
-				house->getOwner(), static_cast<uint32_t>(house->getType()), house->getPaidUntil(), house->getPayRentWarnings(),
-			    (house->getProtected() ? 1 : 0), db.escapeString(house->getName()), house->getTownId(), house->getRent(), house->getTiles().size(),
-			    house->getBedCount(), house->getId()));
-		} else {
-			db.executeQuery(fmt::format(
-			"INSERT INTO `houses` (`id`, `type`, `owner`, `paid`, `warnings`, `is_protected`, `name`, `town_id`, `rent`, `size`, `beds`) VALUES ({:d}, {:d}, {:d}, {:d}, {:d}, {:d}, {:s}, {:d}, {:d}, {:d}, {:d})",
-				house->getId(), static_cast<uint32_t>(house->getType()), house->getOwner(), house->getPaidUntil(), house->getPayRentWarnings(), (house->getProtected() ? 1 : 0),
-			    db.escapeString(house->getName()), house->getTownId(), house->getRent(), house->getTiles().size(),
-			    house->getBedCount()));
+		if (notEmpty) {
+			query << ",";
+		}
+		query << fmt::format("({:d}, {:d}, {:d}, {:d}, {:d}, {:d}, {:s}, {:d}, {:d}, {:d}, {:d})",
+		                     house->getId(), static_cast<uint32_t>(house->getType()), house->getOwner(), house->getPaidUntil(), house->getPayRentWarnings(),
+		                     (house->getProtected() ? 1 : 0), db.escapeString(house->getName()), house->getTownId(), house->getRent(), house->getTiles().size(),
+		                     house->getBedCount());
+		notEmpty = true;
+	}
+
+	if (notEmpty) {
+		query << " ON DUPLICATE KEY UPDATE "
+		      << "`owner` = VALUES(`owner`), "
+		      << "`type` = VALUES(`type`), "
+		      << "`paid` = VALUES(`paid`), "
+		      << "`warnings` = VALUES(`warnings`), "
+		      << "`is_protected` = VALUES(`is_protected`), "
+		      << "`name` = VALUES(`name`), "
+		      << "`town_id` = VALUES(`town_id`), "
+		      << "`rent` = VALUES(`rent`), "
+		      << "`size` = VALUES(`size`), "
+		      << "`beds` = VALUES(`beds`)";
+
+		if (!db.executeQuery(query.str())) {
+			return false;
 		}
 	}
 

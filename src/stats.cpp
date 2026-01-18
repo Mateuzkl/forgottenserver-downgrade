@@ -196,7 +196,7 @@ void Stats::writeSlowInfo(const std::string& file, uint64_t executionTime, const
 	out.close();
 
 	// Console log uses system Logger (timestamp handled by logger)
-	LOG_WARN("Execution time: {} ms - {} - {}", (executionTime / 1000000), description, extraDescription);
+	LOG_STATS("Execution time: {} ms - {} - {}", (executionTime / 1000000), description, extraDescription);
 }
 
 void Stats::writeStats(const std::string& file, const statsMap& stats, const std::string& extraInfo) {
@@ -221,7 +221,7 @@ void Stats::writeStats(const std::string& file, const statsMap& stats, const std
 		if (!infoCopy.empty() && infoCopy.back() == '\n') {
 			infoCopy.pop_back();
 		}
-		LOG_INFO("{}", infoCopy); 
+		LOG_STATS("{}", infoCopy); 
 	}
 
 	std::vector<std::pair<std::string, statsData>> pairs;

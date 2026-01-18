@@ -74,6 +74,8 @@ public:
 		}
 	}
 
+	virtual void stats(std::string_view msg) = 0;
+
 	template <typename... Args>
 	void trace(fmt::format_string<Args...> fmt, Args&&... args)
 	{
@@ -124,6 +126,12 @@ public:
 		if (isEnabled(LogLevel::CRITICAL)) {
 			log(LogLevel::CRITICAL, fmt::format(fmt, std::forward<Args>(args)...));
 		}
+	}
+
+	template <typename... Args>
+	void stats(fmt::format_string<Args...> fmt, Args&&... args)
+	{
+		stats(fmt::format(fmt, std::forward<Args>(args)...));
 	}
 
 	template <typename F>
@@ -187,6 +195,10 @@ void loggerSignalHandler(int signal);
 #define LOG_CRITICAL(...) \
 	do { \
 		if (isLoggerInitialized()) g_logger().critical(__VA_ARGS__); \
+	} while (0)
+#define LOG_STATS(...) \
+	do { \
+		if (isLoggerInitialized()) g_logger().stats(__VA_ARGS__); \
 	} while (0)
 
 template <typename T>
