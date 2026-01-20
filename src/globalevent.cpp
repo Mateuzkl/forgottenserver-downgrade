@@ -139,8 +139,8 @@ void GlobalEvents::timer()
 			continue;
 		}
 
-		nextScheduledTime = std::min<int64_t>(nextScheduledTime, globalEvent.getInterval());
-		globalEvent.setNextExecution(now + globalEvent.getInterval());
+		nextScheduledTime = std::min<int64_t>(nextScheduledTime, 86400000);
+		globalEvent.setNextExecution(now + 86400000);
 
 		++it;
 	}
@@ -288,7 +288,7 @@ bool GlobalEvent::configureEvent(const pugi::xml_node& node)
 			difference += 86400;
 		}
 
-		nextExecution = (current_time + difference) * 1000;
+		nextExecution = OTSYS_TIME() + (difference * 1000);
 		eventType = GLOBALEVENT_TIMER;
 	} else if ((attr = node.attribute("type"))) {
 		const char* value = attr.value();

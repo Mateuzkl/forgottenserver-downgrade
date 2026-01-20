@@ -154,7 +154,7 @@ int luaGlobalEventTime(lua_State* L)
 			difference += 86400;
 		}
 
-		globalevent->setNextExecution((current_time + difference) * 1000);
+		globalevent->setNextExecution(OTSYS_TIME() + (difference * 1000));
 		globalevent->setEventType(GLOBALEVENT_TIMER);
 		pushBoolean(L, true);
 	} else {
