@@ -1160,7 +1160,7 @@ void Player::onCreatureAppear(Creature* creature, bool isLogin)
 			}
 		}
 
-		IOLoginData::updateOnlineStatus(guid, false);
+		IOLoginData::updateOnlineStatus(guid, true);
 	}
 }
 
