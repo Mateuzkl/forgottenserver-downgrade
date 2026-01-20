@@ -1133,9 +1133,30 @@ void Player::onCreatureAppear(Creature* creature, bool isLogin)
 				g_game.internalCreatureChangeOutfit(this, defaultOutfit);
 			}
 
+#if 0
 			addOfflineTrainingTries(static_cast<skills_t>(offlineTrainingSkill), offlineTrainingTime / 1000);
 			offlineTrainingTime = 0;
 			offlineTrainingSkill = 0;
+#endif
+			if (offlineTrainingSkill != -1) {
+				int32_t offlineTime;
+				if (getLastLogout() != 0) {
+					offlineTime = static_cast<int32_t>(time(nullptr) - getLastLogout());
+				} else {
+					offlineTime = 0;
+				}
+
+				// Use configurable threshold (default 600 seconds / 10 minutes)
+				int64_t threshold = ConfigManager::getInteger(ConfigManager::OFFLINE_TRAINING_THRESHOLD);
+				if (offlineTime >= threshold) {
+					uint32_t trainingTime = static_cast<uint32_t>(std::min<int32_t>(offlineTime, offlineTrainingTime / 1000));
+					if (trainingTime > 0) {
+						applyOfflineTraining(trainingTime);
+						removeOfflineTrainingTime(trainingTime * 1000);
+					}
+				}
+				offlineTrainingSkill = -1;
+			}
 		}
 
 		// mounted player moved to pz on login, update mount status
@@ -5414,4 +5435,49 @@ double Player::getResetExpReduction() const
 	int32_t reductionPerReset = ConfigManager::getInteger(ConfigManager::RESET_REDUCTION_PERCENTAGE);
 	double multiplier = 1.0 - (static_cast<double>(reset * reductionPerReset) / 100.0);
 	return std::max<double>(0.1, multiplier);
+}
+void Player::applyOfflineTraining(uint32_t trainingTime)
+{
+	float efficiency = ConfigManager::getFloat(ConfigManager::OFFLINE_TRAINING_EFFICIENCY);
+	uint64_t tries = static_cast<uint64_t>(trainingTime * efficiency);
+	if (tries == 0) {
+		return;
+	}
+
+	if (offlineTrainingSkill == SKILL_OFFLINE_AUTO) {
+		if (isSorcerer() || isDruid()) {
+			float mageML = ConfigManager::getFloat(ConfigManager::OFFLINE_TRAINING_MAGE_ML);
+			addOfflineTrainingTries(SKILL_MAGLEVEL, static_cast<uint64_t>(tries * mageML));
+		} else if (isPaladin()) {
+			float paladinDist = ConfigManager::getFloat(ConfigManager::OFFLINE_TRAINING_PALADIN_DIST);
+			float paladinML = ConfigManager::getFloat(ConfigManager::OFFLINE_TRAINING_PALADIN_ML);
+			float paladinShield = ConfigManager::getFloat(ConfigManager::OFFLINE_TRAINING_PALADIN_SHIELD);
+
+			addOfflineTrainingTries(SKILL_DISTANCE, static_cast<uint64_t>(tries * paladinDist));
+			addOfflineTrainingTries(SKILL_MAGLEVEL, static_cast<uint64_t>(tries * paladinML));
+			addOfflineTrainingTries(SKILL_SHIELD, static_cast<uint64_t>(tries * paladinShield));
+		} else if (isKnight()) {
+			float knightMelee = ConfigManager::getFloat(ConfigManager::OFFLINE_TRAINING_KNIGHT_MELEE);
+			float knightShield = ConfigManager::getFloat(ConfigManager::OFFLINE_TRAINING_KNIGHT_SHIELD);
+
+			skills_t bestMelee = SKILL_SWORD;
+			uint32_t maxLevel = skills[SKILL_SWORD].level;
+
+			if (skills[SKILL_AXE].level > maxLevel) {
+				maxLevel = skills[SKILL_AXE].level;
+				bestMelee = SKILL_AXE;
+			}
+
+			if (skills[SKILL_CLUB].level > maxLevel) {
+				maxLevel = skills[SKILL_CLUB].level;
+				bestMelee = SKILL_CLUB;
+			}
+
+			addOfflineTrainingTries(bestMelee, static_cast<uint64_t>(tries * knightMelee));
+			addOfflineTrainingTries(SKILL_SHIELD, static_cast<uint64_t>(tries * knightShield));
+		}
+	} else {
+		// Manual mode
+		addOfflineTrainingTries(static_cast<skills_t>(offlineTrainingSkill), tries);
+	}
 }

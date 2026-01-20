@@ -389,6 +389,13 @@ bool ConfigManager::load()
 	floats[REWARD_RATE_DAMAGE_DONE] = getGlobalFloat(L, "rewardRateDamageDone", 1.0f);
 	floats[REWARD_RATE_DAMAGE_TAKEN] = getGlobalFloat(L, "rewardRateDamageTaken", 1.0f);
 	floats[REWARD_RATE_HEALING_DONE] = getGlobalFloat(L, "rewardRateHealingDone", 1.0f);
+	floats[OFFLINE_TRAINING_EFFICIENCY] = getGlobalFloat(L, "offlineTrainingEfficiency", 0.5f);
+	floats[OFFLINE_TRAINING_MAGE_ML] = getGlobalFloat(L, "offlineTrainingMageML", 1.0f);
+	floats[OFFLINE_TRAINING_PALADIN_DIST] = getGlobalFloat(L, "offlineTrainingPaladinDist", 0.5f);
+	floats[OFFLINE_TRAINING_PALADIN_ML] = getGlobalFloat(L, "offlineTrainingPaladinML", 0.25f);
+	floats[OFFLINE_TRAINING_PALADIN_SHIELD] = getGlobalFloat(L, "offlineTrainingPaladinShield", 0.25f);
+	floats[OFFLINE_TRAINING_KNIGHT_MELEE] = getGlobalFloat(L, "offlineTrainingKnightMelee", 0.5f);
+	floats[OFFLINE_TRAINING_KNIGHT_SHIELD] = getGlobalFloat(L, "offlineTrainingKnightShield", 0.5f);
 
 	integers[Integer::NEW_PLAYER_SPAWN_POS_X] = getGlobalInteger(L, "newPlayerSpawnPosX", 0);
 	integers[Integer::NEW_PLAYER_SPAWN_POS_Y] = getGlobalInteger(L, "newPlayerSpawnPosY", 0);
@@ -402,6 +409,7 @@ bool ConfigManager::load()
 	integers[Integer::MAX_ALLOWED_ON_A_DUMMY] = getGlobalInteger(L, "maxAllowedOnADummy", 5);
 	integers[Integer::RATE_EXERCISE_TRAINING_SPEED] = getGlobalInteger(L, "rateExerciseTrainingSpeed", 1.0);
 	integers[Integer::DLL_CHECK_KICK_TIME] = getGlobalInteger(L, "dllCheckKickTime", 300);
+	integers[Integer::OFFLINE_TRAINING_THRESHOLD] = getGlobalInteger(L, "offlineTrainingThreshold", 600);
 
 	integers[Integer::STATS_DUMP_INTERVAL] = getGlobalInteger(L, "statsDumpInterval", 30000);
 	integers[Integer::STATS_SLOW_LOG_TIME] = getGlobalInteger(L, "statsSlowLogTime", 10);

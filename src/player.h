@@ -153,7 +153,9 @@ public:
 	void setBankBalance(uint64_t balance) { bankBalance = balance; }
 
 	// Offline Training
+	static constexpr int32_t SKILL_OFFLINE_AUTO = 255;
 	bool addOfflineTrainingTries(skills_t skill, uint64_t tries);
+	void applyOfflineTraining(uint32_t trainingTime);
 
 	void addOfflineTrainingTime(int32_t addTime)
 	{
@@ -290,6 +292,10 @@ public:
 
 	bool setVocation(uint16_t vocId);
 	uint16_t getVocationId() const { return vocation->getId(); }
+	bool isSorcerer() const { return vocation->getId() == 1 || vocation->getFromVocation() == 1; }
+	bool isDruid() const { return vocation->getId() == 2 || vocation->getFromVocation() == 2; }
+	bool isPaladin() const { return vocation->getId() == 3 || vocation->getFromVocation() == 3; }
+	bool isKnight() const { return vocation->getId() == 4 || vocation->getFromVocation() == 4; }
 
 	PlayerSex_t getSex() const { return sex; }
 	void setSex(PlayerSex_t);

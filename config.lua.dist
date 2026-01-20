@@ -180,6 +180,7 @@ showPlayerLogInConsole = true
 healthGainColour = 95
 manaGainColour = 5
 manaLossColour = 5
+offlineTrainingThreshold = 600
 checkDuplicateStorageKeys = false
 
 -- VIP and Depot limits
@@ -233,6 +234,17 @@ rateSkill = 3
 rateLoot = 2
 rateMagic = 3
 rateSpawn = 1
+
+-- Offline Training
+-- offlineTrainingEfficiency: 1.0 = 100%, 0.5 = 50% (default)
+offlineTrainingEfficiency = 0.5
+-- Vocation distribution (sum should be 1.0)
+offlineTrainingMageML = 1.0
+offlineTrainingPaladinDist = 0.5
+offlineTrainingPaladinML = 0.25
+offlineTrainingPaladinShield = 0.25
+offlineTrainingKnightMelee = 0.5
+offlineTrainingKnightShield = 0.5
 
 -- Monster Despawn Config
 -- despawnRange is the amount of floors a monster can be from its spawn position

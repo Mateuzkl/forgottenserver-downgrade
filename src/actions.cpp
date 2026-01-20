@@ -370,46 +370,14 @@ ReturnValue Actions::internalUseItem(Player* player, const Position& pos, uint8_
 			return RETURNVALUE_CANNOTUSETHISOBJECT;
 		}
 
-		if (bed->trySleep(player)) {
-			player->setBedItem(bed);
-			if (ConfigManager::getBoolean(ConfigManager::BED_OFFLINE_TRAINING)) {
-				if (!player->isPremium()) {
-					player->sendTextMessage(MESSAGE_STATUS_CONSOLE_BLUE, "You need a premium account.");
-					return RETURNVALUE_NOERROR;
-				}
-				
-				OperatingSystem_t clientOs = player->getOperatingSystem();
-				bool isOldClient = (clientOs < CLIENTOS_OTCLIENT_LINUX);
-				
-				if (isOldClient) {
-					std::ostringstream ss;
-				ss << "Offline Training System\n\n";
-				ss << "Available training options:\n";
-				ss << "- Sword Fighting and Shielding\n";
-				ss << "- Axe Fighting and Shielding\n";
-				ss << "- Club Fighting and Shielding\n";
-				ss << "- Distance Fighting and Shielding\n";
-				ss << "- Magic Level and Shielding\n\n";
-				ss << "How to use:\n";
-				ss << "1. Stand near a bed (required)\n";
-				ss << "2. Choose your skill: !train <skill>\n";
-				ss << "   Commands: !train sword, !train axe, !train club\n";
-				ss << "   !train distance, !train magic\n";
-				ss << "3. Start training: !sleep\n\n";
-				ss << "Note: You must be near a bed to use these commands.";
-				
-				player->sendTextWindow(1950, ss.str());
-				} else {
-					g_game.sendOfflineTrainingDialog(player);
-				}
-			}
-			else {
+			if (bed->trySleep(player)) {
+				player->setBedItem(bed);
+				player->setOfflineTrainingSkill(Player::SKILL_OFFLINE_AUTO);
 				BedItem* bedItem = player->getBedItem();
 				if (bedItem) {
 					bedItem->sleep(player);
 				}
 			}
-		}
 
 		return RETURNVALUE_NOERROR;
 	}
