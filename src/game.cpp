@@ -5219,6 +5219,7 @@ void Game::addPlayer(Player* player)
 	mappedPlayerGuids[player->getGUID()] = player;
 	wildcardTree.insert(lowercase_name);
 	players[player->getID()] = player;
+	checkPlayersRecord();
 }
 
 void Game::removePlayer(Player* player)
