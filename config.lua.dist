@@ -277,8 +277,8 @@ location = "Sweden"
 
 -- Server Statistics
 -- time in seconds: 30 = 30 seconds, 0 = disabled
-statsDumpInterval = 30
+statsDumpInterval = 0
 -- time in milliseconds: 50 = 0.05 sec, 0 = disabled
-statsSlowLogTime = 50
+statsSlowLogTime = 0
 -- time in milliseconds: 500 = 0.5 sec, 0 = disabled
-statsVerySlowLogTime = 500
+statsVerySlowLogTime = 0
