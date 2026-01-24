@@ -55,6 +55,10 @@ void mainLoader(ServiceManager* services)
 	// dispatcher thread
 	g_game.setGameState(GAME_STATE_STARTUP);
 
+#ifdef STATS_ENABLED
+	g_stats.setEnabled(false);
+#endif
+
 	if (!initLogger(LogLevel::INFO)) {
 		startupErrorMessage("Failed to initialize logger!");
 		return;
@@ -251,6 +255,10 @@ void mainLoader(ServiceManager* services)
 
 	g_game.start(services);
 	g_game.setGameState(GAME_STATE_NORMAL);
+
+#ifdef STATS_ENABLED
+	g_stats.setEnabled(true);
+#endif
 
 	g_loaderSignal.notify_all();
 }

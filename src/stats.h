@@ -47,6 +47,14 @@ public:
 		setState(THREAD_STATE_TERMINATED);
 	}
 
+	void setEnabled(bool enabled) {
+		this->enabled = enabled;
+	}
+
+	bool isEnabled() const {
+		return enabled;
+	}
+
 	void addDispatcherTask(int index, Task* task);
 	void addLuaStats(Stat* stats);
 	void addSqlStats(Stat* stats);
@@ -81,19 +89,32 @@ private:
 		statsMap stats;
 		int64_t lastDump;
 	} lua, sql, special;
+
+	std::atomic<bool> enabled{true};
 };
 
 extern Stats g_stats;
 
 class AutoStat {
 public:
-	AutoStat(const std::string& description, const std::string& extraDescription = "") :
-			time_point(std::chrono::high_resolution_clock::now()), stat(new Stat(0, description, extraDescription)) {}
+	AutoStat(const std::string& description, const std::string& extraDescription = "") {
+		if (g_stats.isEnabled()) {
+			time_point = std::chrono::high_resolution_clock::now();
+			stat = new Stat(0, description, extraDescription);
+		} else {
+			stat = nullptr;
+		}
+	}
 
 	~AutoStat() {
-		stat->executionTime = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - time_point).count();
-		stat->executionTime -= minusTime;
-		g_stats.addSpecialStats(stat);
+		if (!stat) return;
+		try {
+			stat->executionTime = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - time_point).count();
+			stat->executionTime -= minusTime;
+			g_stats.addSpecialStats(stat);
+		} catch (...) {
+			delete stat;
+		}
 	}
 
 protected:
@@ -111,10 +132,13 @@ public:
 		activeStat = this;
 	}
 	~AutoStatRecursive() {
-		assert(activeStat == this);
-		activeStat = parent;
-		if(activeStat)
-			activeStat->minusTime += std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - time_point).count();
+		try {
+			assert(activeStat == this);
+			activeStat = parent;
+			if(activeStat)
+				activeStat->minusTime += std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - time_point).count();
+		} catch (...) {
+		}
 	}
 
 private:

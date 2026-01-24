@@ -1116,15 +1116,19 @@ bool IOLoginData::savePlayer(Player* player)
 			return false;
 		}
 
-		DBInsert inboxQuery(
+	DBInsert inboxQuery(
 		    "INSERT INTO `player_inboxitems` (`player_id`, `pid`, `sid`, `itemtype`, `count`, `attributes`) VALUES ");
 		ItemBlockList itemList;
 
+		int inboxItemsCount = 0;
 		for (const auto& it : player->depotLockerMap) {
 			for (Item* item : it.second->getItemList()) {
 				if (item->getID() == ITEM_INBOX) {
 					if (Container* container = item->getContainer()) {
 						for (Item* subItem : container->getItemList()) {
+							if (++inboxItemsCount > 100) {
+								continue;
+							}
 							itemList.emplace_back(it.first, subItem);
 						}
 					}

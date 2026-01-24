@@ -12,12 +12,18 @@ extern Game g_game;
 
 Task* createTaskWithStats(TaskFunc&& f, const std::string& description, const std::string& extraDescription)
 {
-	return new Task(std::move(f), description, extraDescription);
+	if (g_stats.isEnabled()) {
+		return new Task(std::move(f), description, extraDescription);
+	}
+	return new Task(std::move(f), "", "");
 }
 
 Task* createTaskWithStats(uint32_t expiration, TaskFunc&& f, const std::string& description, const std::string& extraDescription)
 {
-	return new Task(expiration, std::move(f), description, extraDescription);
+	if (g_stats.isEnabled()) {
+		return new Task(expiration, std::move(f), description, extraDescription);
+	}
+	return new Task(expiration, std::move(f), "", "");
 }
 
 void Dispatcher::threadMain()
@@ -32,11 +38,15 @@ void Dispatcher::threadMain()
     while (getState() != THREAD_STATE_TERMINATED) {
         // Measure wait time when STATS_ENABLED
 #ifdef STATS_ENABLED
-        time_point = std::chrono::high_resolution_clock::now();
+        if (g_stats.isEnabled()) {
+            time_point = std::chrono::high_resolution_clock::now();
+        }
         taskSignal.acquire();
-        g_stats.dispatcherWaitTime(dispatcherId) += std::chrono::duration_cast<std::chrono::nanoseconds>(
-            std::chrono::high_resolution_clock::now() - time_point
-        ).count();
+        if (g_stats.isEnabled()) {
+            g_stats.dispatcherWaitTime(dispatcherId) += std::chrono::duration_cast<std::chrono::nanoseconds>(
+                std::chrono::high_resolution_clock::now() - time_point
+            ).count();
+        }
 #else
         taskSignal.acquire();
 #endif
@@ -57,17 +67,23 @@ void Dispatcher::threadMain()
         // Process all available tasks
         for (Task* task : tmpTaskList) {
 #ifdef STATS_ENABLED
-            time_point = std::chrono::high_resolution_clock::now();
+            if (g_stats.isEnabled()) {
+                time_point = std::chrono::high_resolution_clock::now();
+            }
 #endif
             if (!task->hasExpired()) {
                 ++dispatcherCycle;
                 (*task)();
             }
 #ifdef STATS_ENABLED
-            task->executionTime = std::chrono::duration_cast<std::chrono::nanoseconds>(
-                std::chrono::high_resolution_clock::now() - time_point
-            ).count();
-            g_stats.addDispatcherTask(dispatcherId, task);
+            if (g_stats.isEnabled()) {
+                task->executionTime = std::chrono::duration_cast<std::chrono::nanoseconds>(
+                    std::chrono::high_resolution_clock::now() - time_point
+                ).count();
+                g_stats.addDispatcherTask(dispatcherId, task);
+            } else {
+                delete task;
+            }
 #else
             delete task;
 #endif
