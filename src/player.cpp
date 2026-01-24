@@ -12,6 +12,7 @@
 #include "events.h"
 #include "game.h"
 #include "iologindata.h"
+#include "inbox.h"
 #include "monster.h"
 #include "movement.h"
 #include "rewardchest.h"
@@ -884,6 +885,19 @@ DepotLocker* Player::getDepotLocker(uint32_t depotId)
 	it = depotLockerMap.emplace(depotId, new DepotLocker(ITEM_LOCKER)).first;
 	it->second->setDepotId(static_cast<uint16_t>(depotId));
 	it->second->internalAddThing(getDepotChest(depotId, true));
+
+	bool hasInbox = false;
+	for (Item* item : it->second->getItemList()) {
+		if (item->getID() == ITEM_INBOX) {
+			hasInbox = true;
+			break;
+		}
+	}
+
+	if (!hasInbox) {
+		it->second->internalAddThing(Item::CreateItem(ITEM_INBOX));
+	}
+
 	return it->second.get();
 }
 
@@ -5480,4 +5494,19 @@ void Player::applyOfflineTraining(uint32_t trainingTime)
 		// Manual mode
 		addOfflineTrainingTries(static_cast<skills_t>(offlineTrainingSkill), tries);
 	}
+}
+
+Inbox* Player::getInbox()
+{
+	DepotLocker* depotLocker = getDepotLocker(town->getID());
+	if (!depotLocker) {
+		return nullptr;
+	}
+
+	for (Item* item : depotLocker->getItemList()) {
+		if (item->getID() == ITEM_INBOX) {
+			return static_cast<Inbox*>(item);
+		}
+	}
+	return nullptr;
 }

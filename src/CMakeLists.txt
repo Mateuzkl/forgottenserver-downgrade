@@ -27,6 +27,7 @@ set(tfs_SRC
 	${CMAKE_CURRENT_LIST_DIR}/guild.cpp
 	${CMAKE_CURRENT_LIST_DIR}/house.cpp
 	${CMAKE_CURRENT_LIST_DIR}/housetile.cpp
+	${CMAKE_CURRENT_LIST_DIR}/inbox.cpp
 	${CMAKE_CURRENT_LIST_DIR}/iologindata.cpp
 	${CMAKE_CURRENT_LIST_DIR}/iomap.cpp
 	${CMAKE_CURRENT_LIST_DIR}/iomapserialize.cpp

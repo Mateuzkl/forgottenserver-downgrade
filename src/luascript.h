@@ -496,6 +496,7 @@ private:
 	static int luaPlayerDoReset(lua_State* L); // reset system
 	static int luaPlayerSetReset(lua_State* L); // reset system
 
+
 	//
 	std::string lastLuaError;
 

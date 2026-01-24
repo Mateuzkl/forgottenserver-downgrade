@@ -5,6 +5,7 @@
 #define FS_DEPOTLOCKER_H
 
 #include "container.h"
+#include "inbox.h"
 
 using DepotLocker_ptr = std::shared_ptr<DepotLocker>;
 
@@ -15,6 +16,8 @@ public:
 
 	DepotLocker* getDepotLocker() override { return this; }
 	const DepotLocker* getDepotLocker() const override { return this; }
+
+	void removeInbox(Inbox* inbox);
 
 	// serialization
 	Attr_ReadValue readAttr(AttrTypes_t attr, PropStream& propStream) override;

@@ -1702,6 +1702,7 @@ void LuaScriptInterface::registerFunctions()
 	registerEnum(ITEM_AMULETOFLOSS);
 	registerEnum(ITEM_PARCEL);
 	registerEnum(ITEM_LABEL);
+	registerEnum(ITEM_INBOX);
 	registerEnum(ITEM_FIREFIELD_PVP_FULL);
 	registerEnum(ITEM_FIREFIELD_PVP_MEDIUM);
 	registerEnum(ITEM_FIREFIELD_PVP_SMALL);

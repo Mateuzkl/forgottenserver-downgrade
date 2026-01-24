@@ -23913,7 +23913,7 @@
 	<item fromid="14396" toid="14401" article="a" name="hive structure" />
 	<item fromid="14402" toid="14403" article="a" name="hive wall" />
 	<item id="14404" name="your inbox">
-		<attribute key="containerSize" value="30" />
+		<attribute key="containerSize" value="52" />
 	</item>
 	<item id="14405" article="the" name="market" />
 	<item fromid="14406" toid="14407" article="an" name="insectoid hive" />

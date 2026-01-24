@@ -9,6 +9,7 @@
 #include "configmanager.h"
 #include "stats.h"
 #include "game.h"
+#include "inbox.h"
 #include "player.h"
 #include "vocation.h"
 #include "logger.h"
@@ -582,6 +583,11 @@ bool IOLoginData::loadPlayer(Player* player, DBResult_ptr result)
 			const std::pair<Item*, int32_t>& pair = it->second;
 			Item* item = pair.first;
 
+			if (item->getID() == ITEM_INBOX) {
+				delete item;
+				continue;
+			}
+
 			int32_t pid = pair.second;
 			if (pid >= 0 && pid < 100) {
 				DepotLocker* depotLocker = player->getDepotLocker(pid);
@@ -619,6 +625,51 @@ bool IOLoginData::loadPlayer(Player* player, DBResult_ptr result)
 				DepotChest* depotChest = player->getDepotChest(pid, true);
 				if (depotChest) {
 					depotChest->internalAddThing(item);
+				}
+			} else {
+				ItemMap::const_iterator it2 = itemMap.find(pid);
+				if (it2 == itemMap.end()) {
+					continue;
+				}
+
+				Container* container = it2->second.first->getContainer();
+				if (container) {
+					container->internalAddThing(item);
+				}
+			}
+		}
+	}
+
+	// load inbox items
+	itemMap.clear();
+
+	if ((result = db.storeQuery(fmt::format(
+	         "SELECT `pid`, `sid`, `itemtype`, `count`, `attributes` FROM `player_inboxitems` WHERE `player_id` = {:d} ORDER BY `sid` DESC",
+	         player->getGUID())))) {
+		loadItems(itemMap, result);
+
+		for (ItemMap::const_reverse_iterator it = itemMap.rbegin(), end = itemMap.rend(); it != end; ++it) {
+			const std::pair<Item*, int32_t>& pair = it->second;
+			Item* item = pair.first;
+
+			int32_t pid = pair.second;
+			if (pid >= 0 && pid < 100) {
+				DepotLocker* depotLocker = player->getDepotLocker(pid);
+				if (depotLocker) {
+					Item* inbox = nullptr;
+					for (Item* depotItem : depotLocker->getItemList()) {
+						if (depotItem->getID() == ITEM_INBOX) {
+							inbox = depotItem;
+							break;
+						}
+					}
+
+					if (inbox) {
+						Container* inboxContainer = inbox->getContainer();
+						if (inboxContainer) {
+							inboxContainer->internalAddThing(item);
+						}
+					}
 				}
 			} else {
 				ItemMap::const_iterator it2 = itemMap.find(pid);
@@ -1025,7 +1076,7 @@ bool IOLoginData::savePlayer(Player* player)
 
 		for (const auto& it : player->depotLockerMap) {
 			for (Item* item : it.second->getItemList()) {
-				if (item->getID() != ITEM_DEPOT) {
+				if (item->getID() != ITEM_DEPOT && item->getID() != ITEM_INBOX) {
 					itemList.emplace_back(it.first, item);
 				}
 			}
@@ -1055,6 +1106,34 @@ bool IOLoginData::savePlayer(Player* player)
 			if (!saveItems(player, itemList, depotQuery, propWriteStream)) {
 				return false;
 			}
+		}
+	}
+
+	// save inbox items
+	{
+		AutoStat statInbox("savePlayer", "items_inbox");
+		if (!db.executeQuery(fmt::format("DELETE FROM `player_inboxitems` WHERE `player_id` = {:d}", player->getGUID()))) {
+			return false;
+		}
+
+		DBInsert inboxQuery(
+		    "INSERT INTO `player_inboxitems` (`player_id`, `pid`, `sid`, `itemtype`, `count`, `attributes`) VALUES ");
+		ItemBlockList itemList;
+
+		for (const auto& it : player->depotLockerMap) {
+			for (Item* item : it.second->getItemList()) {
+				if (item->getID() == ITEM_INBOX) {
+					if (Container* container = item->getContainer()) {
+						for (Item* subItem : container->getItemList()) {
+							itemList.emplace_back(it.first, subItem);
+						}
+					}
+				}
+			}
+		}
+
+		if (!saveItems(player, itemList, inboxQuery, propWriteStream)) {
+			return false;
 		}
 	}
 

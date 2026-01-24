@@ -371,6 +371,7 @@ public:
 	DepotChest* getDepotChest(uint32_t depotId, bool autoCreate);
 	DepotLocker* getDepotLocker(uint32_t depotId);
 	RewardChest& getRewardChest();
+	Inbox* getInbox();
 	void onReceiveMail() const;
 	bool isNearDepotBox() const;
 
