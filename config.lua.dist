@@ -23,6 +23,12 @@ resetDmgBonus = 5 -- damage bonus per reset for the new system
 resetSystemEnabled = true -- enable/disable the reset system
 resetReductionPercentage = 10 -- XP reduction percentage per reset (e.g. 10 = 10%)    
 
+Autoloot_enabled = true
+AutoLoot_BlockIDs = ""
+AutoLoot_MoneyIDs = "2148;2152;2160;9971"
+AutoLoot_MaxItemFree = 5
+AutoLoot_MaxItemPremium = 10
+
 -- Account Manager
 accountManager = true
 namelockManager = true

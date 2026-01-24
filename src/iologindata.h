@@ -42,6 +42,8 @@ public:
 	static bool addRewardItems(uint32_t playerId, const ItemBlockList& itemList, DBInsert& query_insert, PropWriteStream& propWriteStream);
 	static uint32_t getGuidByName(std::string_view name);
 	static bool getGuidByNameEx(uint32_t& guid, bool& specialVip, std::string& name);
+	static bool saveAutoLootConfig(Player* player);
+	static bool loadAutoLootConfig(Player* player);
 	static std::string_view getNameByGuid(uint32_t guid);
 	static bool formatPlayerName(std::string& name);
 	static void increaseBankBalance(uint32_t guid, uint64_t bankBalance);

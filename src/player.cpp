@@ -4583,6 +4583,285 @@ void Player::setGuild(Guild_ptr guild)
 	}
 }
 
+// Autoloot
+void Player::sendAutoLootWindow() const
+{
+	if (!client) {
+		return;
+	}
+
+	std::string currentText = autolootConfig.text;
+	if (currentText.empty()) {
+		currentText = "#*  <-- remove \"#\" to loot anything (rest of list is ignored)\n"
+		              "gold coin, red backpack\n"
+		              "#platinum coin, blue backpack <-- this one is ignored \"#\" indicates it\n";
+	}
+
+	client->sendHouseWindow(std::numeric_limits<uint32_t>().max(), currentText);
+}
+
+void Player::parseAutoLootWindow(const std::string& text)
+{
+	if (!ConfigManager::getBoolean(ConfigManager::AUTOLOOT_ENABLED)) {
+		sendTextMessage(MESSAGE_STATUS_CONSOLE_BLUE, "AutoLoot is currently disabled.");
+		return;
+	}
+
+	if (text.empty()) {
+		autolootConfig.lootAnything = false;
+		autolootConfig.text.clear();
+		autolootConfig.itemList.clear();
+		sendTextMessage(MESSAGE_STATUS_CONSOLE_BLUE, "AutoLoot list cleared.");
+		return;
+	}
+
+	if (autolootConfig.text == text) {
+		return;
+	}
+
+	std::set<uint16_t> oldItems;
+	for (const auto& pair : autolootConfig.itemList) {
+		oldItems.insert(pair.first);
+	}
+
+	size_t maxItems = isPremium() ? ConfigManager::getInteger(ConfigManager::AUTOLOOT_MAXITEMS_PREMIUM) : ConfigManager::getInteger(ConfigManager::AUTOLOOT_MAXITEMS_FREE);
+	std::string blockConfig = std::string(ConfigManager::getString(ConfigManager::AUTOLOOT_BLOCKIDS));
+	std::vector<std::string_view> blockIdStrings = explodeString(blockConfig, ";");
+	std::set<uint16_t> blockedIds;
+	for (const auto& str : blockIdStrings) {
+		if (str.empty()) continue;
+		try {
+			blockedIds.insert(static_cast<uint16_t>(std::stoi(std::string(str))));
+		} catch (...) {
+			continue;
+		}
+	}
+
+	autolootConfig.itemList.clear();
+
+	std::istringstream stream(text);
+	std::string line;
+	StringVector vec;
+	std::pair<std::map<uint16_t, std::pair<uint16_t, bool>>::iterator, bool> ret;
+	std::ostringstream addedItems;
+	bool firstAddedItem = true;
+	bool limitReached = false;
+
+	while (getline(stream, line)) {
+		trimString(line);
+
+		if (line.empty()) {
+			continue;
+		}
+
+		if (line.front() == '*') {
+			autolootConfig.lootAnything = true;
+			autolootConfig.text = text;
+			sendTextMessage(MESSAGE_STATUS_CONSOLE_BLUE, "AutoLoot configuration saved: Loot All enabled.");
+			return;
+		} else {
+			autolootConfig.lootAnything = false;
+		}
+
+		if (autolootConfig.itemList.size() >= maxItems) {
+			limitReached = true;
+			continue;
+		}
+
+		std::vector<std::string_view> parts = explodeString(line, ",", 1);
+		if (parts.empty()) {
+			continue;
+		}
+
+		std::string itemName(parts[0]);
+		uint16_t itemId = Item::items.getItemIdByName(itemName);
+		if (itemId == 0) {
+			continue;
+		}
+
+		if (blockedIds.find(itemId) != blockedIds.end()) {
+			continue; 
+		}
+
+		uint16_t backpackId = 0;
+		if (parts.size() > 1) {
+			std::string backpackName(parts[1]);
+			trimString(backpackName);
+			backpackId = Item::items.getItemIdByName(backpackName);
+		}
+
+		ret = autolootConfig.itemList.insert(std::make_pair(itemId, std::make_pair(backpackId, line.front() != '#')));
+		if (ret.second) {
+			if (line.front() != '#' && oldItems.find(itemId) == oldItems.end()) {
+				if (!firstAddedItem) {
+					addedItems << ", ";
+				}
+				addedItems << itemName;
+				firstAddedItem = false;
+			}
+		}
+	}
+	autolootConfig.text = text;
+	
+	std::ostringstream removedItems;
+	bool firstRemovedItem = true;
+	for (uint16_t oldId : oldItems) {
+		if (autolootConfig.itemList.find(oldId) == autolootConfig.itemList.end()) {
+			if (!firstRemovedItem) {
+				removedItems << ", ";
+			}
+			removedItems << Item::items[oldId].name;
+			firstRemovedItem = false;
+		}
+	}
+
+	if (!firstAddedItem) {
+		sendTextMessage(MESSAGE_STATUS_CONSOLE_BLUE, fmt::format("AutoLoot added: {:s}", addedItems.str()));
+	}
+	
+	if (!firstRemovedItem) {
+		sendTextMessage(MESSAGE_STATUS_CONSOLE_BLUE, fmt::format("AutoLoot removed: {:s}", removedItems.str()));
+	}
+
+	if (limitReached) {
+		sendTextMessage(MESSAGE_STATUS_SMALL, fmt::format("AutoLoot limit reached ({:d} items). Some items were not added.", maxItems));
+	}
+
+	if (firstAddedItem && firstRemovedItem && !limitReached) {
+		sendTextMessage(MESSAGE_STATUS_CONSOLE_BLUE, "AutoLoot configuration saved.");
+	}
+}
+
+Container* Player::findNonEmptyContainer(uint16_t itemId)
+{
+	Container* mainBackpack = inventory[CONST_SLOT_BACKPACK] ? inventory[CONST_SLOT_BACKPACK]->getContainer() : nullptr;
+	if (!mainBackpack) {
+		return nullptr;
+	}
+
+	std::vector<Container*> containers;
+	for (size_t i = mainBackpack->getFirstIndex(), j = mainBackpack->getLastIndex(); i < j; ++i) {
+		Thing* thing = mainBackpack->getThing(i);
+		if (!thing) {
+			continue;
+		}
+
+		Item* item = thing->getItem();
+		if (!item) {
+			continue;
+		}
+
+		Container* container = item->getContainer();
+		if (!container) {
+			continue;
+		}
+
+		if (container->getID() == itemId && container->size() != container->capacity()) {
+			return container;
+		}
+
+		containers.push_back(container);
+	}
+
+	size_t i = 0;
+	while (i < containers.size()) {
+		Container* container = containers[i++];
+		for (Item* item : container->getItemList()) {
+			Container* subContainer = item->getContainer();
+			if (subContainer) {
+				if (subContainer->getID() == itemId && subContainer->size() != subContainer->capacity()) {
+					return subContainer;
+				}
+
+				containers.push_back(subContainer);
+			}
+		}
+	}
+	return nullptr;
+}
+
+void Player::lootCorpse(Container* container)
+{
+	if (!container) {
+		return;
+	}
+
+	if (container->getCorpseOwner() != id) {
+		sendCancelMessage(RETURNVALUE_YOUARENOTTHEOWNER);
+		return;
+	}
+
+	std::vector<std::pair<Item*, uint16_t>> toMove;
+
+	AutoLootMap::iterator iter;
+	for (ContainerIterator it = container->iterator(); it.hasNext(); it.advance()) {
+		Item* item = *it;
+		if (autolootConfig.lootAnything) {
+			toMove.push_back(std::make_pair(item, 0));
+		} else {
+			iter = autolootConfig.itemList.find(item->getID());
+			if (iter != autolootConfig.itemList.end() && iter->second.second) {
+				toMove.push_back(std::make_pair(item, iter->second.first));
+			}
+		}
+	}
+
+	std::string moneyConfig = std::string(ConfigManager::getString(ConfigManager::AUTOLOOT_MONEYIDS));
+	std::vector<std::string_view> moneyIdStrings = explodeString(moneyConfig, ";");
+	std::set<uint16_t> moneyIds;
+	for (const auto& str : moneyIdStrings) {
+		if (str.empty()) continue;
+		try {
+			moneyIds.insert(static_cast<uint16_t>(std::stoi(std::string(str))));
+		} catch (...) {
+			continue;
+		}
+	}
+
+	uint64_t totalDepositValue = 0;
+	std::vector<Item*> itemsToRemove;
+
+	for (const auto& pair : toMove) {
+		Item* item = pair.first;
+		uint16_t itemId = item->getID();
+		uint32_t value = 0;
+
+		if (moneyIds.find(itemId) != moneyIds.end()) {
+			if (itemId == 2160) {
+				value = item->getItemCount() * 10000;
+			} else if (itemId == 2152) {
+				value = item->getItemCount() * 100;
+			} else if (itemId == 2148) {
+				value = item->getItemCount();
+			} else {
+				value = item->getWorth();
+			}
+		}
+
+		if (value > 0) {
+			totalDepositValue += value;
+			itemsToRemove.push_back(item);
+			continue;
+		}
+
+		Item* backpack = pair.second == 0 ? inventory[CONST_SLOT_BACKPACK] : findNonEmptyContainer(pair.second);
+		if (!backpack) {
+			sendTextMessage(MESSAGE_STATUS_SMALL, "AutoLoot: Destination backpack full or missing.");
+			continue;
+		}
+
+		g_game.internalMoveItem(container, backpack->getContainer(), INDEX_WHEREEVER, item, item->getItemCount(), nullptr);
+	}
+
+	if (totalDepositValue > 0) {
+		setBankBalance(bankBalance + totalDepositValue);
+		for (Item* item : itemsToRemove) {
+			g_game.internalRemoveItem(item, item->getItemCount());
+		}
+		sendTextMessage(MESSAGE_STATUS_CONSOLE_BLUE, fmt::format("AutoLoot: Deposited {:d} gold to your bank account.", totalDepositValue));
+	}
+}
+
 void Player::updateRegeneration()
 {
 	if (!vocation) {

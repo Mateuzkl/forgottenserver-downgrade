@@ -495,6 +495,7 @@ private:
 	static int luaPlayerGetReset(lua_State* L); // reset system
 	static int luaPlayerDoReset(lua_State* L); // reset system
 	static int luaPlayerSetReset(lua_State* L); // reset system
+	static int luaPlayerSendAutoLootWindow(lua_State* L);
 
 
 	//

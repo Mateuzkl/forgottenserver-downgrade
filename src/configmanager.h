@@ -60,6 +60,7 @@ enum Boolean
 	PACKET_COMPRESSION,	
 	DLL_CHECK_KICK,
 	RESET_SYSTEM_ENABLED, // reset system	
+	AUTOLOOT_ENABLED,
 
 	LAST_BOOLEAN /* this must be the last one */
 };
@@ -85,6 +86,8 @@ enum String
 	MAP_AUTHOR,
 	CONFIG_FILE,
 	LOG_LEVEL,
+	AUTOLOOT_BLOCKIDS,
+	AUTOLOOT_MONEYIDS,
 
 	LAST_STRING /* this must be the last one */
 };
@@ -178,6 +181,9 @@ enum Integer
 	STATS_DUMP_INTERVAL,
 	STATS_SLOW_LOG_TIME,
 	STATS_VERY_SLOW_LOG_TIME,
+
+	AUTOLOOT_MAXITEMS_FREE,
+	AUTOLOOT_MAXITEMS_PREMIUM,
 
 	LAST_INTEGER /* this must be the last one */
 };

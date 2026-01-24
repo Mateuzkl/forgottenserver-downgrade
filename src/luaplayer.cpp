@@ -2833,9 +2833,25 @@ void LuaScriptInterface::registerPlayer()
 	registerMethod("Player", "addReset", luaPlayerAddReset);
 	registerMethod("Player", "setResetCount", luaPlayerSetResetCount);
 	registerMethod("Player", "getResetExpReduction", luaPlayerGetResetExpReduction);
+	registerMethod("Player", "sendAutoLootWindow", LuaScriptInterface::luaPlayerSendAutoLootWindow);
+
 
 	// OfflinePlayer
 	registerClass("OfflinePlayer", "Player", luaOfflinePlayerCreate);
 	registerMetaMethod("OfflinePlayer", "__gc", luaOfflinePlayerRemove);
 	registerMetaMethod("OfflinePlayer", "__close", luaOfflinePlayerRemove);
+}
+
+int LuaScriptInterface::luaPlayerSendAutoLootWindow(lua_State* L)
+{
+	// player:sendAutoLootWindow()
+	Player* player = Lua::getUserdata<Player>(L, 1);
+	if (!player) {
+		lua_pushnil(L);
+		return 1;
+	}
+
+	player->sendAutoLootWindow();
+	Lua::pushBoolean(L, true);
+	return 1;
 }

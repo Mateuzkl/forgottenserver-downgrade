@@ -731,6 +731,11 @@ bool IOLoginData::loadPlayer(Player* player, DBResult_ptr result)
 		}
 	}
 
+	// load auto loot config
+	if (!loadAutoLootConfig(player)) {
+		return false;
+	}
+
 	// load storage map
 	if ((result = db.storeQuery(
 	         fmt::format("SELECT `key`, `value` FROM `player_storage` WHERE `player_id` = {:d}", player->getGUID())))) {
@@ -1170,6 +1175,11 @@ bool IOLoginData::savePlayer(Player* player)
 		}
 	}
 
+	// save auto loot
+	if (!saveAutoLootConfig(player)) {
+		return false;
+	}
+
 	{
 		AutoStat statStorage("savePlayer", "storage");
 		if (!db.executeQuery(fmt::format("DELETE FROM `player_storage` WHERE `player_id` = {:d}", player->getGUID()))) {
@@ -1232,6 +1242,96 @@ bool IOLoginData::savePlayer(Player* player)
 	// End the transaction
 	AutoStat statCommit("savePlayer", "commit");
 	return transaction.commit();
+}
+
+bool IOLoginData::loadAutoLootConfig(Player* player)
+{
+	Database& db = Database::getInstance();
+	std::ostringstream query;
+	query << "SELECT `config` FROM `player_autolootconfig` WHERE `player_id` = " << player->getGUID();
+	if (DBResult_ptr result = db.storeQuery(query.str())) {
+		unsigned long size;
+		std::string_view config = result->getStream("config", size);
+		PropStream propStream;
+		propStream.init(config.data(), size);
+
+		uint16_t itemListSize;
+		if (!propStream.read<uint16_t>(itemListSize)) {
+			return false;
+		}
+
+		uint16_t itemId;
+		uint16_t backpackId;
+		uint8_t enabled;
+		for (int i = 0; i < itemListSize; i++) {
+			if (!propStream.read<uint16_t>(itemId)) {
+				return false;
+			}
+
+			if (!propStream.read<uint16_t>(backpackId)) {
+				return false;
+			}
+
+			if (!propStream.read<uint8_t>(enabled)) {
+				return false;
+			}
+
+			player->autolootConfig.itemList.insert(std::make_pair(itemId, std::make_pair(backpackId, enabled != 0)));
+		}
+
+		std::pair<std::string_view, bool> res = propStream.readString();
+		if (!res.second) {
+			return false;
+		}
+		std::string text(res.first);
+
+		player->autolootConfig.text = text;
+
+		uint8_t lootAnything;
+		if (!propStream.read<uint8_t>(lootAnything)) {
+			return false;
+		}
+
+		player->autolootConfig.lootAnything = lootAnything != 0;
+	}
+
+	return true;
+}
+
+bool IOLoginData::saveAutoLootConfig(Player* player)
+{
+	Database& db = Database::getInstance();
+	std::ostringstream query;
+	query.str(std::string());
+	query << "DELETE FROM `player_autolootconfig` WHERE `player_id` = " << player->getGUID();
+
+	if (!db.executeQuery(query.str())) {
+		return false;
+	}
+
+	query.str(std::string());
+	query << "INSERT INTO `player_autolootconfig` (`player_id`, `config`) VALUES (";
+
+	query << player->getGUID() << ',';
+
+	PropWriteStream propWriteStream;
+	propWriteStream.write<uint16_t>(player->autolootConfig.itemList.size());
+	for (const auto& it : player->autolootConfig.itemList) {
+		propWriteStream.write<uint16_t>(it.first);
+		propWriteStream.write<uint16_t>(it.second.first);
+		propWriteStream.write<uint8_t>(it.second.second);
+	}
+	propWriteStream.writeString(player->autolootConfig.text);
+	propWriteStream.write<uint8_t>(player->autolootConfig.lootAnything);
+
+	std::string_view config = propWriteStream.getStream();
+	query << db.escapeBlob(config.data(), config.size()) << ')';
+
+	if (!db.executeQuery(query.str())) {
+		return false;
+	}
+
+	return true;
 }
 
 std::string_view IOLoginData::getNameByGuid(uint32_t guid)

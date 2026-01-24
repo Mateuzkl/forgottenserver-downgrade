@@ -30,6 +30,7 @@
 #include "weapons.h"
 #include "logger.h"
 #include <fmt/format.h>
+#include <limits>
 
 extern Actions* g_actions;
 extern Chat* g_chat;
@@ -2352,6 +2353,10 @@ void Game::playerUseItem(uint32_t playerId, const Position& pos, uint8_t stackPo
 	player->setNextActionTask(nullptr);
 
 	g_actions->useItem(player, pos, index, item, isHotkey);
+
+	if (item->getCorpseOwner() != 0) {
+		player->lootCorpse(item->getContainer());
+	}
 	player->maintainAttackFlow();
 }
 
@@ -2586,6 +2591,11 @@ void Game::playerWriteItem(uint32_t playerId, uint32_t windowTextId, std::string
 		return;
 	}
 
+	if (windowTextId == std::numeric_limits<uint32_t>().max()) {
+		player->parseAutoLootWindow(std::string(text));
+		return;
+	}
+
 	uint16_t maxTextLength = 0;
 	uint32_t internalWindowTextId = 0;
 
@@ -2643,6 +2653,11 @@ void Game::playerUpdateHouseWindow(uint32_t playerId, uint8_t listId, uint32_t w
 {
 	Player* player = getPlayerByID(playerId);
 	if (!player) {
+		return;
+	}
+
+	if (windowTextId == std::numeric_limits<uint32_t>().max()) {
+		player->parseAutoLootWindow(std::string(text));
 		return;
 	}
 

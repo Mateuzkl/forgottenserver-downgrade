@@ -78,6 +78,14 @@ struct Skill
 	uint16_t percent = 0;
 };
 
+using AutoLootMap = std::map<uint16_t, std::pair<uint16_t, bool>>;
+
+struct AutoLootConfig {
+	AutoLootMap itemList;
+	bool lootAnything = false;
+	std::string text;
+};
+
 using MuteCountMap = std::map<uint32_t, uint32_t>;
 
 inline constexpr int32_t PLAYER_MIN_SPEED = 10;
@@ -1010,32 +1018,39 @@ public:
 	void forgetInstantSpell(const std::string& spellName);
 	bool hasLearnedInstantSpell(std::string_view spellName) const;
 
-		void addSpectator(ProtocolSpectator* spectator);
-		void removeSpectator(ProtocolSpectator* spectator);
 
-		std::vector<ProtocolSpectator*> getSpectators() {
-			return spectators;
-		}
+	//Autoloot
+	void sendAutoLootWindow() const;
+	void parseAutoLootWindow(const std::string& text);
+	Container* findNonEmptyContainer(uint16_t itemId);
+	void lootCorpse(Container* container);
 
-		uint32_t getSpectatorCount() {
-			return spectatorCount;
-		}
-		
-		bool hasCastExpBonus() const {
-			return castExpBonusActive;
-		}
+	void addSpectator(ProtocolSpectator* spectator);
+	void removeSpectator(ProtocolSpectator* spectator);
 
-		bool isLiveCasting() {
-			return liveCasting;
-		}
+	std::vector<ProtocolSpectator*> getSpectators() {
+		return spectators;
+	}
 
-		bool stopLiveCasting();
+	uint32_t getSpectatorCount() {
+		return spectatorCount;
+	}
 
-		bool startLiveCasting(const std::string& password);
+	bool hasCastExpBonus() const {
+		return castExpBonusActive;
+	}
 
-		bool isSpectating() {
-			return isSpectator;
-		}
+	bool isLiveCasting() {
+		return liveCasting;
+	}
+
+	bool stopLiveCasting();
+
+	bool startLiveCasting(const std::string& password);
+
+	bool isSpectating() {
+		return isSpectator;
+	}
 
 	void updateRegeneration();
 
@@ -1171,6 +1186,7 @@ private:
 	LightInfo itemsLight;
 	Position loginPosition;
 	Position lastWalkthroughPosition;
+	AutoLootConfig autolootConfig;
 
 	time_t lastLoginSaved = 0;
 	time_t lastLogout = 0;
