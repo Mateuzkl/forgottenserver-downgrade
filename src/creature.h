@@ -113,8 +113,11 @@ public:
 
 	virtual RaceType_t getRace() const { return RACE_NONE; }
 	virtual Skulls_t getSkull() const { return skull; }
+	virtual GuildEmblems_t getEmblem() const { return emblem; }
 	virtual Skulls_t getSkullClient(const Creature* creature) const { return creature->getSkull(); }
 	void setSkull(Skulls_t newSkull);
+	void setGuildEmblem(GuildEmblems_t newEmblem);
+
 	Direction getDirection() const { return direction; }
 	void setDirection(Direction dir) { direction = dir; }
 
@@ -402,6 +405,8 @@ protected:
 
 	Direction direction = DIRECTION_SOUTH;
 	Skulls_t skull = SKULL_NONE;
+	GuildEmblems_t emblem = GUILDEMBLEM_NONE;
+
 
 	bool isInternalRemoved = false;
 	bool isUpdatingPath = false;

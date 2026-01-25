@@ -653,13 +653,42 @@ int luaCreatureSetSkull(lua_State* L)
 	// creature:setSkull(skull)
 	Creature* creature = getUserdata<Creature>(L, 1);
 	if (creature) {
-		creature->setSkull(getInteger<Skulls_t>(L, 2));
+		creature->setSkull(getNumber<Skulls_t>(L, 2));
+		g_game.updateCreatureSkull(creature);
 		pushBoolean(L, true);
 	} else {
 		lua_pushnil(L);
 	}
 	return 1;
 }
+
+int luaCreatureGetEmblem(lua_State* L)
+{
+	// creature:getEmblem()
+	Creature* creature = getUserdata<Creature>(L, 1);
+	if (creature) {
+		lua_pushnumber(L, creature->getEmblem());
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
+
+int luaCreatureSetEmblem(lua_State* L)
+{
+	// creature:setEmblem(emblem)
+	Creature* creature = getUserdata<Creature>(L, 1);
+	if (creature) {
+		creature->setGuildEmblem(getNumber<GuildEmblems_t>(L, 2));
+		// g_game.updatePlayerShield(creature->getPlayer()); // already handled by creature->setGuildEmblem -> game->updateCreatureEmblem
+		pushBoolean(L, true);
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
+
+
 
 int luaCreatureGetOutfit(lua_State* L)
 {
@@ -1159,6 +1188,8 @@ void LuaScriptInterface::registerCreature()
 
 	registerMethod("Creature", "getSkull", luaCreatureGetSkull);
 	registerMethod("Creature", "setSkull", luaCreatureSetSkull);
+	registerMethod("Creature", "getEmblem", luaCreatureGetEmblem);
+	registerMethod("Creature", "setEmblem", luaCreatureSetEmblem);
 
 	registerMethod("Creature", "getOutfit", luaCreatureGetOutfit);
 	registerMethod("Creature", "setOutfit", luaCreatureSetOutfit);

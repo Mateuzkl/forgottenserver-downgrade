@@ -88,6 +88,12 @@ void Creature::setSkull(Skulls_t newSkull)
 	g_game.updateCreatureSkull(this);
 }
 
+void Creature::setGuildEmblem(GuildEmblems_t newEmblem)
+{
+	emblem = newEmblem;
+	g_game.updateCreatureEmblem(this);
+}
+
 void Creature::setSkillLoss(bool _skillLoss)
 {
 	skillLoss = _skillLoss;

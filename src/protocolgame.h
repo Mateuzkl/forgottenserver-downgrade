@@ -177,6 +177,7 @@ private:
 	void sendCreatureWalkthrough(const Creature* creature, bool walkthrough);
 	void sendCreatureShield(const Creature* creature);
 	void sendCreatureSkull(const Creature* creature);
+	void sendCreatureEmblem(const Creature* creature);
 
 	void sendShop(const ShopInfoList& itemList);
 	void sendCloseShop();

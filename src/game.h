@@ -423,6 +423,7 @@ public:
 	void updateCreatureSkull(const Creature* creature);
 	void updatePlayerShield(Player* player);
 	void updateCreatureWalkthrough(const Creature* creature);
+	void updateCreatureEmblem(Creature* creature);
 	void updateKnownCreature(const Creature* creature);
 
 	GameState_t getGameState() const;

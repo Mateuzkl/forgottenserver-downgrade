@@ -2801,6 +2801,32 @@ void LuaScriptInterface::registerPlayer()
 	registerMethod("Player", "getAttackSpeed", luaPlayerGetAttackSpeed);
 	registerMethod("Player", "setAttackSpeed", luaPlayerSetAttackSpeed);
 
+	registerMethod("Player", "guildWar", [](lua_State* L) {
+		// player:guildWar(param)
+		Player* player = getUserdata<Player>(L, 1);
+		if (player) {
+			const std::string& param = getString(L, 2);
+			IOGuild::guildWar(player, param);
+			pushBoolean(L, true);
+		} else {
+			lua_pushnil(L);
+		}
+		return 1;
+	});
+
+	registerMethod("Player", "guildBalance", [](lua_State* L) {
+		// player:guildBalance(param)
+		Player* player = getUserdata<Player>(L, 1);
+		if (player) {
+			const std::string& param = getString(L, 2);
+			IOGuild::guildBalance(player, param);
+			pushBoolean(L, true);
+		} else {
+			lua_pushnil(L);
+		}
+		return 1;
+	});
+
 	registerMethod("Player", "getIdleTime", luaPlayerGetIdleTime);
 	registerMethod("Player", "resetIdleTime", luaPlayerResetIdleTime);
 

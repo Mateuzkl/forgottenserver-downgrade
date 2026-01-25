@@ -1857,6 +1857,11 @@ void LuaScriptInterface::registerFunctions()
 	registerEnum(FLUID_TEA);
 	registerEnum(FLUID_MEAD);
 
+	registerEnum(GUILDEMBLEM_NONE)
+	registerEnum(GUILDEMBLEM_ALLY)
+	registerEnum(GUILDEMBLEM_ENEMY)
+	registerEnum(GUILDEMBLEM_NEUTRAL)
+
 	registerEnum(TALKTYPE_SAY);
 	registerEnum(TALKTYPE_WHISPER);
 	registerEnum(TALKTYPE_YELL);
@@ -2267,6 +2272,7 @@ void LuaScriptInterface::registerFunctions()
 	registerMethod("Player", "getReset", LuaScriptInterface::luaPlayerGetReset); // reset system
 	registerMethod("Player", "doReset", LuaScriptInterface::luaPlayerDoReset); // reset system
 	registerMethod("Player", "setReset", LuaScriptInterface::luaPlayerSetReset); // reset system
+	registerMethod("Player", "reloadWarList", LuaScriptInterface::luaPlayerReloadWarList);
 }
 
 #undef registerEnum
@@ -3679,6 +3685,19 @@ int LuaScriptInterface::luaPlayerSetReset(lua_State* L) // reset system
 	if (player) {
 		uint32_t reset = getNumber<uint32_t>(L, 2);
 		player->setReset(reset);
+		lua_pushboolean(L, true);
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
+
+int LuaScriptInterface::luaPlayerReloadWarList(lua_State* L)
+{
+	// player:reloadWarList()
+	Player* player = getUserdata<Player>(L, 1);
+	if (player) {
+		player->reloadWarList();
 		lua_pushboolean(L, true);
 	} else {
 		lua_pushnil(L);

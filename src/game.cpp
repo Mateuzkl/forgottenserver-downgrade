@@ -4873,6 +4873,15 @@ void Game::updateKnownCreature(const Creature* creature)
 	}
 }
 
+void Game::updateCreatureEmblem(Creature* creature)
+{
+	SpectatorVec spectators;
+	map.getSpectators(spectators, creature->getPosition(), true, true);
+	for (Creature* spectator : spectators) {
+		spectator->getPlayer()->sendCreatureEmblem(creature);
+	}
+}
+
 void Game::updateCreatureSkull(const Creature* creature)
 {
 	if (getWorldType() != WORLD_TYPE_PVP) {
@@ -4896,6 +4905,8 @@ void Game::updatePlayerShield(Player* player)
 		static_cast<Player*>(spectator)->sendCreatureShield(player);
 	}
 }
+
+
 
 void Game::loadMotdNum()
 {

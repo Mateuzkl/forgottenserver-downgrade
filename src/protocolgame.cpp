@@ -1590,6 +1590,23 @@ void ProtocolGame::sendCreatureOutfit(const Creature* creature, const Outfit_t& 
 	writeToOutputBuffer(msg);
 }
 
+void ProtocolGame::sendCreatureEmblem(const Creature* creature)
+{
+	if (!canSee(creature)) {
+		return;
+	}
+	// Remove creature from client and re-add to update
+	Position pos = creature->getPosition();
+	int32_t stackpos = creature->getTile()->getClientIndexOfCreature(player, creature);
+	sendRemoveTileThing(pos, stackpos);
+	NetworkMessage msg;
+	msg.addByte(0x6A);
+	msg.addPosition(pos);
+	msg.addByte(stackpos);
+	AddCreature(msg, creature, false, creature->getID());
+	writeToOutputBuffer(msg);
+}
+
 void ProtocolGame::sendCreatureLight(const Creature* creature)
 {
 	if (!canSee(creature)) {
@@ -1633,6 +1650,8 @@ void ProtocolGame::sendCreatureShield(const Creature* creature)
 	msg.addByte(player->getPartyShield(creature->getPlayer()));
 	writeToOutputBuffer(msg);
 }
+
+
 
 void ProtocolGame::sendCreatureSkull(const Creature* creature)
 {
@@ -2915,7 +2934,11 @@ void ProtocolGame::AddCreature(NetworkMessage& msg, const Creature* creature, bo
 	msg.addByte(player->getPartyShield(otherPlayer));
 
 	if (!known) {
-		msg.addByte(player->getGuildEmblem(otherPlayer));
+		if (otherPlayer) {
+			msg.addByte(player->getGuildEmblem(otherPlayer));
+		} else {
+			msg.addByte(creature->getEmblem());
+		}
 	}
 
 	msg.addByte(player->canWalkthroughEx(creature) ? 0x00 : 0x01);

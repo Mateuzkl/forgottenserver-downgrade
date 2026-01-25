@@ -70,6 +70,9 @@ using Guild_ptr = std::shared_ptr<Guild>;
 namespace IOGuild {
 Guild_ptr loadGuild(uint32_t guildId);
 uint32_t getGuildIdByName(std::string_view name);
+std::string getGuildNameById(uint32_t id);
+void guildWar(Player* player, const std::string& param);
+void guildBalance(Player* player, const std::string& param);
 } // namespace IOGuild
 
 #endif

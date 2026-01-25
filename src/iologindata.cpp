@@ -297,10 +297,10 @@ bool IOLoginData::loadPlayerByName(Player* player, std::string_view name)
 	        db.escapeString(name))));
 }
 
-static GuildWarVector getWarList(uint32_t guildId)
+GuildWarVector IOLoginData::getWarList(uint32_t guildId)
 {
 	DBResult_ptr result = Database::getInstance().storeQuery(fmt::format(
-	    "SELECT `guild1`, `guild2` FROM `guild_wars` WHERE (`guild1` = {:d} OR `guild2` = {:d}) AND `ended` = 0 AND `status` = 1",
+	    "SELECT `guild1`, `guild2` FROM `guild_wars` WHERE (`guild1` = {:d} OR `guild2` = {:d}) AND `status` = 1",
 	    guildId, guildId));
 	if (!result) {
 		return {};

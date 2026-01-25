@@ -1,4 +1,4 @@
-﻿// Copyright 2023 The Forgotten Server Authors. All rights reserved.
+// Copyright 2023 The Forgotten Server Authors. All rights reserved.
 // Use of this source code is governed by the GPL-2.0 License that can be found in the LICENSE file.
 
 #include "otpch.h"
@@ -4293,6 +4293,10 @@ GuildEmblems_t Player::getGuildEmblem(const Player* player) const
 		return GUILDEMBLEM_NONE;
 	}
 
+	if (player->getEmblem() != GUILDEMBLEM_NONE) {
+		return player->getEmblem();
+	}
+
 	const auto& playerGuild = player->getGuild();
 	if (!playerGuild) {
 		return GUILDEMBLEM_NONE;
@@ -4305,6 +4309,36 @@ GuildEmblems_t Player::getGuildEmblem(const Player* player) const
 	}
 
 	return GUILDEMBLEM_NEUTRAL;
+}
+
+void Player::reloadWarList(bool updateVisuals)
+{
+	if (!guild) {
+		return;
+	}
+
+	guildWarVector.clear();
+
+	Database& db = Database::getInstance();
+	std::ostringstream query;
+	query << "SELECT `guild1`, `guild2` FROM `guild_wars` WHERE (`guild1` = " << guild->getId() << " OR `guild2` = " << guild->getId() << ") AND `status` = 1";
+
+	DBResult_ptr result = db.storeQuery(query.str());
+	if (result) {
+		do {
+			uint32_t guild1 = result->getNumber<uint32_t>("guild1");
+			uint32_t guild2 = result->getNumber<uint32_t>("guild2");
+			if (guild1 == guild->getId()) {
+				guildWarVector.push_back(guild2);
+			} else {
+				guildWarVector.push_back(guild1);
+			}
+		} while (result->next());
+	}
+
+	if (updateVisuals) {
+		g_game.updateCreatureEmblem(this);
+	}
 }
 
 uint16_t Player::getRandomMount() const

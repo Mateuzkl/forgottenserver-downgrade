@@ -67,6 +67,8 @@ public:
 	static bool playerNameExists(const std::string& name);
 	static bool accountNameExists(const std::string& name);
 
+	static GuildWarVector getWarList(uint32_t guildId);
+
 private:
 	using ItemMap = std::map<uint32_t, std::pair<Item*, uint32_t>>;
 

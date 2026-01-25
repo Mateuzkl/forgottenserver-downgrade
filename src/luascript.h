@@ -470,6 +470,7 @@ private:
 	static int luaDatabaseLastInsertId(lua_State* L);
 	static int luaDatabaseTableExists(lua_State* L);
 
+
 	static int luaResultGetNumber(lua_State* L);
 	static int luaResultGetString(lua_State* L);
 	static int luaResultGetStream(lua_State* L);
@@ -495,6 +496,7 @@ private:
 	static int luaPlayerGetReset(lua_State* L); // reset system
 	static int luaPlayerDoReset(lua_State* L); // reset system
 	static int luaPlayerSetReset(lua_State* L); // reset system
+	static int luaPlayerReloadWarList(lua_State* L);
 	static int luaPlayerSendAutoLootWindow(lua_State* L);
 
 

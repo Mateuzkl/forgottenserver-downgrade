@@ -231,6 +231,7 @@ public:
 	void clearPartyInvitations();
 
 	GuildEmblems_t getGuildEmblem(const Player* player) const;
+	void reloadWarList(bool updateVisuals = true);
 
 	uint64_t getSpentMana() const { return manaSpent; }
 
@@ -557,6 +558,12 @@ public:
 			client->sendCreatureSkull(creature);
 		}
 	}
+	void sendCreatureEmblem(Creature* creature) const {
+		if (client) {
+			client->sendCreatureEmblem(creature);
+		}
+	}
+
 	void checkSkullTicks(int64_t ticks);
 
 	bool canWear(uint32_t lookType, uint8_t addons) const;
@@ -725,6 +732,7 @@ public:
 			client->sendCreatureShield(creature);
 		}
 	}
+
 	void sendAnimatedText(std::string_view message, const Position& pos, TextColor_t color)
 	{
 		if (client) {
