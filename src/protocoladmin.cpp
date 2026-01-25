@@ -48,7 +48,9 @@ enum
 	CMD_KICK = 9,
 	CMD_SAVE_SERVER = 13,
 	CMD_SEND_MAIL = 14,
-	CMD_SHALLOW_SAVE_SERVER = 15
+	CMD_SHALLOW_SAVE_SERVER = 15,
+	CMD_CLEAN = 30,
+	CMD_SHUTDOWN_SCHEDULED = 31
 };
 
 void ProtocolAdmin::onRecvFirstMessage(NetworkMessage& /*msg*/)
@@ -216,6 +218,7 @@ void ProtocolAdmin::parsePacket(NetworkMessage& msg)
 				case CMD_SAVE_SERVER:
 				case CMD_SHALLOW_SAVE_SERVER: {
 					addLogLine("saving server");
+					g_game.broadcastMessage("Server is saving...", MESSAGE_STATUS_WARNING);
 					g_dispatcher.addTask(createTask(std::bind(&Game::saveGameState, &g_game)));
 					output->addByte(AP_MSG_COMMAND_OK);
 					break;
@@ -238,6 +241,26 @@ void ProtocolAdmin::parsePacket(NetworkMessage& msg)
 				case CMD_SHUTDOWN_SERVER: {
 					addLogLine("shutting down server");
 					g_dispatcher.addTask(createTask(std::bind(&Game::shutdown, &g_game)));
+					output->addByte(AP_MSG_COMMAND_OK);
+					break;
+				}
+
+				case CMD_SHUTDOWN_SCHEDULED: {
+					uint16_t minutes = msg.get<uint16_t>();
+					std::string reason(msg.getString());
+
+					std::string logMsg = fmt::format("scheduled shutdown in {} minutes: {}", minutes, reason);
+					addLogLine(logMsg);
+
+					// Broadcast
+					std::string broadcastMsg = fmt::format("Server is shutting down in {} minutes: {}", minutes, reason);
+					g_game.broadcastMessage(broadcastMsg, MESSAGE_STATUS_WARNING);
+
+					// Schedule standard shutdown
+					// Convert minutes to milliseconds
+					uint32_t delay = minutes * 60 * 1000;
+					g_scheduler.addEvent(createSchedulerTask(delay, std::bind(&Game::shutdown, &g_game)));
+
 					output->addByte(AP_MSG_COMMAND_OK);
 					break;
 				}
@@ -273,6 +296,14 @@ void ProtocolAdmin::parsePacket(NetworkMessage& msg)
 					break;
 				}
 
+				case CMD_CLEAN: {
+					addLogLine("cleaning map");
+					g_game.broadcastMessage("Clean Map executed by OTAdmin.", MESSAGE_STATUS_WARNING);
+					g_dispatcher.addTask(createTask(std::bind(&Map::clean, &g_game.map)));
+					output->addByte(AP_MSG_COMMAND_OK);
+					break;
+				}
+
 				default: {
 					output->addByte(AP_MSG_COMMAND_FAILED);
 					output->addString("not known server command");
@@ -282,8 +313,14 @@ void ProtocolAdmin::parsePacket(NetworkMessage& msg)
 			break;
 		}
 
+
 		case AP_MSG_PING:
 			output->addByte(AP_MSG_PING_OK);
+			output->add<uint16_t>(g_game.getPlayersOnline());
+			// CPU usage placeholder (requires OS specific code)
+			// For now sending 0 to represent "unknown" or implementing basic load avg if possible
+			// Let's send 0 for now to avoid compilation errors on different platforms
+			output->addByte(0); 
 			break;
 
 		case AP_MSG_KEEP_ALIVE:
