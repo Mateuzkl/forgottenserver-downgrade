@@ -1257,6 +1257,9 @@ void LuaScriptInterface::registerFunctions()
 	registerGlobalVariable("RESET_SYSTEM_ENABLED", ConfigManager::RESET_SYSTEM_ENABLED);
 	registerGlobalVariable("RESET_LEVEL", ConfigManager::RESET_LEVEL);
 
+	registerGlobalVariable("AUTOLOOT_MAXITEMS_FREE", ConfigManager::AUTOLOOT_MAXITEMS_FREE);
+	registerGlobalVariable("AUTOLOOT_MAXITEMS_PREMIUM", ConfigManager::AUTOLOOT_MAXITEMS_PREMIUM);
+
 	registerGlobalVariable("ACCOUNT_MANAGER_NONE", static_cast<uint8_t>(AccountManagerMode::ACCOUNT_MANAGER_NONE));
 	registerGlobalVariable("ACCOUNT_MANAGER_NEW", static_cast<uint8_t>(AccountManagerMode::ACCOUNT_MANAGER_NEW));
 	registerGlobalVariable("ACCOUNT_MANAGER_ACCOUNT", static_cast<uint8_t>(AccountManagerMode::ACCOUNT_MANAGER_ACCOUNT));

@@ -2626,6 +2626,73 @@ int luaPlayerGetResetExpReduction(lua_State* L)
 	return 1;
 }
 
+int LuaScriptInterface::luaPlayerSendAutoLootWindow(lua_State* L)
+{
+	// player:sendAutoLootWindow()
+	Player* player = Lua::getUserdata<Player>(L, 1);
+	if (!player) {
+		lua_pushnil(L);
+		return 1;
+	}
+
+	player->sendAutoLootWindow();
+	Lua::pushBoolean(L, true);
+	return 1;
+}
+
+int LuaScriptInterface::luaPlayerGetAutoLootItemCount(lua_State* L)
+{
+	// player:getAutoLootItemCount()
+	Player* player = Lua::getUserdata<Player>(L, 1);
+	if (player) {
+		lua_pushinteger(L, player->autolootConfig.itemList.size());
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
+
+int LuaScriptInterface::luaPlayerSetAutoLootEnabled(lua_State* L)
+{
+	// player:setAutoLootEnabled(enabled)
+	Player* player = Lua::getUserdata<Player>(L, 1);
+	if (player) {
+		bool enabled = Lua::getBoolean(L, 2);
+		player->autolootConfig.enabled = enabled;
+		Lua::pushBoolean(L, true);
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
+
+int LuaScriptInterface::luaPlayerIsAutoLootEnabled(lua_State* L)
+{
+	// player:isAutoLootEnabled()
+	Player* player = Lua::getUserdata<Player>(L, 1);
+	if (player) {
+		Lua::pushBoolean(L, player->autolootConfig.enabled);
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
+
+int LuaScriptInterface::luaPlayerClearAutoLoot(lua_State* L)
+{
+	// player:clearAutoLoot()
+	Player* player = Lua::getUserdata<Player>(L, 1);
+	if (player) {
+		player->autolootConfig.itemList.clear();
+		player->autolootConfig.text.clear();
+		player->autolootConfig.lootAnything = false;
+		Lua::pushBoolean(L, true);
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
+
 } // namespace
 
 void LuaScriptInterface::registerPlayer()
@@ -2860,6 +2927,10 @@ void LuaScriptInterface::registerPlayer()
 	registerMethod("Player", "setResetCount", luaPlayerSetResetCount);
 	registerMethod("Player", "getResetExpReduction", luaPlayerGetResetExpReduction);
 	registerMethod("Player", "sendAutoLootWindow", LuaScriptInterface::luaPlayerSendAutoLootWindow);
+	registerMethod("Player", "getAutoLootItemCount", LuaScriptInterface::luaPlayerGetAutoLootItemCount);
+	registerMethod("Player", "setAutoLootEnabled", LuaScriptInterface::luaPlayerSetAutoLootEnabled);
+	registerMethod("Player", "isAutoLootEnabled", LuaScriptInterface::luaPlayerIsAutoLootEnabled);
+	registerMethod("Player", "clearAutoLoot", LuaScriptInterface::luaPlayerClearAutoLoot);
 
 
 	// OfflinePlayer
@@ -2868,16 +2939,4 @@ void LuaScriptInterface::registerPlayer()
 	registerMetaMethod("OfflinePlayer", "__close", luaOfflinePlayerRemove);
 }
 
-int LuaScriptInterface::luaPlayerSendAutoLootWindow(lua_State* L)
-{
-	// player:sendAutoLootWindow()
-	Player* player = Lua::getUserdata<Player>(L, 1);
-	if (!player) {
-		lua_pushnil(L);
-		return 1;
-	}
 
-	player->sendAutoLootWindow();
-	Lua::pushBoolean(L, true);
-	return 1;
-}

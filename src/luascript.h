@@ -498,6 +498,10 @@ private:
 	static int luaPlayerSetReset(lua_State* L); // reset system
 	static int luaPlayerReloadWarList(lua_State* L);
 	static int luaPlayerSendAutoLootWindow(lua_State* L);
+	static int luaPlayerGetAutoLootItemCount(lua_State* L);
+	static int luaPlayerSetAutoLootEnabled(lua_State* L);
+	static int luaPlayerIsAutoLootEnabled(lua_State* L);
+	static int luaPlayerClearAutoLoot(lua_State* L);
 
 
 	//

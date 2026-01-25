@@ -83,6 +83,7 @@ using AutoLootMap = std::map<uint16_t, std::pair<uint16_t, bool>>;
 struct AutoLootConfig {
 	AutoLootMap itemList;
 	bool lootAnything = false;
+	bool enabled = true;
 	std::string text;
 };
 

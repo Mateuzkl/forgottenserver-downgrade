@@ -4625,11 +4625,6 @@ void Player::sendAutoLootWindow() const
 	}
 
 	std::string currentText = autolootConfig.text;
-	if (currentText.empty()) {
-		currentText = "#*  <-- remove \"#\" to loot anything (rest of list is ignored)\n"
-		              "gold coin, red backpack\n"
-		              "#platinum coin, blue backpack <-- this one is ignored \"#\" indicates it\n";
-	}
 
 	client->sendHouseWindow(std::numeric_limits<uint32_t>().max(), currentText);
 }
