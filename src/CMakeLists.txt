@@ -1,6 +1,7 @@
 set(tfs_SRC
 	${CMAKE_CURRENT_LIST_DIR}/otpch.cpp
 	${CMAKE_CURRENT_LIST_DIR}/actions.cpp
+	${CMAKE_CURRENT_LIST_DIR}/admin.cpp
 	${CMAKE_CURRENT_LIST_DIR}/ban.cpp
 	${CMAKE_CURRENT_LIST_DIR}/baseevents.cpp
 	${CMAKE_CURRENT_LIST_DIR}/bed.cpp
@@ -87,6 +88,7 @@ set(tfs_SRC
 	${CMAKE_CURRENT_LIST_DIR}/protocol.cpp
 	${CMAKE_CURRENT_LIST_DIR}/protocolgame.cpp
 	${CMAKE_CURRENT_LIST_DIR}/protocollogin.cpp
+	${CMAKE_CURRENT_LIST_DIR}/protocoladmin.cpp
 	${CMAKE_CURRENT_LIST_DIR}/protocolspectator.cpp
 	${CMAKE_CURRENT_LIST_DIR}/protocolstatus.cpp
 	${CMAKE_CURRENT_LIST_DIR}/raids.cpp
@@ -117,6 +119,7 @@ set(tfs_HDR
 	${CMAKE_CURRENT_LIST_DIR}/otpch.h
 	${CMAKE_CURRENT_LIST_DIR}/account.h
 	${CMAKE_CURRENT_LIST_DIR}/actions.h
+	${CMAKE_CURRENT_LIST_DIR}/admin.h
 	${CMAKE_CURRENT_LIST_DIR}/ban.h
 	${CMAKE_CURRENT_LIST_DIR}/baseevents.h
 	${CMAKE_CURRENT_LIST_DIR}/bed.h
@@ -172,6 +175,7 @@ set(tfs_HDR
 	${CMAKE_CURRENT_LIST_DIR}/position.h
 	${CMAKE_CURRENT_LIST_DIR}/protocolgame.h
 	${CMAKE_CURRENT_LIST_DIR}/protocol.h
+	${CMAKE_CURRENT_LIST_DIR}/protocoladmin.h
 	${CMAKE_CURRENT_LIST_DIR}/protocollogin.h
 	${CMAKE_CURRENT_LIST_DIR}/protocolstatus.h
 	${CMAKE_CURRENT_LIST_DIR}/pugicast.h

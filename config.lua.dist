@@ -81,6 +81,7 @@ bindOnlyGlobalAddress = false
 loginProtocolPort = 7171
 gameProtocolPort = 7172
 statusProtocolPort = 7171
+adminPort = 7170
 maxPlayers = 0
 motd = "Welcome to The Forgotten Server!"
 onePlayerOnlinePerAccount = true
@@ -288,3 +289,13 @@ statsDumpInterval = 0
 statsSlowLogTime = 0
 -- time in milliseconds: 500 = 0.5 sec, 0 = disabled
 statsVerySlowLogTime = 0
+
+-- Admin Protocol
+adminPort = 7172
+adminPassword = "admin"
+adminLocalhostOnly = true
+adminRequireLogin = true
+adminEncryption = ""
+adminEncryptionData = ""
+adminLogs = true
+adminConnectionsLimit = 1

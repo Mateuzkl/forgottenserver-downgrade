@@ -256,6 +256,7 @@ bool ConfigManager::load()
 
 		integers[Integer::STATUS_PORT] = getGlobalInteger(L, "statusProtocolPort", 7171);
 		integers[Integer::LIVE_CAST_PORT] = getGlobalInteger(L, "liveCastProtocolPort", 7173);
+		integers[Integer::ADMIN_PORT] = getGlobalInteger(L, "adminPort", 7170); // Default admin port to 7170
 
 		integers[RESET_LEVEL] = getGlobalInteger(L, "resetLevel", 100);
 		integers[RESET_STATBONUS] = getGlobalInteger(L, "resetStatBonus", 5);
@@ -313,6 +314,11 @@ bool ConfigManager::load()
 	booleans[Boolean::CHECK_DUPLICATE_STORAGE_KEYS] = getGlobalBoolean(L, "checkDuplicateStorageKeys", false);
 	booleans[Boolean::DLL_CHECK_KICK] = getGlobalBoolean(L, "dllCheckKick", false);
 	booleans[Boolean::RESET_SYSTEM_ENABLED] = getGlobalBoolean(L, "resetSystemEnabled", false); // reset system
+	
+	// Admin Config
+	booleans[Boolean::ADMIN_LOCALHOST_ONLY] = getGlobalBoolean(L, "adminLocalhostOnly", true);
+	booleans[Boolean::ADMIN_REQUIRE_LOGIN] = getGlobalBoolean(L, "adminRequireLogin", true);
+	booleans[Boolean::ADMIN_LOGS] = getGlobalBoolean(L, "adminLogs", false);
 
 	strings[String::DEFAULT_PRIORITY] = getGlobalString(L, "defaultPriority", "high");
 	strings[String::SERVER_NAME] = getGlobalString(L, "serverName", "");
@@ -432,6 +438,11 @@ bool ConfigManager::load()
 	strings[String::AUTOLOOT_MONEYIDS] = getGlobalString(L, "AutoLoot_MoneyIDs", "2148;2152;2160");
 	integers[Integer::AUTOLOOT_MAXITEMS_FREE] = getGlobalInteger(L, "AutoLoot_MaxItemFree", 5);
 	integers[Integer::AUTOLOOT_MAXITEMS_PREMIUM] = getGlobalInteger(L, "AutoLoot_MaxItemPremium", 10);
+
+	strings[String::ADMIN_PASSWORD] = getGlobalString(L, "adminPassword", "");
+	strings[String::ADMIN_ENCRYPTION] = getGlobalString(L, "adminEncryption", "");
+	strings[String::ADMIN_ENCRYPTION_DATA] = getGlobalString(L, "adminEncryptionData", "");
+	integers[Integer::ADMIN_CONNECTIONS_LIMIT] = getGlobalInteger(L, "adminConnectionsLimit", 1);
 
 	loaded = true;
 	lua_close(L);

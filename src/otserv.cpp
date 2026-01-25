@@ -11,6 +11,7 @@
 #include "game.h"
 #include "logger.h"
 #include "protocollogin.h"
+#include "protocoladmin.h"
 #include "protocolspectator.h"
 #include "protocolstatus.h"
 #include "rsa.h"
@@ -224,6 +225,7 @@ void mainLoader(ServiceManager* services)
 
 	// OT protocols
 	services->add<ProtocolStatus>(static_cast<uint16_t>(getInteger(ConfigManager::STATUS_PORT)));
+	services->add<ProtocolAdmin>(static_cast<uint16_t>(getInteger(ConfigManager::ADMIN_PORT)));
 
 	RentPeriod_t rentPeriod;
 	auto strRentPeriod =
