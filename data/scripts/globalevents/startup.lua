@@ -1,10 +1,10 @@
 local serverstartup = GlobalEvent("serverstartup")
 function serverstartup.onStartup()
-	logInfo("Loading map attributes")
+	logInfo(">> Loading map attributes")
 	logInfo(
-		"Loaded " .. Game.getNpcCount() .. " npcs and spawned " .. Game.getMonsterCount() ..
+		">> Loaded " .. Game.getNpcCount() .. " npcs and spawned " .. Game.getMonsterCount() ..
 			" monsters")
-	logInfo("Loaded " .. #Game.getTowns() .. " towns with " .. #Game.getHouses() ..
+	logInfo(">> Loaded " .. #Game.getTowns() .. " towns with " .. #Game.getHouses() ..
 		        " houses in total")
 	-- Sign table
 	-- loadLuaMapSign(SignTable)
@@ -61,12 +61,12 @@ function serverstartup.onStartup()
 	-- -- Update old quest storage keys
 	-- updateKeysStorage(QuestKeysUpdate)
 
-	logInfo("Loaded all actions in the map")
-	logInfo("Loaded all uniques in the map")
+	logInfo(">> Loaded all actions in the map")
+	logInfo(">> Loaded all uniques in the map")
 
 	-- load map trainers
 	--Game.loadMap("data/world/trainers/trainers-custom.otbm")
-	logInfo("Loaded map trainers")
+	logInfo(">> Loaded map trainers")
 
 	-- for i = 1, #startupGlobalStorages do
 	-- 	Game.setStorageValue(startupGlobalStorages[i], 0)

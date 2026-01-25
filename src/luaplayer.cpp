@@ -2626,6 +2626,8 @@ int luaPlayerGetResetExpReduction(lua_State* L)
 	return 1;
 }
 
+} // namespace
+
 int LuaScriptInterface::luaPlayerSendAutoLootWindow(lua_State* L)
 {
 	// player:sendAutoLootWindow()
@@ -2693,7 +2695,7 @@ int LuaScriptInterface::luaPlayerClearAutoLoot(lua_State* L)
 	return 1;
 }
 
-} // namespace
+
 
 void LuaScriptInterface::registerPlayer()
 {

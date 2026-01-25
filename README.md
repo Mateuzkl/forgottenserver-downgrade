@@ -4,83 +4,105 @@
 
 ### 🐱 [Based nekiro downgrade.](https://github.com/nekiro/TFS-1.5-Downgrades)
 
-**Version: TFS 1.7 | Protocol: 8.60**
-
-- This downgrade is not download and run distribution, monsters and spells are probably not 100% correct.
-- You are welcome to submit a pull request though.
-
-## 🛠 It is currently under development. ⚙
-
-## 📥 Quick Start - Download Pre-compiled Binaries
-
-**Don't want to compile? No problem!** You can download the latest pre-compiled binaries from AppVeyor:
-
-### Step-by-Step Guide:
-
-1. **Visit the AppVeyor builds page**: 
-   - Go to: https://ci.appveyor.com/project/Mateuzkl/forgottenserver-downgrade
-   
-2. **Select the latest successful build**:
-   - Click on the most recent build with a ✅ green checkmark
-   - Example: https://ci.appveyor.com/project/Mateuzkl/forgottenserver-downgrade/builds/53194264
-
-3. **Download the artifacts**:
-   - Click on the **"Artifacts"** tab at the top
-   - Scroll down to find the **"zips"** folder
-   - Click on **"tfs.zip"** to download
-
-4. **Extract and replace**:
-   - Extract the downloaded `tfs.zip` file
-   - Copy all `.dll` files and `theforgottenserver-x64.exe` from the zip
-   - Paste them into your server folder (replace existing files)
-
-5. **Run the server**:
-   - Double-click `theforgottenserver-x64.exe` to start your server
-   - Done! 🎉
-
-**Note**: This method is perfect for quick testing or if you don't have a compiler installed.
+**Version: TFS 1.7 | Protocol: 8.60**  
+_Developed by MillhioreBT & Mateuzkl_
 
 ---
 
-## 🔨 How to Compile (Advanced Users)
+## 🚀 Overview
 
-### Compiling on Ubuntu 22.04
+This is a **custom modified version** of The Forgotten Server, downgraded to protocol 8.60 but running on the modern TFS 1.7 engine. It includes numerous exclusive systems and improvements.
+
+---
+
+## 🎮 New Systems & Features
+
+This custom version includes several enhanced systems and fully integrated features:
+
+### 🛡️ AutoLoot System
+- **Fully Integrated**: Built directly into the source for maximum performance.
+- **Commands**: 
+  - `!autoloot` - Opens the GUI management window.
+  - `!autoloot on/off` - Quickly toggle the system.
+  - `!autoloot clear` - Clear your loot list.
+- **Bank Integration**: Automatically deposits gold if "AutoMoney" mode is enabled.
+
+### ⚔️ Tier & Classification System
+- Items can have **Tier** and **Classification** attributes.
+- **Upgrades**: Tier system allows for item upgrades and strong progression.
+- **Classification**: System for categorizing items by rarity or power.
+- Fully integrated with Lua scripting API for custom RPG systems.
+
+### 🏆 Reward Boss System
+- **Tibia-like Rewards**: Global Tibia style boss reward system.
+- **Contribution Tracking**: Tracks damage done, damage taken, and healing done.
+- **Fair Distribution**: Distributes loot based on contribution score.
+- **Reward Chests**: Rewards are stored in reward containers (ID: 21518/21584).
+- Configurable reward rates via config manager.
+
+### 💤 Offline Training System
+- Train skills while offline using beds (Premium required).
+- **Skills**: Sword, Axe, Club, Distance, Shielding, and Magic Level.
+- **Commands**:
+  - `!train <skill>` - Select skill to train.
+  - `!sleep` - Start offline training (must be near a bed).
+- Automatically calculates gain based on logout duration (Max 12h).
+
+### 🏰 Guild Halls System
+- **Guild Leaders** can purchase special Guild Halls.
+- Paid via Guild Bank balance.
+- **Features**: Supports all house features (doors, beds, protection).
+- **Commands**:
+  - `!buyhouse` - Purchase a guild hall (Leader/Vice-Leader).
+  - `!leavehouse` - Abandon the hall.
+
+### 🛡️ House Protection System
+- **Per-house control**: Owners can toggle protection state.
+- **Secure**: When enabled, ONLY owner and guests can move items.
+- **Commands**:
+  - `!protecthouse on/off` - Toggle protection.
+  - `!houseguest add/remove/list` - Manage safe list.
+- Door messages show real ownership info.
+
+### ⚡ Improved Decay System
+- Enhanced decay system for better server performance.
+- Optimized item decay processing and state management.
+
+### 📺 Live Cast System
+- Stream your gameplay (`!cast`) for others to watch.
+- **Bonus**: Configurable EXP bonus for active casters.
+- **Spectators**: Can chat in the Live Cast channel.
+- **Commands**: `/spectators`, `/kick`, `/mute`, `/ban` (for broadcasters).
+
+---
+
+## 🛠️ Compilation
+
+### 🐧 Ubuntu 22.04 / 24.04
 
 ```bash
-sudo apt install git cmake build-essential libluajit-5.1-dev libmysqlclient-dev libboost-system1.74-dev libboost-iostreams1.74-dev libboost-filesystem1.74-dev libboost-locale1.74-dev libpugixml-dev libfmt-dev libssl-dev libspdlog-dev -y
-```
+# Install dependencies
+sudo apt install git cmake build-essential libluajit-5.1-dev libmysqlclient-dev libboost-system-dev libboost-iostreams-dev libboost-filesystem-dev libboost-locale-dev libpugixml-dev libfmt-dev libssl-dev libspdlog-dev -y
 
-```bash
-git clone -b Revscrypt-full --single-branch https://github.com/Mateuzkl/forgottenserver-downgrade-1.7-8.60.git revscrypt-project
-cd revscrypt-project
+# Clone and compile
+git clone -b Revscrypt-full --single-branch https://github.com/Mateuzkl/forgottenserver-downgrade-1.7-8.60.git
+cd forgottenserver-downgrade-1.7-8.60
 mkdir build && cd build
 cmake ..
 make -j$(nproc)
 ```
 
-### Compiling on Ubuntu 24.04
+### 🪟 Windows
 
-```bash
-sudo apt install git cmake build-essential libluajit-5.1-dev libmysqlclient-dev libboost-system1.83-dev libboost-iostreams1.83-dev libboost-filesystem1.83-dev libboost-locale1.83-dev libpugixml-dev libfmt-dev libssl-dev libspdlog-dev -y
-```
+Recommended usage with **vcpkg**. See [Wiki Guide](https://github.com/MillhioreBT/forgottenserver-downgrade/wiki/Compiling-on-Windows-(vcpkg)).
 
-```bash
-git clone -b Revscrypt-full --single-branch https://github.com/Mateuzkl/forgottenserver-downgrade-1.7-8.60.git revscrypt-project
-cd revscrypt-project
-mkdir build && cd build
-cmake ..
-make -j$(nproc)
-```
+---
 
-### Compiling on Windows (vcpkg)
+## 📦 Client Configuration (OTCv8)
 
-[Compiling on Windows](https://github.com/MillhioreBT/forgottenserver-downgrade/wiki/Compiling-on-Windows-(vcpkg))
+To fully utilize features like extended sprites and mounts, updates are required:
 
-## Client Update (OTCv8)
-
-If you are using **OTCv8** client, you need to enable the correct game features for version **860**.
-
-Add the following code to your client's `modules/game_features/game_features.lua` file:
+**1. Update `modules/game_features/game_features.lua`:**
 
 ```lua
 if(version >= 860) then
@@ -102,127 +124,17 @@ if(version >= 860) then
 end
 ```
 
-**Note:** Make sure to check your OTCv8 client version and adjust the version check accordingly.
+**2. Extended Sprites (GameSpritesU32)**
+- Download the sprites: [860-otcv-revisado2.rar](https://www.mediafire.com/file/iyas69j0sanddyr/860-otcv-revisado2.rar/file)
+- Extract `.spr` and `.dat` to your OTCv8 directory.
 
-### 📦 Using Extended Sprites (GameSpritesU32)
+> **Client With DLL (Mounts)**: [Download Client 8.60 + DLL](https://github.com/Mateuzkl/Client-cip-8.60-with-DLL-Mount).*
 
-To use the extended sprites feature, you need to extract the sprite files from the provided `.rar` archive:
+---
 
-1. **Download the sprite archive**: [Download 860-otcv-revisado2.rar](https://www.mediafire.com/file/iyas69j0sanddyr/860-otcv-revisado2.rar/file)
-   - **Note**: This file is specifically revised for **OTCv8** only.
-2. **Extract the files**: Extract the `.spr` and `.dat` files from the archive
-3. **Copy to OTCv8**: Place the extracted `.spr` and `.dat` files into your OTCv8 client directory
-4. **Enable the feature**: Make sure `g_game.enableFeature(GameSpritesU32)` is enabled in your `game_features.lua` file (already enabled above)
-5. **Enjoy**: Start your client and use the extended sprites!
+## 🐛 Contributing & Issues
 
-**Important**: The `.spr` and `.dat` files must match the client version (860) for proper functionality.
+Found a bug? Please report it on our [Issues Page](https://github.com/MillhioreBT/forgottenserver-downgrade/issues).
+Pull requests are welcome!
 
-## 🧩 Client With DLL (Extensions & Mounts)
-
-**[📥 Download Client (v8.60 with DLL & Mounts)](https://github.com/Mateuzkl/Client-cip-8.60-with-DLL-Mount)**
-
-If you are using the custom Client with DLL injection (for Mounts and other extensions), **you MUST configure your server correctly** to avoid player disconnections (kicks).
-
-The DLL requires the server to send a periodic verification packet ("DLL Check"). If disabled, the client will disconnect.
-
-**Required `config.lua` settings:**
-
-```lua
--- DLL Check Configuration
--- Sends the DLL verification packet. REQUIRED 'true' for the DLL Client to work.
-dllCheckKick = true
-
--- Time in seconds between checks.
--- CRITICAL: Must be set to 5 seconds to match the DLL's internal heartbeat.
-dllCheckKickTime = 5
-```
-
-## 🎮 New Systems & Features
-
-This custom version includes several enhanced systems and features:
-
-### ⚔️ Tier & Classification System
-- Items can have **Tier** and **Classification** attributes
-- Tier system allows for item upgrades and progression
-- Classification system for categorizing items
-- Fully integrated with Lua scripting API
-
-### 🏆 Reward Boss System
-- **Reward Boss** system similar to Global Tibia
-- Tracks player contribution (damage done, damage taken, healing done)
-- Distributes rewards based on contribution score
-- Supports multiple contributors with proportional loot distribution
-- Rewards are stored in reward containers (ID: 21518) and reward chests (ID: 21584)
-- Configurable reward rates via config manager
-
-### 💤 Offline Training System
-- Train skills while offline using beds
-- Available skills: Sword, Axe, Club, Distance, Shielding, and Magic Level
-- Premium account required
-- Commands:
-  - `!train <skill>` - Select skill to train (sword, axe, club, distance, shielding, magic)
-  - `!sleep` - Start offline training (must be near a bed inside a house)
-- Automatically calculates training time based on logout duration
-- Maximum training time: 12 hours per session
-
-### 🏰 Guild Halls System
-- **Guild Leaders** and **Vice-Leaders** can purchase guild halls
-- Guild halls are purchased using guild bank balance
-- Only one guild hall per guild
-- Guild halls support all house features (doors, beds, etc.)
-- Commands:
-  - `!buyhouse` - Purchase a guild hall (Leader/Vice-Leader only)
-  - `!leavehouse` - Leave/abandon a guild hall (Leader/Vice-Leader only)
-
-### 🛡️ House Protection System
-- **Per-house protection** system (not global)
-- House owners can enable/disable protection for their specific house
-- When protection is enabled, only the owner and authorized guests can move items
-- When protection is disabled, anyone can move items
-- Protection state persists across server restarts
-- Commands:
-  - `!protecthouse on` - Enable protection for your house
-  - `!protecthouse off` - Disable protection for your house
-  - `!protecthouse` - Check current protection status
-  - `!houseguest add <name>` - Add a player to the protection guest list
-  - `!houseguest remove <name>` - Remove a player from the protection guest list
-  - `!houseguest list` - List all protection guests
-- **Guild Halls**: Leaders and Vice-Leaders can use protection commands
-- **Normal Houses**: Only the owner can use protection commands
-- Door messages show house ownership when clicking on house doors
-
-### ⚡ Improved Decay System
-- Enhanced decay system for better performance
-- Optimized item decay processing
-- Improved decay state management
-- Better handling of decay timers and item removal
-
-### 📺 Live Cast System
-- Stream your gameplay for other players to watch
-- Works with both **OTCv8** and **CIP 8.60** clients
-- Spectators can chat in the Live Cast channel
-- **Cast EXP Bonus**: Earn extra experience while streaming (configurable)
-- Commands:
-  - `!cast` - Start live casting
-  - `!cast` - Stop live casting
-  - `/commands` - View spectator commands (in cast channel)
-  - `/spectators` - View current spectators
-  - `/kick <name>` - Kick a spectator
-  - `/mute <name>` - Mute a spectator
-  - `/ban <name>` - Ban a spectator
-
-**config.lua settings:**
-```lua
--- Cast EXP Bonus
-castExpBonus = true
-castExpBonusPercent = 5
-```
-
-## Contributing
-
-Pull requests are welcome.
-Just make sure you are using english/spanish language.
-
-## Bugs
-
-If you find any bug and believe it should be fixed, submit an issue in [issues section](https://github.com/MillhioreBT/forgottenserver-downgrade/issues), just please follow the issue template.
+_Maintained by Mateuzkl._

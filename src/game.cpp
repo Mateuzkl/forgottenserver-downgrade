@@ -115,11 +115,11 @@ void Game::setGameState(GameState_t newState)
 		}
 
 		case GAME_STATE_SHUTDOWN: {
-			LOG_INFO("Starting shutdown sequence...");
+			LOG_INFO(">> Starting shutdown sequence...");
 			
 			g_globalEvents->save();
 			g_globalEvents->shutdown();
-			LOG_INFO("Global events saved and shutdown.");
+			LOG_INFO(">> Global events saved and shutdown.");
 
 			// kick all players that are still online
 			auto it = players.begin();
@@ -127,15 +127,15 @@ void Game::setGameState(GameState_t newState)
 				it->second->kickPlayer(true);
 				it = players.begin();
 			}
-			LOG_INFO("All players kicked.");
+			LOG_INFO(">> All players kicked.");
 
 			// Clear all spawns and release monster memory
 			map.spawns.clear();
 
 			saveMotdNum();
-			LOG_INFO("Saving game state...");
+			LOG_INFO(">> Saving game state...");
 			saveGameState();
-			LOG_INFO("Game state saved successfully.");
+			LOG_INFO(">> Game state saved successfully.");
 
 			g_dispatcher.addTask([this]() { shutdown(); });
 
@@ -145,7 +145,7 @@ void Game::setGameState(GameState_t newState)
 #ifdef STATS_ENABLED
 			g_stats.stop();
 #endif
-			LOG_INFO("Shutdown complete.");
+			LOG_INFO(">> Shutdown complete.");
 			break;
 		}
 
@@ -179,7 +179,7 @@ void Game::saveGameState()
 		setGameState(GAME_STATE_MAINTAIN);
 	}
 
-	LOG_INFO("Saving server...");
+	LOG_INFO(">> Saving server...");
 
 	if (!saveGameStorageValues()) {
 		LOG_ERROR("[Error - Game::saveGameState] Failed to save game storage values.");
@@ -4821,7 +4821,7 @@ void Game::shutdown()
 
 	ConnectionManager::getInstance().closeAll();
 
-	LOG_INFO("Shutdown complete.");
+	LOG_INFO(">> Shutdown complete.");
 }
 
 void Game::cleanup()

@@ -1,4 +1,5 @@
 #include <fstream>
+#include <fmt/color.h>
 
 #include "otpch.h"
 
@@ -185,7 +186,7 @@ void Stats::parseSpecialQueue(std::forward_list <Stat*>& queue) {
 void Stats::writeSlowInfo(const std::string& file, uint64_t executionTime, const std::string& description, const std::string& extraDescription) {
 	std::ofstream out(std::string("data/logs/stats/") + file, std::ofstream::out | std::ofstream::app);
 	if (!out.is_open()) {
-		std::clog << "Can't open " << std::string("data/logs/stats/") + file << " (check if directory exists)" << std::endl;
+		LOG_STATS_WARNING("Can't open {} (check if directory exists)", (std::string("data/logs/stats/") + file));
 		return;
 	}
 	
@@ -206,7 +207,7 @@ void Stats::writeStats(const std::string& file, const statsMap& stats, const std
 
 	std::ofstream out(std::string("data/logs/stats/") + file, std::ofstream::out | std::ofstream::app);
 	if (!out.is_open()) {
-		std::clog << "Can't open " << std::string("data/logs/stats/") + file << " (check if directory exists)" << std::endl;
+		LOG_STATS_WARNING("Can't open {} (check if directory exists)", (std::string("data/logs/stats/") + file));
 		return;
 	}
 	if(stats.empty()) {

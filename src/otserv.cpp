@@ -130,7 +130,7 @@ void mainLoader(ServiceManager* services)
 		return;
 	}
 
-	LOG_INFO(fmt::format(" MySQL {}", Database::getClientVersion()));
+	LOG_INFO(fmt::format(">> MySQL {}", Database::getClientVersion()));
 
 	// run database manager
 	LOG_INFO(">> Running database manager");
@@ -145,7 +145,7 @@ void mainLoader(ServiceManager* services)
 	DatabaseManager::updateDatabase();
 
 	if (getBoolean(ConfigManager::OPTIMIZE_DATABASE) && !DatabaseManager::optimizeTables()) {
-		LOG_INFO("> No tables were optimized.");
+		LOG_INFO(">> No tables were optimized.");
 	}
 
 	// load vocations
@@ -161,7 +161,7 @@ void mainLoader(ServiceManager* services)
 		startupErrorMessage("Unable to load items (OTB)!");
 		return;
 	}
-	LOG_INFO(fmt::format("OTB v{:d}.{:d}.{:d}", Item::items.majorVersion, Item::items.minorVersion,
+	LOG_INFO(fmt::format(">> OTB v{:d}.{:d}.{:d}", Item::items.majorVersion, Item::items.minorVersion,
 	                         Item::items.buildNumber));
 
 	if (!Item::items.loadFromXml()) {
@@ -204,7 +204,7 @@ void mainLoader(ServiceManager* services)
 		                getString(ConfigManager::WORLD_TYPE)));
 		return;
 	}
-	LOG_INFO(boost::algorithm::to_upper_copy(worldType));
+	LOG_INFO(fmt::format(">> {}", boost::algorithm::to_upper_copy(worldType)));
 
 	LOG_INFO(">> Loading map");
 	if (!g_game.loadMainMap(std::string{getString(ConfigManager::MAP_NAME)})) {
@@ -356,7 +356,7 @@ void printServerVersion()
 	LOG_INFO("");
 
 	LOG_INFO(fmt::format("A server developed by {}", STATUS_SERVER_DEVELOPERS));
-	LOG_INFO("Downgraded and further developed by Nekiro / MillhioreBT");
+	LOG_INFO(fmt::format(fg(fmt::color::red), "Downgraded and further developed by Nekiro / MillhioreBT"));
 	LOG_INFO("Visit our forum for updates, support, and resources: http://otland.net/.");
 	LOG_INFO("");
 	printCustomInfo();
@@ -366,8 +366,8 @@ void printServerVersion()
 void printCustomInfo()
 {
 	LOG_INFO("");
-	LOG_INFO("Further developed by Mateuzkl (Custom Modified Version)");
-	LOG_INFO("Repository ORIGINAL: https://github.com/MillhioreBT/forgottenserver-downgrade");
-	LOG_INFO("Repository CUSTOM: https://github.com/Mateuzkl/forgottenserver-downgrade");
+	LOG_INFO(fmt::format(fg(fmt::color::red), "Further developed by Mateuzkl (Custom Modified Version)"));
+	LOG_INFO(fmt::format(fg(fmt::color::yellow), "Repository ORIGINAL: https://github.com/MillhioreBT/forgottenserver-downgrade"));
+	LOG_INFO(fmt::format(fg(fmt::color::yellow), "Repository CUSTOM: https://github.com/Mateuzkl/forgottenserver-downgrade"));
 	LOG_INFO("");
 }

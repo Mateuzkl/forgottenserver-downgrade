@@ -12,7 +12,7 @@ function CreateMapItem(tablename)
 			end
 		end
 	end
-	logInfo("Created all items in the map")
+	logInfo(">> Created all items in the map")
 end
 
 -- These functions load the action/unique tables on the map
@@ -150,9 +150,9 @@ function loadLuaMapBookDocument(tablename)
 		end
 	end
 	if totals[1] == totals[2] then
-		logInfo("Loaded ".. totals[2] .." books and documents in the map")
+		logInfo(">> Loaded ".. totals[2] .." books and documents in the map")
 	else
-		logInfo("Loaded ".. totals[2] .." of ".. totals[1] .." books and documents in the map")
+		logInfo(">> Loaded ".. totals[2] .." of ".. totals[1] .." books and documents in the map")
 	end
 end
 
@@ -164,7 +164,7 @@ function updateKeysStorage(tablename)
 		return true
 	end
 
-	logInfo("Updating quest keys storages...")
+	logInfo(">> Updating quest keys storages...")
 	if oldUpdate < 1 then
 		oldUpdate = 1
 	end
@@ -174,5 +174,5 @@ function updateKeysStorage(tablename)
 		end
 	end
 	setGlobalStorage(GlobalStorage.KeysUpdate, newUpdate)
-	logInfo("Storage Keys Updated")
+	logInfo(">> Storage Keys Updated")
 end

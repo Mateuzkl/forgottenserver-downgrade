@@ -132,7 +132,7 @@ void Raids::shutdown()
     }
     raidList.clear();
     
-    std::cout << "[Raids] Shutdown completed" << std::endl;
+    LOG_INFO("[Raids] Shutdown completed");
 }
 
 void Raids::checkRaids()

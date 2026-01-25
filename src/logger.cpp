@@ -123,6 +123,12 @@ namespace {
 					statsLoggerConsole_ = std::make_shared<spdlog::logger>("tfs_stats_console", console_sink_stats);
 					statsLoggerConsole_->set_level(spdlog::level::info);
 
+					auto console_sink_stats_warning = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+					console_sink_stats_warning->set_pattern("[%Y-%m-%d %H:%M:%S.%e] %v");
+					
+					statsWarningLogger_ = std::make_shared<spdlog::logger>("tfs_stats_warning", console_sink_stats_warning);
+					statsWarningLogger_->set_level(spdlog::level::info);
+
 					logger_->info("=== TFS Logger Initialized ===");
 					logger_->info("Log file: {}", timestampedPath_);
 					logger_->flush();
@@ -182,6 +188,26 @@ namespace {
 				}
 			}
 
+			void statsWarning(std::string_view msg) override {
+				if (statsWarningLogger_) {
+					// Pattern is [%Y-%m-%d %H:%M:%S.%e] %v
+					// We manualy inject the colored label
+					statsWarningLogger_->info("{} {}", fmt::format(fg(fmt::color::yellow), "[WARNING STATS]"), msg);
+				}
+
+				// Also log to main file if needed, similar to INFO level but with our tag
+				if (logger_) {
+					for (auto& sink : logger_->sinks()) {
+						auto fileSink = std::dynamic_pointer_cast<spdlog::sinks::rotating_file_sink_mt>(sink);
+						if (fileSink) {
+							// Using info level for file, but tag makes it clear
+							spdlog::details::log_msg logMsg("tfs", spdlog::level::warn, fmt::format("[WARNING STATS] {}", msg));
+							fileSink->log(logMsg);
+						}
+					}
+				}
+			}
+
 		protected:
 			void log(LogLevel level, std::string_view msg) override {
 				if (!logger_ || !logger_->should_log(toSpd(level))) return;
@@ -205,6 +231,7 @@ namespace {
 		private:
 			std::shared_ptr<spdlog::logger> logger_;
 			std::shared_ptr<spdlog::logger> statsLoggerConsole_;
+			std::shared_ptr<spdlog::logger> statsWarningLogger_;
 			std::string timestampedPath_;
 	};
 
@@ -255,7 +282,7 @@ void shutdownLogger() {
 
 		if (loggerInstance) {
 			loggerInstance->info("=== TFS Server Shutdown ===");
-			loggerInstance->info("Shutdown initiated at {}", std::chrono::duration_cast<std::chrono::seconds>(
+			loggerInstance->info(">> Shutdown initiated at {}", std::chrono::duration_cast<std::chrono::seconds>(
 				std::chrono::system_clock::now().time_since_epoch())
 				.count());
 		}
@@ -303,7 +330,7 @@ void loggerSignalHandler(int signal) {
 
 	// Use write() for signal-safe output to stderr
 	const char prefix[] = "[CRITICAL] Signal received: ";
-	const char suffix[] = ", shutting down\n";
+	const char suffix[] = ", >> shutting down\n";
 	write(STDERR_FILENO, prefix, sizeof(prefix) - 1);
 	write(STDERR_FILENO, signalName, strlen(signalName));
 	write(STDERR_FILENO, suffix, sizeof(suffix) - 1);
