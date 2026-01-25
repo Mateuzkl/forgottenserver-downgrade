@@ -27,6 +27,11 @@ This custom version includes several enhanced systems and fully integrated featu
   - `!autoloot clear` - Clear your loot list.
 - **Bank Integration**: Automatically deposits gold if "AutoMoney" mode is enabled.
 
+### ⚔️ Guild War System
+- **Real Guild Wars**: Fully working war system with emblems.
+- **Commands**: `/war invite, guildname`, `/war accept, guildname`.
+- **Emblems**: Ally, Member, and Enemy emblems update in real-time.
+
 ### ⚔️ Tier & Classification System
 - Items can have **Tier** and **Classification** attributes.
 - **Upgrades**: Tier system allows for item upgrades and strong progression.
@@ -43,10 +48,9 @@ This custom version includes several enhanced systems and fully integrated featu
 ### 💤 Offline Training System
 - Train skills while offline using beds (Premium required).
 - **Skills**: Sword, Axe, Club, Distance, Shielding, and Magic Level.
-- **Commands**:
-  - `!train <skill>` - Select skill to train.
-  - `!sleep` - Start offline training (must be near a bed).
+- **Usage**: simply click on the bed to start training.
 - Automatically calculates gain based on logout duration (Max 12h).
+- **Configuration**: efficiency and vocation rates configurable in config.lua.
 
 ### 🏰 Guild Halls System
 - **Guild Leaders** can purchase special Guild Halls.
