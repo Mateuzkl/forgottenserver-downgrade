@@ -151,7 +151,9 @@ Hoje marca um ponto importante no desenvolvimento deste projeto. Com mais de **5
 
 Entretanto, até o momento, não houve colaboração significativa da comunidade — sem report de bugs, sem Pull Requests e sem ajuda nas correções. Por conta disso, o desenvolvimento ativo está sendo **pausado** hoje. A base permanecerá como está, com todo o conteúdo atual.
 
-Possuo diversos sistemas bônus prontos, mas eles não serão adicionados gratuitamente devido à falta de apoio.
+Possuo diversos sistemas bônus de alto nível prontos (como **Market Idêntico ao Global**, **Forge System**, entre outros). Porém, **não irei liberá-los gratuitamente**. O desenvolvimento e adaptação desses sistemas exigem muito trabalho e dedicação, e não faz sentido entregar tudo de graça sem retorno. 
+
+**Se a comunidade ajudar financeiramente, eu trarei esses sistemas para a base.** Caso contrário, o projeto segue como está.
 
 ### 🤝 Como Apoiar o Projeto
 
