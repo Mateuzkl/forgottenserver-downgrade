@@ -142,3 +142,24 @@ Found a bug? Please report it on our [Issues Page](https://github.com/MillhioreB
 Pull requests are welcome!
 
 _Maintained by Mateuzkl._
+
+---
+
+## 📢 Estado do Projeto e Doações
+
+Hoje marca um ponto importante no desenvolvimento deste projeto. Com mais de **500 commits** realizados, entregamos uma base robusta e repleta de funcionalidades exclusivas.
+
+Entretanto, até o momento, não houve colaboração significativa da comunidade — sem report de bugs, sem Pull Requests e sem ajuda nas correções. Por conta disso, o desenvolvimento ativo está sendo **pausado** hoje. A base permanecerá como está, com todo o conteúdo atual.
+
+Possuo diversos sistemas bônus prontos, mas eles não serão adicionados gratuitamente devido à falta de apoio.
+
+### 🤝 Como Apoiar o Projeto
+
+Se você deseja ver este projeto evoluir, receber novas atualizações, correções e sistemas exclusivos, sua contribuição é essencial. Doações incentivam a manutenção e o aprimoramento contínuo da base TFS 1.7.
+
+**Chave PIX (Aleatória) para Doações:**
+Basta copiar a chave abaixo e colar no seu banco na opção **Chave Aleatória**. Você pode doar o valor que quiser!
+
+`f8761afe-5581-417d-afc8-08cac410a1b0`
+
+Agradeço imensamente a quem puder contribuir para manter este projeto vivo e melhorando!
