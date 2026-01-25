@@ -39357,18 +39357,90 @@
 	<item id="31193" article="a" name="ritual sword" />
 	<item id="31194" article="a" name="ritual stone tablet" />
 	<item id="31195" article="a" name="bonelord statue" />
-	<item id="31196" article="a" name="training sword" />
-	<item id="31197" article="a" name="training axe" />
-	<item id="31198" article="a" name="training club" />
-	<item id="31199" article="a" name="training bow" />
-	<item id="31200" article="a" name="training rod" />
-	<item id="31201" article="a" name="training wand" />
-	<item id="31208" article="an" name="exercise sword" />
-	<item id="31209" article="an" name="exercise axe" />
-	<item id="31210" article="an" name="exercise club" />
-	<item id="31211" article="an" name="exercise bow" />
-	<item id="31212" article="an" name="exercise rod" />
-	<item id="31213" article="an" name="exercise wand" />
+	<item id="31196" article="a" name="training sword">
+		<attribute key="weaponType" value="sword" />
+		<attribute key="charges" value="500" />
+		<attribute key="weight" value="1800" />
+		<attribute key="showcharges" value="true" />
+	</item>
+	<item id="31197" article="a" name="training axe">
+		<attribute key="weaponType" value="axe" />
+		<attribute key="charges" value="500" />
+		<attribute key="weight" value="1800" />
+		<attribute key="showcharges" value="true" />
+	</item>
+	<item id="31198" article="a" name="training club">
+		<attribute key="weaponType" value="club" />
+		<attribute key="charges" value="500" />
+		<attribute key="weight" value="1800" />
+		<attribute key="showcharges" value="true" />
+	</item>
+	<item id="31199" article="a" name="training bow">
+		<attribute key="weaponType" value="distance" />
+		<attribute key="shootType" value="arrow" />
+		<attribute key="range" value="5" />
+		<attribute key="charges" value="500" />
+		<attribute key="weight" value="1800" />
+		<attribute key="showcharges" value="true" />
+	</item>
+	<item id="31200" article="a" name="training rod">
+		<attribute key="weaponType" value="wand" />
+		<attribute key="shootType" value="smallice" />
+		<attribute key="range" value="5" />
+		<attribute key="charges" value="500" />
+		<attribute key="weight" value="1800" />
+		<attribute key="showcharges" value="true" />
+	</item>
+	<item id="31201" article="a" name="training wand">
+		<attribute key="weaponType" value="wand" />
+		<attribute key="shootType" value="fire" />
+		<attribute key="range" value="5" />
+		<attribute key="charges" value="500" />
+		<attribute key="weight" value="1800" />
+		<attribute key="showcharges" value="true" />
+	</item>
+	<item id="31208" article="an" name="exercise sword">
+		<attribute key="weaponType" value="sword" />
+		<attribute key="charges" value="500" />
+		<attribute key="weight" value="1800" />
+		<attribute key="showcharges" value="true" />
+	</item>
+	<item id="31209" article="an" name="exercise axe">
+		<attribute key="weaponType" value="axe" />
+		<attribute key="charges" value="500" />
+		<attribute key="weight" value="1800" />
+		<attribute key="showcharges" value="true" />
+	</item>
+	<item id="31210" article="an" name="exercise club">
+		<attribute key="weaponType" value="club" />
+		<attribute key="charges" value="500" />
+		<attribute key="weight" value="1800" />
+		<attribute key="showcharges" value="true" />
+	</item>
+	<item id="31211" article="an" name="exercise bow">
+		<attribute key="weaponType" value="distance" />
+		<attribute key="shootType" value="arrow" />
+		<attribute key="range" value="5" />
+		<attribute key="charges" value="500" />
+		<attribute key="weight" value="1800" />
+		<attribute key="showcharges" value="true" />
+	</item>
+	<item id="31212" article="an" name="exercise rod">
+		<attribute key="weaponType" value="wand" /> <!-- Using wand type for rods/wands as per convention or specific server needs, keeping consistent with user's rod edit which used wand -->
+		<attribute key="shootType" value="smallice" />
+		<attribute key="range" value="5" />
+		<attribute key="charges" value="500" />
+		<attribute key="weight" value="1800" />
+		<attribute key="showcharges" value="true" />
+	</item>
+	<item id="31213" article="an" name="exercise wand">
+		<attribute key="weaponType" value="wand" />
+		<attribute key="shootType" value="fire" />
+		<attribute key="range" value="5" />
+		<attribute key="charges" value="500" />
+		<attribute key="weight" value="1800" />
+		<attribute key="showcharges" value="true" />
+	</item>
 	<item id="31214" article="an" name="exercise dummy" />
 	<item fromid="31215" toid="31216" article="a" name="ferumbras exercise dummy" />
 	<item fromid="31217" toid="31218" article="a" name="demon exercise dummy" />

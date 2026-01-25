@@ -998,6 +998,9 @@ std::string_view getReturnMessage(ReturnValue value)
 		case RETURNVALUE_PLAYERISNOTINVITED:
 			return "You are not invited.";
 
+		case RETURNVALUE_CANNOTMOVEEXERCISEWEAPON:
+			return "You cannot trade or drop this training weapon.";
+
 		case RETURNVALUE_ONLYGUILDMEMBERSMAYENTER:
 			return "Only members of this guild may enter.";
 

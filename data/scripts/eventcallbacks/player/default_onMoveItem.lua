@@ -1,7 +1,48 @@
-local event = Event()
+local restrictedItems = {
+	[31208] = true, [31209] = true, [31210] = true,
+	[37941] = true, [37942] = true, [37943] = true,
+	[31211] = true, [37944] = true,
+	[31212] = true, [37945] = true,
+	[31213] = true, [37946] = true,
+	[31196] = true, [31197] = true, [31198] = true,
+	[31199] = true,
+	[31200] = true,
+	[31201] = true
+}
 
+local function containsRestrictedItem(container)
+	local items = container:getItems()
+	for _, item in ipairs(items) do
+		if restrictedItems[item:getId()] then
+			return true
+		end
+		
+		local subContainer = item:getContainer()
+		if subContainer and containsRestrictedItem(subContainer) then
+			return true
+		end
+	end
+	return false
+end
+
+local event = Event()
 event.onMoveItem = function(self, item, count, fromPosition, toPosition,
                             fromCylinder, toCylinder)
+	local isRestricted = restrictedItems[item:getId()]
+	
+	if not isRestricted then
+		local container = item:getContainer()
+		if container and containsRestrictedItem(container) then
+			isRestricted = true
+		end
+	end
+
+	if isRestricted then
+		if not toCylinder or (toCylinder ~= self and (not toCylinder:isItem() or toCylinder:getTopParent() ~= self)) then
+			return RETURNVALUE_CANNOTMOVEEXERCISEWEAPON
+		end
+	end
+
 	if toPosition.x ~= CONTAINER_POSITION then return true end
 
 	if item:getTopParent() == self and (toPosition.y & 0x40) == 0 then
@@ -32,5 +73,4 @@ event.onMoveItem = function(self, item, count, fromPosition, toPosition,
 
 	return true
 end
-
 event:register()
