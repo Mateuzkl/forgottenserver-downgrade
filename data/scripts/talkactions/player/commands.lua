@@ -9,7 +9,7 @@ local accountTitles = {
 local commands = TalkAction("!commands", "/commands")
 
 function commands.onSay(player)
-	local talkactions = Game.getTalkactions()
+	local talkactions = Game.getTalkActions()
 	if #talkactions == 0 then
 		player:sendTextMessage(MESSAGE_STATUS_CONSOLE_BLUE,
 		                       "There are no talkactions.")

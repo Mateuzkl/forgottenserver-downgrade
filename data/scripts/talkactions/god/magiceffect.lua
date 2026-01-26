@@ -1,4 +1,4 @@
-local talkaction = TalkAction("!z")
+local talkaction = TalkAction("/z")
 
 function talkaction.onSay(player, words, param)
 	local effect = tonumber(param)

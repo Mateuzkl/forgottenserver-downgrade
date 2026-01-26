@@ -6,11 +6,15 @@ condition:setTicks(-1)
 function talkaction.onSay(player, words, param)
 	local itemType = ItemType(param)
 	if itemType:getId() == 0 then
-		itemType = ItemType(tonumber(param))
-		if itemType:getId() == 0 then
-			player:sendCancelMessage("There is no item with that id or name.")
-			return false
+		local id = tonumber(param)
+		if id then
+			itemType = ItemType(id)
 		end
+	end
+
+	if not itemType or itemType:getId() == 0 then
+		player:sendCancelMessage("There is no item with that id or name.")
+		return false
 	end
 
 	condition:setOutfit(itemType:getId())
