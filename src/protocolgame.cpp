@@ -2794,6 +2794,11 @@ void ProtocolGame::sendOutfitWindow()
 		}
 	}
 
+	std::sort(protocolOutfits.begin(), protocolOutfits.end(),
+		[](const ProtocolOutfit& a, const ProtocolOutfit& b) {
+			return a.lookType < b.lookType;
+		});
+
 	if (isOTCv8) {
 		msg.addByte(static_cast<uint8_t>(protocolOutfits.size()));
 	} else {
