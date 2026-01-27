@@ -1122,13 +1122,11 @@ void Creature::removeCondition(ConditionType_t type, ConditionId_t conditionId, 
 			}
 		}
 
-		condition->endCondition(this);
 		it = conditions.erase(it);
-		// unique_ptr deletes automatically
 
-		it = conditions.erase(it);
-		// unique_ptr handles deletion automatically
 		condition->endCondition(this);
+		delete condition;
+
 		onEndCondition(type);
 	}
 }
