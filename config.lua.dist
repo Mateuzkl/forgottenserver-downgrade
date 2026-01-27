@@ -189,6 +189,7 @@ manaGainColour = 5
 manaLossColour = 5
 offlineTrainingThreshold = 600
 checkDuplicateStorageKeys = false
+npcsUsingBankMoney = true
 
 -- VIP and Depot limits
 -- NOTE: you can set custom limits per group in data/XML/groups.xml

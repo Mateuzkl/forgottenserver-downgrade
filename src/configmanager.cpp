@@ -314,6 +314,7 @@ bool ConfigManager::load()
 	booleans[Boolean::CHECK_DUPLICATE_STORAGE_KEYS] = getGlobalBoolean(L, "checkDuplicateStorageKeys", false);
 	booleans[Boolean::DLL_CHECK_KICK] = getGlobalBoolean(L, "dllCheckKick", false);
 	booleans[Boolean::RESET_SYSTEM_ENABLED] = getGlobalBoolean(L, "resetSystemEnabled", false); // reset system
+	booleans[Boolean::NPCS_USING_BANK_MONEY] = getGlobalBoolean(L, "npcsUsingBankMoney", false);
 	
 	// Admin Config
 	booleans[Boolean::ADMIN_LOCALHOST_ONLY] = getGlobalBoolean(L, "adminLocalhostOnly", true);
