@@ -26,11 +26,9 @@ public:
 
 	void writeMessageLength() noexcept { add_header(info.length); }
 
-	void addCryptoHeader(bool addChecksum, bool compression = false) noexcept
+	void addCryptoHeader(const bool addChecksum) noexcept
 	{
-		if (compression) {
-			add_header<uint32_t>(0);
-		} else if (addChecksum) {
+		if (addChecksum) {
 			add_header(adlerChecksum(&buffer[outputBufferStart], info.length));
 		}
 		writeMessageLength();

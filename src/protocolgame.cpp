@@ -1864,11 +1864,21 @@ void ProtocolGame::sendSaleItemList(const std::list<ShopInfo>& shop)
 	msg.addByte(0x7B);
 
 	uint16_t moneyType = player->shopOwner ? player->shopOwner->getMoneyType() : 0;
+	uint64_t money = 0;
 
 	if (moneyType == 0) {
-		msg.add<uint32_t>(player->getMoney());
+		money = player->getMoney();
+		if (getBoolean(ConfigManager::NPCS_USING_BANK_MONEY)) {
+			money += player->getBankBalance();
+		}
 	} else {
-		msg.add<uint32_t>(player->getItemTypeCount(moneyType));
+		money = player->getItemTypeCount(moneyType);
+	}
+
+	if (isOTCv8) {
+		msg.add<uint64_t>(money);
+	} else {
+		msg.add<uint32_t>(money);
 	}
 
 	std::map<uint16_t, uint32_t> saleMap;
@@ -2793,6 +2803,11 @@ void ProtocolGame::sendOutfitWindow()
 			break;
 		}
 	}
+
+	std::sort(protocolOutfits.begin(), protocolOutfits.end(),
+		[](const ProtocolOutfit& a, const ProtocolOutfit& b) {
+			return a.lookType < b.lookType;
+		});
 
 	if (isOTCv8) {
 		msg.addByte(static_cast<uint8_t>(protocolOutfits.size()));
